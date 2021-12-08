@@ -1,7 +1,7 @@
 from typing import Optional
 
-from servey.handler import app_handler, merged_app_handler
-from servey.handler.handler_abc import HandlerABC
+from old.handler import app_handler, merged_app_handler
+from old.handler.handler_abc import HandlerABC
 
 priority = 100
 

@@ -1,5 +1,5 @@
-from servey.client.http_service_client_abc import HttpServiceClientABC
-from servey.handler.action_handler import service_handler
+from old.client.http_service_client_abc import HttpServiceClientABC
+from old.handler.action_handler import service_handler
 
 '''
 @http_callable(url="https://localhost:3000/say_hello")
