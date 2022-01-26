@@ -1,13 +1,11 @@
 import importlib
-import os
 import pkgutil
 from dataclasses import field, dataclass
 from typing import Dict, Optional
 
-from servey.action import Action
-from servey.connector.connector_abc import ConnectorABC
-from servey.publisher import Publisher
-from servey.wrapper import find_actions, find_publishers
+from servey import Action
+from servey import ConnectorABC
+from servey import Publisher
 
 
 @dataclass
@@ -18,8 +16,6 @@ class ServeyContext:
     publishers_by_name: Dict[str, Publisher] = field(default_factory=dict)
     connector: ConnectorABC = None
 
-
-FACTORY_ENV_VAR = 'SERVEY_CONTEXT_FACTORY'
 
 CONFIG_MODULE_PREFIX = 'servey_config_'
 _default_context = None
@@ -43,3 +39,5 @@ def new_default_servey_context() -> ServeyContext:
     if context.publishers_by_name and not context.connector:
         raise ValueError('publishers_require_connector')
     return context
+
+

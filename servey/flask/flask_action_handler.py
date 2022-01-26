@@ -10,7 +10,7 @@ from marshy.types import ExternalItemType
 
 from servey.action import Action
 from servey.cache.cache_header import CacheHeader
-from servey.flask.handler.flask_handler_abc import FlaskHandlerABC
+from servey.flask.flask_handler_abc import FlaskHandlerABC
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class FlaskActionHandler(FlaskHandlerABC):
         flask.add_url_rule(rule=f"/{self.action.name.replace('_', '-')}",
                            endpoint=self.action.name,
                            view_func=self.invoker,
-                           methods=[self.action.action_type.value])
+                           methods=[m.value for m in self.action.http_methods])
 
     def invoker(self):
         from flask import request

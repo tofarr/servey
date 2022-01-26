@@ -1,10 +1,10 @@
 from enum import Enum
 
 
-class ActionType(Enum):
+class HttpMethod(Enum):
     GET = 'GET'
     POST = 'POST'
     PUT = 'PUT'
-    PATH = 'PATCH'
+    PATCH = 'PATCH'
     DELETE = 'DELETE'
     HEAD = 'HEAD'

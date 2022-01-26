@@ -4,7 +4,7 @@ from typing import Optional
 from flask import Flask
 
 from servey.servey_context import get_default_servey_context
-from servey.flask.handler.flask_action_handler import FlaskActionHandler
+from servey.flask.flask_action_handler import FlaskActionHandler
 
 
 def configure_flask(app: Optional[Flask] = None,
@@ -17,3 +17,13 @@ def configure_flask(app: Optional[Flask] = None,
         handler = FlaskActionHandler(action, auth_cookie_name)
         handler.register(app)
     return app
+
+
+if __name__ == '__main__':
+    import os
+    app = configure_flask()
+    app.run(
+        host=os.environ.get('FLASK_HOST') or '',
+        port=int(os.environ.get('FLASK_PORT') or '8000'),
+        debug=True
+    )

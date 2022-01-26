@@ -2,16 +2,19 @@ import importlib
 import inspect
 import logging
 import pkgutil
-from typing import Optional, Callable, Iterator
+from typing import Optional, Callable, Iterator, Iterable
 
 from marshy import get_default_context
 from marshy.marshaller_context import MarshallerContext
 from schemey.schema_context import SchemaContext, get_default_schema_context
 
 from servey.action import action, Action
-from servey.action_type import ActionType
+from servey.authorizer.authorizer_abc import AuthorizerABC
+from servey.authorizer.no_authorizer import NoAuthorizer
 from servey.cache.cache_control_abc import CacheControlABC
 from servey.cache.no_cache_control import NoCacheControl
+from servey.graphql_type import GraphqlType
+from servey.http_method import HttpMethod
 from servey.publisher import Publisher
 
 logger = logging.getLogger(__name__)
@@ -19,14 +22,17 @@ logger = logging.getLogger(__name__)
 
 def wrap_action(callable_: Callable = None,
                 name: Optional[str] = None,
-                action_type: Optional[ActionType] = ActionType.POST,
                 marshaller_context: Optional[MarshallerContext] = None,
                 schema_context: Optional[SchemaContext] = None,
-                cache_control: CacheControlABC = NoCacheControl()
+                http_methods: Iterable[HttpMethod] = (HttpMethod.GET,),
+                graphql_type: Optional[GraphqlType] = None,
+                cache_control: CacheControlABC = NoCacheControl(),
+                authorizer: AuthorizerABC = NoAuthorizer()  # Not sure if this should be the default
                 ) -> Callable:
     """ Wrap a callable (Typically a module function) so that it can be found by find_actions """
     def wrapper(to_wrap: Callable):
-        action_ = action(to_wrap, name, action_type, marshaller_context, schema_context, cache_control)
+        action_ = action(to_wrap, name, marshaller_context, schema_context, http_methods, graphql_type, cache_control,
+                         authorizer)
         to_wrap.__action__ = action_
         return to_wrap
 

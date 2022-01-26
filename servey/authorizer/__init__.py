@@ -1,0 +1,4 @@
+
+
+class AuthorizerError(Exception):
+    pass

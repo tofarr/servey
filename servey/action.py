@@ -1,23 +1,22 @@
 import inspect
 from dataclasses import dataclass
-from typing import Dict, Callable, Optional
+from typing import Dict, Callable, Optional, Tuple
 
-from marshy import get_default_context, ExternalType
+from marshy import get_default_context
 from marshy.marshaller.marshaller_abc import MarshallerABC
 from marshy.marshaller.obj_marshaller import ObjMarshaller, attr_config
 from marshy.marshaller_context import MarshallerContext
-from marshy.types import ExternalItemType
-from schemey._util import filter_none
 from schemey.object_schema import ObjectSchema
 from schemey.property_schema import PropertySchema
 from schemey.schema_abc import SchemaABC
 from schemey.schema_context import SchemaContext, get_default_schema_context
 
-from servey.action_type import ActionType
 from servey.authorizer.authorizer_abc import AuthorizerABC
 from servey.authorizer.no_authorizer import NoAuthorizer
 from servey.cache.cache_control_abc import CacheControlABC
 from servey.cache.no_cache_control import NoCacheControl
+from servey.graphql_type import GraphqlType
+from servey.http_method import HttpMethod
 from servey.meta.action_meta import ActionMeta
 
 _empty = inspect.Signature.empty
@@ -32,33 +31,44 @@ class Action:
     return_marshaller: MarshallerABC
     params_schema: ObjectSchema[Dict]
     return_schema: SchemaABC
-    action_type: ActionType  # Mostly used in graphql schema
+    authorizer: AuthorizerABC
+    http_methods: Tuple[HttpMethod, ...] = (HttpMethod.GET,)
+    graphql_type: GraphqlType = GraphqlType.QUERY
     cache_control: CacheControlABC = NoCacheControl()  # Mostly used for https based transport medium
-    authorizer: AuthorizerABC = NoAuthorizer()
 
     def get_meta(self) -> ActionMeta:
-        return ActionMeta(self.name, self.doc, self.params_schema, self.return_schema)
+        return ActionMeta(self.name, self.doc, self.params_schema, self.return_schema, self.authorizer,
+                          list(self.http_methods), self.graphql_type, self.cache_control)
 
 
 def action(callable_: Callable,
            name: Optional[str] = None,
-           action_type: Optional[ActionType] = ActionType.POST,
            marshaller_context: Optional[MarshallerContext] = None,
            schema_context: Optional[SchemaContext] = None,
-           cache_control: CacheControlABC = NoCacheControl()
+           http_methods: Tuple[HttpMethod] = (HttpMethod.GET,),
+           graphql_type: Optional[GraphqlType] = None,
+           cache_control: CacheControlABC = NoCacheControl(),
+           authorizer: AuthorizerABC = NoAuthorizer()  # Not sure if this should be the default
            ) -> Action:
     if name is None:
         name = callable_.__name__
+    if graphql_type is None:
+        if http_methods == (HttpMethod.GET,):
+            graphql_type = GraphqlType.QUERY
+        else:
+            graphql_type = GraphqlType.MUTATION
     action_ = Action(
         callable=callable_,
         name=name,
         doc=callable_.__doc__,
-        action_type=action_type,
         params_marshaller=build_params_marshaller(callable_, marshaller_context),
         return_marshaller=build_return_marshaller(callable_, marshaller_context),
         params_schema=build_params_schema(callable_, schema_context),
         return_schema=build_return_schema(callable_, schema_context),
-        cache_control=cache_control
+        cache_control=cache_control,
+        http_methods=http_methods,
+        graphql_type=graphql_type,
+        authorizer=authorizer
     )
     return action_
 

@@ -1,19 +1,9 @@
 from abc import abstractmethod, ABC
-from typing import Iterator, Optional
 
 from marshy import ExternalType
 
-from servey.connector.connection_info import ConnectionInfo
-
 
 class ConnectorABC(ABC):
-    """
-     Connector for events to / from external destinations. Typically implemented by some sort of websocket. Example
-     implementations include AWS API Gateway and low level websocket.
-
-     Note that no methods are provided at this level for determining who is connected, or whether they have received
-     messages or not - the intention is that is provided by higher level layers.
-     """
 
     @abstractmethod
     def send(self, channel_key: str, event: ExternalType):

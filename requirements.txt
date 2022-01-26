@@ -1,6 +1,9 @@
-marshy==2.1.4
-schemey==3.3.4
-websockets==10.1
-Flask==2.0.2
+marshy==2.3.0
+schemey==3.4.1
 #persisty
-
+websockets==10.1
+pyjwt==2.3.0
+Flask==2.0.2
+# Aws dependencies
+ruamel.yaml==0.17.17
+# Graphene?

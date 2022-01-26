@@ -1,5 +1,5 @@
-from servey.action_type import ActionType
-from servey.wrapper import wrap_action
+from servey import ActionType
+from servey import wrap_action
 
 
 @wrap_action(action_type=ActionType.GET)
