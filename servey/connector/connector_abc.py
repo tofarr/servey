@@ -1,9 +1,17 @@
 from abc import abstractmethod, ABC
+from typing import Optional, Iterator
 
 from marshy import ExternalType
 
+from servey.connector.connection_info import ConnectionInfo
+from servey.connector.connector_meta import ConnectorMeta
+
 
 class ConnectorABC(ABC):
+
+    @abstractmethod
+    def get_meta(self) -> ConnectorMeta:
+        """ Get meta for this connector """
 
     @abstractmethod
     def send(self, channel_key: str, event: ExternalType):

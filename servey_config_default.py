@@ -13,7 +13,8 @@ def configure_servey(context: ServeyContext):
     def meta() -> ServiceMeta:
         action_meta = [a.get_meta() for a in context.actions_by_name.values()]
         publisher_meta = [p.get_meta() for p in context.publishers_by_name.values()]
-        service_meta = ServiceMeta(context.name, context.description, action_meta, publisher_meta)
+        connector_meta = context.connector.get_meta() if context.connector else None
+        service_meta = ServiceMeta(context.name, context.description, action_meta, publisher_meta, connector_meta)
         return service_meta
 
     context.actions_by_name['get_json_schema'] = meta.__action__

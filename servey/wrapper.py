@@ -95,6 +95,7 @@ def _find_all_in_module(module_name: str, attr_name: str):
             if result:
                 yield result
         for module_info in pkgutil.iter_modules([module_name.replace('.', '/')]):
+            logger.info(f'Searching for config in module:{module_name}')
             yield from _find_all_in_module(f"{module_name}.{module_info.name}", attr_name)
     except ModuleNotFoundError:
         return

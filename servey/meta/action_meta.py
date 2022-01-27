@@ -33,7 +33,7 @@ class ActionMeta:
     # noinspection PyUnusedLocal
     @classmethod
     def __marshaller_factory__(cls, context: MarshallerContext):
-        return _ActionMetaMarshaller(ActionMeta)
+        return _ActionMetaMarshaller(ActionMeta, context)
 
     # noinspection PyUnusedLocal
     @classmethod
@@ -51,15 +51,23 @@ class ActionMeta:
         ), default_value=default_value)
 
 
+@dataclass(frozen=True)
 class _ActionMetaMarshaller(MarshallerABC[ActionMeta]):
+    context: MarshallerContext
 
     def load(self, item: ExternalType) -> ActionMeta:
         raise NotImplementedError()
 
     def dump(self, item: ActionMeta) -> ExternalType:
-        dumped = dict(name=item.name)
+        dumped = dict(
+            name=item.name,
+            authorizer=self.context.dump(item.authorizer, AuthorizerABC),
+            http_methods=self.context.dump(item.http_methods, Tuple[HttpMethod, ...]),
+            graphql_type=self.context.dump(item.graphql_type),
+            cache_control=self.context.dump(item.cache_control, CacheControlABC),
+            params_schema=item.params_schema.to_json_schema(),
+            return_schema=item.return_schema.to_json_schema()
+        )
         if item.doc:
             dumped['doc'] = item.doc
-        dumped['params_schema'] = item.params_schema.to_json_schema()
-        dumped['return_schema'] = item.return_schema.to_json_schema()
         return dumped

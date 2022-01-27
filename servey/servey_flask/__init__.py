@@ -4,19 +4,19 @@ from typing import Optional
 from flask import Flask
 
 from servey.servey_context import get_default_servey_context
-from servey.flask.flask_action_handler import FlaskActionHandler
+from servey.servey_flask.flask_action_handler import FlaskActionHandler
 
 
-def configure_flask(app: Optional[Flask] = None,
+def configure_flask(flask_instance: Optional[Flask] = None,
                     auth_cookie_name: str = os.environ.get('AUTH_COOKIE_NAME')
                     ) -> Flask:
-    if app is None:
-        app = Flask(__name__)
+    if flask_instance is None:
+        flask_instance = Flask(__name__)
     servey_context = get_default_servey_context()
     for action in servey_context.actions_by_name.values():
         handler = FlaskActionHandler(action, auth_cookie_name)
-        handler.register(app)
-    return app
+        handler.register(flask_instance)
+    return flask_instance
 
 
 if __name__ == '__main__':
@@ -24,6 +24,6 @@ if __name__ == '__main__':
     app = configure_flask()
     app.run(
         host=os.environ.get('FLASK_HOST') or '',
-        port=int(os.environ.get('FLASK_PORT') or '8000'),
+        port=int(os.environ.get('FLASK_PORT') or '5000'),
         debug=True
     )

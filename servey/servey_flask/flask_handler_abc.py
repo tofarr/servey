@@ -7,4 +7,4 @@ class FlaskHandlerABC(ABC):
 
     @abstractmethod
     def register(self, flask: Flask):
-        """ Register this handler with the flask instance given """
+        """ Register this handler with the servey_flask instance given """

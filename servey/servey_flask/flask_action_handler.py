@@ -10,7 +10,7 @@ from marshy.types import ExternalItemType
 
 from servey.action import Action
 from servey.cache.cache_header import CacheHeader
-from servey.flask.flask_handler_abc import FlaskHandlerABC
+from servey.servey_flask.flask_handler_abc import FlaskHandlerABC
 
 logger = logging.getLogger(__name__)
 

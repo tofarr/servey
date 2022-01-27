@@ -1,26 +1,31 @@
-import asyncio
-from dataclasses import dataclass, field
 import json
+import os
+from dataclasses import dataclass, field
 import logging
-from typing import List, Any, Set, Iterator, Optional
-from uuid import UUID, uuid4
+from threading import Lock
+from typing import Iterator, Optional, List, Set
+from uuid import uuid4, UUID
 
+from flask import Flask
+from flask_sock import Sock
+from flask_sock.ws import ConnectionClosed
 from marshy import ExternalType, get_default_context
-import websockets
 from marshy.marshaller.marshaller_abc import MarshallerABC
+from simple_websocket import Server
 
 from servey.connector.connection_info import ConnectionInfo
 from servey.connector.connector_abc import ConnectorABC
-from threading import Lock
-
+from servey.connector.connector_meta import ConnectorMeta
 from servey.connector.event.websocket_event_abc import WebsocketEventABC
+from servey.servey_context import get_default_servey_context
+from servey.servey_flask import configure_flask
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class _Connection:
-    websocket: Any
+@dataclass(frozen=True)
+class _FlaskConnection:
+    server: Server
     id: UUID = field(default_factory=uuid4)
     channel_keys: Set[str] = field(default_factory=set)
 
@@ -28,7 +33,7 @@ class _Connection:
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(f'connection_send:{self.id}:{event}')
         event_str = json.dumps(event)
-        self.websocket.send(event_str)
+        self.server.send(event_str)
 
 
 def received_event_marshaller():
@@ -36,41 +41,42 @@ def received_event_marshaller():
 
 
 @dataclass(frozen=True)
-class SingleNodeWebsocketConnector(ConnectorABC):
-    """
-    Connector which assumes that the application runs in a single instance (rather than distributed nodes)
-    using websockets
-    """
-    host: str = 'localhost'
-    port: int = 8000
+class FlaskWebsocketConnector(ConnectorABC):
+    """ Connector using flask / websockets suitable for a single node"""
+    route: str = '/ws'
     received_event_marshaller: MarshallerABC[WebsocketEventABC] = field(default_factory=received_event_marshaller)
-    _connections: List[_Connection] = field(default_factory=list)
+    _connections: List[_FlaskConnection] = field(default_factory=list)
     _lock: Lock = field(default_factory=Lock)
 
-    def start(self):
-        asyncio.run(self._serve())
+    def wrap(self, flask: Flask):
+        sock = Sock(flask)
 
-    async def _serve(self):
-        logger.info('listening:{self.host}:{self.port}')
-        async with websockets.serve(self._handle_connection, self.host, self.port):
-            await asyncio.Future()  # run forever
-
-    async def _handle_connection(self, websocket):
-        connection = _Connection(websocket)
-        with self._lock:
-            self._connections.append(connection)
-        logger.info(f'connected:{connection.id}')
-        try:
-            async for message in websocket:
-                if logger.isEnabledFor(logging.INFO):
-                    logger.info(f'received:{connection.id}:{message}')
-                event = json.loads(message)
-                event_obj = self.received_event_marshaller.load(event)
-                event_obj.process(self, str(connection.id))
-        finally:
+        @sock.route(self.route)
+        def ws(server: Server):
+            connection = _FlaskConnection(server)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f'Connected:{connection.id}')
             with self._lock:
-                object.__setattr__(self, '_connections', [c for c in self._connections if c.id != connection.id])
-            logger.info(f'disconnected:{connection.id}')
+                self._connections.append(connection)
+            try:
+                server.send(dict(type='connectionId', id=str(connection.id)))
+                while True:
+                    message = server.receive(timeout=5)
+                    event = json.loads(message)
+                    event_obj = self.received_event_marshaller.load(event)
+                    event_obj.process(self, str(connection.id))
+            except ConnectionClosed as e:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f'Disconnected:{connection.id}')
+            finally:
+                with self._lock:
+                    self._connections.remove(connection)
+
+    def get_meta(self) -> ConnectorMeta:
+        host = os.environ.get('FLASK_HOST') or 'localhost'
+        port = os.environ.get('FLASK_PORT') or '5000'
+        url = ConnectorMeta(f'ws://{host}:{port}{self.route}')
+        return url
 
     def send(self, channel_key: str, event: ExternalType):
         if logger.isEnabledFor(logging.INFO):
@@ -99,3 +105,16 @@ class SingleNodeWebsocketConnector(ConnectorABC):
         if connection:
             connection.channel_keys.remove(channel_key)
             logger.info(f'unsubscribed:{connection_id}:{channel_key}')
+
+
+if __name__ == '__main__':
+    flask_instance = configure_flask()
+    connector = FlaskWebsocketConnector()
+    connector.wrap(flask_instance)
+    servey_context = get_default_servey_context()
+    servey_context.connector = connector
+    flask_instance.run(
+        host=os.environ.get('FLASK_HOST') or '',
+        port=int(os.environ.get('FLASK_PORT') or '5000'),
+        debug=True
+    )
