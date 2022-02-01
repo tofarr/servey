@@ -2,7 +2,7 @@ import importlib
 import inspect
 import logging
 import pkgutil
-from typing import Optional, Callable, Iterator, Iterable
+from typing import Optional, Callable, Iterator, Tuple
 
 from marshy import get_default_context
 from marshy.marshaller_context import MarshallerContext
@@ -24,15 +24,16 @@ def wrap_action(callable_: Callable = None,
                 name: Optional[str] = None,
                 marshaller_context: Optional[MarshallerContext] = None,
                 schema_context: Optional[SchemaContext] = None,
-                http_methods: Iterable[HttpMethod] = (HttpMethod.GET,),
+                path: Optional[str] = None,
+                http_methods: Tuple[HttpMethod, ...] = (HttpMethod.GET,),
                 graphql_type: Optional[GraphqlType] = None,
                 cache_control: CacheControlABC = NoCacheControl(),
                 authorizer: AuthorizerABC = NoAuthorizer()  # Not sure if this should be the default
                 ) -> Callable:
     """ Wrap a callable (Typically a module function) so that it can be found by find_actions """
     def wrapper(to_wrap: Callable):
-        action_ = action(to_wrap, name, marshaller_context, schema_context, http_methods, graphql_type, cache_control,
-                         authorizer)
+        action_ = action(to_wrap, name, marshaller_context, schema_context, path, http_methods, graphql_type,
+                         cache_control, authorizer)
         to_wrap.__action__ = action_
         return to_wrap
 

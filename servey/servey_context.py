@@ -12,6 +12,7 @@ from servey.publisher import Publisher
 class ServeyContext:
     name: Optional[str] = None
     description: Optional[str] = None
+    version: Optional[str] = None
     actions_by_name: Dict[str, Action] = field(default_factory=dict)
     publishers_by_name: Dict[str, Publisher] = field(default_factory=dict)
     connector: ConnectorABC = None

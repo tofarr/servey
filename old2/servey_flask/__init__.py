@@ -4,7 +4,7 @@ from typing import Optional
 from flask import Flask
 
 from servey.servey_context import get_default_servey_context
-from servey.servey_flask.flask_action_handler import FlaskActionHandler
+from old2.servey_flask.flask_action_handler import FlaskActionHandler
 
 
 def configure_flask(flask_instance: Optional[Flask] = None,

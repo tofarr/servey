@@ -18,7 +18,7 @@ from servey.connector.connector_abc import ConnectorABC
 from servey.connector.connector_meta import ConnectorMeta
 from servey.connector.event.websocket_event_abc import WebsocketEventABC
 from servey.servey_context import get_default_servey_context
-from servey.servey_flask import configure_flask
+from old2.servey_flask import configure_flask
 
 logger = logging.getLogger(__name__)
 

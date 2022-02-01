@@ -8,7 +8,7 @@ PUBLISHERS_PATH = 'publishers'
 
 
 def configure_servey(context: ServeyContext):
-
+    """
     @wrap_action(name='')
     def meta() -> ServiceMeta:
         action_meta = [a.get_meta() for a in context.actions_by_name.values()]
@@ -18,7 +18,7 @@ def configure_servey(context: ServeyContext):
         return service_meta
 
     context.actions_by_name['get_json_schema'] = meta.__action__
-
+    """
     for action in find_actions(ACTIONS_PATH):
         context.actions_by_name[action.name] = action
     for publisher in find_publishers(PUBLISHERS_PATH):

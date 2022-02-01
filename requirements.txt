@@ -1,10 +1,17 @@
 marshy==2.3.0
-schemey==3.4.1
+schemey==3.5.0
 #persisty
 pyjwt==2.3.0
+
+#Starlette dependencies
+uvicorn[standard]
+starlette
+
 # Flask dependencies
-Flask==2.0.2
-flask-sock
+#Flask==2.0.2
+#flask-sock
+
 # Aws dependencies
-ruamel.yaml==0.17.17
+#ruamel.yaml==0.17.17
+
 # Graphene?

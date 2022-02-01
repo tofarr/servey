@@ -10,7 +10,7 @@ from marshy.types import ExternalItemType
 
 from servey.action import Action
 from servey.cache.cache_header import CacheHeader
-from servey.servey_flask.flask_handler_abc import FlaskHandlerABC
+from old2.servey_flask.flask_handler_abc import FlaskHandlerABC
 
 logger = logging.getLogger(__name__)
 
@@ -54,26 +54,3 @@ class FlaskActionHandler(FlaskHandlerABC):
         if self.action.authorizer:
             token = request.headers.get('Authorization') or request.cookies.get(self.auth_cookie_name)
             self.action.authorizer.authorize(token)
-
-    def render_response(self, request: Request, return_value: Any) -> Response:
-        cache_header = self.action.cache_control.get_cache_header(return_value)
-        if not self.is_modified(request, cache_header):
-            return Response(status=HTTPStatus.NOT_MODIFIED)
-        self.action.return_schema.validate(return_value)
-        dumped = self.action.return_marshaller.dump(return_value)
-        response = jsonify(dumped)
-        response.headers.update(cache_header.get_http_headers())
-        return response
-
-    @staticmethod
-    def is_modified(request: Request, cache_header: CacheHeader) -> bool:
-        if_none_match = request.headers.get('If-None-Match')
-        if if_none_match is not None:
-            return cache_header.etag != if_none_match
-
-        if_modified_since = request.headers.get('If-Modified-Since')
-        if if_modified_since and cache_header.updated_at:
-            if_modified_since = datetime(*parsedate(if_modified_since)[:6])
-            return if_modified_since < cache_header.updated_at
-
-        return True

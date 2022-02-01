@@ -32,6 +32,7 @@ class Action:
     params_schema: ObjectSchema[Dict]
     return_schema: SchemaABC
     authorizer: AuthorizerABC
+    path: str
     http_methods: Tuple[HttpMethod, ...] = (HttpMethod.GET,)
     graphql_type: GraphqlType = GraphqlType.QUERY
     cache_control: CacheControlABC = NoCacheControl()  # Mostly used for https based transport medium
@@ -45,27 +46,35 @@ def action(callable_: Callable,
            name: Optional[str] = None,
            marshaller_context: Optional[MarshallerContext] = None,
            schema_context: Optional[SchemaContext] = None,
-           http_methods: Tuple[HttpMethod] = (HttpMethod.GET,),
+           path: Optional[str] = None,
+           http_methods: Tuple[HttpMethod, ...] = (HttpMethod.POST,),
            graphql_type: Optional[GraphqlType] = None,
            cache_control: CacheControlABC = NoCacheControl(),
            authorizer: AuthorizerABC = NoAuthorizer()  # Not sure if this should be the default
            ) -> Action:
     if name is None:
         name = callable_.__name__
+    if path is None:
+        path = '/'+name.replace('_', '-')
+    params_schema = build_params_schema(callable_, schema_context)
     if graphql_type is None:
         if http_methods == (HttpMethod.GET,):
             graphql_type = GraphqlType.QUERY
         else:
             graphql_type = GraphqlType.MUTATION
+    doc = None
+    if callable_.__doc__:
+        doc = ' '.join(callable_.__doc__.split())
     action_ = Action(
         callable=callable_,
         name=name,
-        doc=callable_.__doc__,
+        doc=doc,
         params_marshaller=build_params_marshaller(callable_, marshaller_context),
         return_marshaller=build_return_marshaller(callable_, marshaller_context),
         params_schema=build_params_schema(callable_, schema_context),
         return_schema=build_return_schema(callable_, schema_context),
         cache_control=cache_control,
+        path=path,
         http_methods=http_methods,
         graphql_type=graphql_type,
         authorizer=authorizer
