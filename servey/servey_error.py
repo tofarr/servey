@@ -1,0 +1,3 @@
+
+class ServeyError(Exception):
+    pass

@@ -1,17 +1,8 @@
-marshy==2.3.0
-schemey==3.5.0
-#persisty
-pyjwt==2.3.0
-
-#Starlette dependencies
-uvicorn[standard]
-starlette
-
-# Flask dependencies
-#Flask==2.0.2
-#flask-sock
-
-# Aws dependencies
-#ruamel.yaml==0.17.17
-
-# Graphene?
+marshy~=2.4
+schemey~=5.3
+# If using aws
+boto3~=1.24
+# If using http actions
+requests~=2.28
+# If using fastapi actions
+fastapi~=0.79

@@ -1,135 +1,154 @@
+import asyncio
 import inspect
 from dataclasses import dataclass
-from typing import Dict, Callable, Optional, Tuple
+from logging import getLogger
+from typing import Callable, Optional, Tuple, Any
 
 from marshy import get_default_context
 from marshy.marshaller.marshaller_abc import MarshallerABC
 from marshy.marshaller.obj_marshaller import ObjMarshaller, attr_config
 from marshy.marshaller_context import MarshallerContext
-from schemey.object_schema import ObjectSchema
-from schemey.property_schema import PropertySchema
-from schemey.schema_abc import SchemaABC
-from schemey.schema_context import SchemaContext, get_default_schema_context
+from schemey import Schema, get_default_schema_context, SchemaContext
 
-from servey.authorizer.authorizer_abc import AuthorizerABC
-from servey.authorizer.no_authorizer import NoAuthorizer
-from servey.cache.cache_control_abc import CacheControlABC
-from servey.cache.no_cache_control import NoCacheControl
-from servey.graphql_type import GraphqlType
-from servey.http_method import HttpMethod
-from servey.meta.action_meta import ActionMeta
+from servey.access_control.action_access_control_abc import ActionAccessControlABC
+from servey.access_control.allow_all import ALLOW_ALL
+from servey.access_control.authorization import Authorization
+from servey.action_abc import ActionABC
+from servey.action_meta import ActionMeta
+from servey.servey_error import ServeyError
+from servey.trigger.trigger_abc import TriggerABC
+from servey.trigger.web_trigger import WebTrigger
 
-_empty = inspect.Signature.empty
+logger = getLogger(__name__)
 
 
 @dataclass(frozen=True)
-class Action:
-    name: str
-    doc: Optional[str]
-    callable: Callable
-    params_marshaller: ObjMarshaller
-    return_marshaller: MarshallerABC
-    params_schema: ObjectSchema[Dict]
-    return_schema: SchemaABC
-    authorizer: AuthorizerABC
-    path: str
-    http_methods: Tuple[HttpMethod, ...] = (HttpMethod.GET,)
-    graphql_type: GraphqlType = GraphqlType.QUERY
-    cache_control: CacheControlABC = NoCacheControl()  # Mostly used for https based transport medium
+class Action(ActionABC):
+    """Action context where all actions are executed locally using asyncio."""
+    fn: Callable
+    action_meta: ActionMeta
+    params_marshaller: MarshallerABC
+    result_marshaller: MarshallerABC
 
-    def get_meta(self) -> ActionMeta:
-        return ActionMeta(self.name, self.doc, self.params_schema, self.return_schema, self.authorizer,
-                          list(self.http_methods), self.graphql_type, self.cache_control)
+    def invoke(self, authorization: Authorization, **kwargs) -> Any:
+        self.pre_check(authorization, kwargs)
+        coroutine = self._execute_with_timeout(**kwargs)
+        loop = asyncio.get_event_loop()
+        result = loop.run_until_complete(coroutine)
+        dumped_result = self.result_marshaller.dump(result)
+        self.action_meta.result_schema.validate(dumped_result)
+        return result
 
+    def invoke_async(self, authorization: Authorization, **kwargs):
+        self.pre_check(authorization, kwargs)
+        coroutine = self._execute_with_timeout(**kwargs)
+        loop = asyncio.get_event_loop()
+        task = loop.create_task(coroutine)
+        task.add_done_callback(self._handle_task_result)
 
-def action(callable_: Callable,
-           name: Optional[str] = None,
-           marshaller_context: Optional[MarshallerContext] = None,
-           schema_context: Optional[SchemaContext] = None,
-           path: Optional[str] = None,
-           http_methods: Tuple[HttpMethod, ...] = (HttpMethod.POST,),
-           graphql_type: Optional[GraphqlType] = None,
-           cache_control: CacheControlABC = NoCacheControl(),
-           authorizer: AuthorizerABC = NoAuthorizer()  # Not sure if this should be the default
-           ) -> Action:
-    if name is None:
-        name = callable_.__name__
-    if path is None:
-        path = '/'+name.replace('_', '-')
-    params_schema = build_params_schema(callable_, schema_context)
-    if graphql_type is None:
-        if http_methods == (HttpMethod.GET,):
-            graphql_type = GraphqlType.QUERY
-        else:
-            graphql_type = GraphqlType.MUTATION
-    doc = None
-    if callable_.__doc__:
-        doc = ' '.join(callable_.__doc__.split())
-    action_ = Action(
-        callable=callable_,
-        name=name,
-        doc=doc,
-        params_marshaller=build_params_marshaller(callable_, marshaller_context),
-        return_marshaller=build_return_marshaller(callable_, marshaller_context),
-        params_schema=build_params_schema(callable_, schema_context),
-        return_schema=build_return_schema(callable_, schema_context),
-        cache_control=cache_control,
-        path=path,
-        http_methods=http_methods,
-        graphql_type=graphql_type,
-        authorizer=authorizer
-    )
-    return action_
+    def pre_check(self, authorization: Authorization, kwargs):
+        if not self.action_meta.access_control.is_executable(authorization):
+            raise ServeyError('insufficent_permissions')
+        dumped_kwargs = self.params_marshaller.dump(kwargs)
+        self.action_meta.params_schema.validate(dumped_kwargs)
+
+    async def _execute(self, **kwargs) -> Any:
+        return self.fn(**kwargs)
+
+    async def _execute_with_timeout(self, **kwargs) -> Any:
+        try:
+            returned = await asyncio.wait_for(
+                self._execute(**kwargs), timeout=self.action_meta.timeout
+            )
+            return returned
+        except asyncio.TimeoutError:
+            raise ServeyError(f"action_timeout:{self.action_meta.name}")
+
+    @staticmethod
+    def _handle_task_result(task: asyncio.Task) -> None:
+        # noinspection PyBroadException
+        try:
+            task.result()
+        except asyncio.CancelledError:
+            pass  # Task cancellation should not be logged as an error.
+        except Exception as e:
+            logger.exception(f"task_exception:{task}:{e}")
 
 
-def build_params_marshaller(callable_: Callable,
-                            marshaller_context: Optional[MarshallerContext] = None,
-                            offset: int = 0
-                            ) -> ObjMarshaller[Dict]:
-    if marshaller_context is None:
-        marshaller_context = get_default_context()
-    sig = inspect.signature(callable_)
-    params_marshaller = ObjMarshaller[Dict](dict, tuple(
-        attr_config(marshaller_context.get_marshaller(p.annotation), p.name)
-        for p in list(sig.parameters.values())[offset:]
-    ))
-    return params_marshaller
+def action(
+    fn: Optional[Callable] = None,
+    name: Optional[str] = None,
+    params_schema: Optional[Schema] = None,
+    params_marshaller: Optional[MarshallerABC] = None,
+    result_schema: Optional[Schema] = None,
+    result_marshaller: Optional[MarshallerABC] = None,
+    access_control: ActionAccessControlABC = ALLOW_ALL,
+    triggers: Tuple[TriggerABC, ...] = (WebTrigger(True),),
+    timeout: int = 30,
+):
+    """ Decorator which marks a global function as an action """
+
+    def wrapper_(fn_: Callable):
+        nonlocal name, params_schema, params_marshaller, result_schema, result_marshaller
+        # Throw an error if the action is not global
+        if not name:
+            name = fn.__name__
+        if not params_schema:
+            params_schema = get_schema_for_params(fn_)
+        if not result_schema:
+            result_schema = get_schema_for_result(fn_)
+        if not params_marshaller:
+            params_marshaller = get_marshaller_for_params(fn_)
+        if not result_marshaller:
+            result_marshaller = get_default_context().get_marshaller(result_schema.python_type)
+        action_meta = ActionMeta(
+            name, params_schema, result_schema, access_control, triggers, timeout
+        )
+        return Action(fn, action_meta, params_marshaller, result_marshaller)
+
+    return wrapper_ if fn is None else wrapper_(fn)
 
 
-def build_return_marshaller(callable_: Callable,
-                            marshaller_context: Optional[MarshallerContext] = None
-                            ) -> MarshallerABC:
-    if marshaller_context is None:
-        marshaller_context = get_default_context()
-    sig = inspect.signature(callable_)
-    if sig.return_annotation is inspect.Parameter.empty:
-        raise ValueError(f'no_return_annotation_for_method:{callable_.__name__}')
-    return_marshaller = marshaller_context.get_marshaller(sig.return_annotation)
-    return return_marshaller
-
-
-def build_params_schema(callable_: Callable,
-                        schema_context: Optional[SchemaContext] = None,
-                        offset: int = 0
-                        ) -> ObjectSchema[Dict]:
-    if schema_context is None:
+def get_schema_for_params(fn: Callable, schema_context: Optional[SchemaContext] = None) -> Schema:
+    if not schema_context:
         schema_context = get_default_schema_context()
-    sig = inspect.signature(callable_)
-    params_schema = ObjectSchema(dict, tuple(
-        PropertySchema(
-            name=p.name,
-            schema=schema_context.get_schema(p.annotation, None if p.default is _empty else p.default),
-            required=p.default is _empty)
-        for p in list(sig.parameters.values())[offset:]
-    ))
-    return params_schema
+    sig = inspect.signature(fn)
+    properties = {}
+    required = []
+    for p in list(sig.parameters.values()):
+        if p.annotation is inspect.Parameter.empty:
+            raise ServeyError(f'missing_param_annotation:{fn.__name__}({p.name}')
+        properties[p.name] = schema_context.schema_from_type(p.annotation).schema
+        if p.default == inspect.Parameter.empty:
+            required.append(p.name)
+    json_schema = {
+        "type": "object",
+        "properties": properties,
+        "additionalProperties": False,
+        "required": required,
+    }
+    schema = Schema(json_schema, dict)
+    return schema
 
 
-def build_return_schema(callable_: Callable,
-                        schema_context: Optional[SchemaContext] = None
-                        ) -> SchemaABC:
-    if schema_context is None:
-        schema_context = get_default_schema_context()
-    sig = inspect.signature(callable_)
-    return_schema = schema_context.get_schema(sig.return_annotation)
-    return return_schema
+def get_marshaller_for_params(fn: Callable, marshaller_context: Optional[MarshallerContext] = None) -> MarshallerABC:
+    if not marshaller_context:
+        marshaller_context = get_default_context()
+    sig = inspect.signature(fn)
+    attr_configs = []
+    for p in list(sig.parameters.values()):
+        if p.annotation is inspect.Parameter.empty:
+            raise ServeyError(f'missing_param_annotation:{fn.__name__}({p.name}')
+        attr_configs.append(attr_config(marshaller_context.get_marshaller(p.annotation), p.name))
+    marshaller = ObjMarshaller(dict, tuple(attr_configs))
+    return marshaller
+
+
+def get_schema_for_result(fn: Callable) -> Schema:
+    schema_context = get_default_schema_context()
+    sig = inspect.signature(fn)
+    type_ = sig.return_annotation
+    if type_ is inspect.Parameter.empty:
+        raise ServeyError(f'missing_return_annotation:{fn.__name__}')
+    schema = schema_context.schema_from_type(type_)
+    return schema

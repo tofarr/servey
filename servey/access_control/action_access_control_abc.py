@@ -1,0 +1,11 @@
+from abc import ABC
+
+from servey.access_control.authorization import Authorization
+
+
+class ActionAccessControlABC(ABC):
+    def is_viewable(self, authorization: Authorization) -> bool:
+        """Determine if this action's meta may be viewed using the outhorization given"""
+
+    def is_executable(self, authorization: Authorization) -> bool:
+        """Determine if this action may be executed using the outhorization given"""
