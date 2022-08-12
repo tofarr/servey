@@ -1,6 +1,7 @@
 from logging import getLogger
 import os
 
+from servey.access_control.authorizer_factory_abc import create_authorizer
 from servey.action_finder import find_actions
 from servey.integration.fastapi_mount import FastapiMount
 from servey.servey_error import ServeyError
@@ -26,11 +27,12 @@ def create_fastapi_app():
 
 
 def mount_servey_actions(api):
-    servey_action_path = os.environ.get('SERVEY_ACTION_PATH') or 'debuggery.foobar'
+    servey_action_path = os.environ.get('SERVEY_ACTION_PATH') or 'servey_actions'
     if servey_action_path is None:
         raise ServeyError('Please specify SERVEY_ACTION_PATH in your environment.')
-    mount = FastapiMount(api, os.environ.get("SERVEY_FASTAPI_PATH") or "/actions/{action_name}")
+    mount = FastapiMount(api, create_authorizer(), os.environ.get("SERVEY_FASTAPI_PATH") or "/actions/{action_name}")
     found_actions = find_actions([servey_action_path])
+    mount.mount_token()
     actions = (a.action for a in found_actions)
     mount.mount_actions(actions)
     LOGGER.info("Action routes mounted...")

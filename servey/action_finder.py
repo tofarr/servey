@@ -16,7 +16,6 @@ from servey.servey_error import ServeyError
 @dataclass
 class FoundAction:
     module: ModuleType
-    action_name: str
     action: Action
 
 
@@ -29,7 +28,7 @@ def find_actions(modules: List[str]) -> Iterator[FoundAction]:
         module = module_spec.loader.load_module(module_info.name)
         for name, value in module.__dict__.items():
             if isinstance(value, Action):
-                yield FoundAction(module, name, value)
+                yield FoundAction(module, value)
 
 
 def find_default_actions() -> Iterator[FoundAction]:

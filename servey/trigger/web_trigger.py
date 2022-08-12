@@ -1,6 +1,17 @@
 from dataclasses import dataclass
+from enum import Enum
+
+
+class WebTriggerMethod(Enum):
+    DELETE = 'delete'
+    GET = 'get'
+    HEAD = 'head'
+    OPTIONS = 'options'
+    PATCH = 'patch'
+    POST = 'post'
+    PUT = 'put'
 
 
 @dataclass(frozen=True)
 class WebTrigger:
-    is_mutation: bool = True  # Use post requests instead of get requests
+    method: WebTriggerMethod = WebTriggerMethod.POST

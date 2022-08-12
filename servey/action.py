@@ -5,9 +5,11 @@ from logging import getLogger
 from typing import Callable, Optional, Tuple, Any
 
 from marshy import get_default_context
+from marshy.factory.optional_marshaller_factory import get_optional_type
 from marshy.marshaller.marshaller_abc import MarshallerABC
 from marshy.marshaller.obj_marshaller import ObjMarshaller, attr_config
 from marshy.marshaller_context import MarshallerContext
+from marshy.utils import resolve_forward_refs
 from schemey import Schema, get_default_schema_context, SchemaContext
 
 from servey.access_control.action_access_control_abc import ActionAccessControlABC
@@ -17,21 +19,24 @@ from servey.action_abc import ActionABC
 from servey.action_meta import ActionMeta
 from servey.servey_error import ServeyError
 from servey.trigger.trigger_abc import TriggerABC
-from servey.trigger.web_trigger import WebTrigger
+from servey.trigger.web_trigger import WebTrigger, WebTriggerMethod
 
 logger = getLogger(__name__)
 
 
 @dataclass(frozen=True)
 class Action(ActionABC):
-    """Action context where all actions are executed locally using asyncio."""
+    """ General action, wraps a callable function, and allows authorization parameter to be optionally injected. """
     fn: Callable
     action_meta: ActionMeta
     params_marshaller: MarshallerABC
     result_marshaller: MarshallerABC
+    authorization_inject_param: Optional[str] = None
 
     def invoke(self, authorization: Authorization, **kwargs) -> Any:
         self.pre_check(authorization, kwargs)
+        if self.authorization_inject_param:
+            kwargs[self.authorization_inject_param] = authorization
         coroutine = self._execute_with_timeout(**kwargs)
         loop = asyncio.get_event_loop()
         result = loop.run_until_complete(coroutine)
@@ -48,7 +53,7 @@ class Action(ActionABC):
 
     def pre_check(self, authorization: Authorization, kwargs):
         if not self.action_meta.access_control.is_executable(authorization):
-            raise ServeyError('insufficent_permissions')
+            raise ServeyError('insufficent_scopes')
         dumped_kwargs = self.params_marshaller.dump(kwargs)
         self.action_meta.params_schema.validate(dumped_kwargs)
 
@@ -83,7 +88,7 @@ def action(
     result_schema: Optional[Schema] = None,
     result_marshaller: Optional[MarshallerABC] = None,
     access_control: ActionAccessControlABC = ALLOW_ALL,
-    triggers: Tuple[TriggerABC, ...] = (WebTrigger(True),),
+    triggers: Tuple[TriggerABC, ...] = (WebTrigger(WebTriggerMethod.POST),),
     timeout: int = 30,
 ):
     """ Decorator which marks a global function as an action """
@@ -101,10 +106,15 @@ def action(
             params_marshaller = get_marshaller_for_params(fn_)
         if not result_marshaller:
             result_marshaller = get_default_context().get_marshaller(result_schema.python_type)
-        action_meta = ActionMeta(
-            name, params_schema, result_schema, access_control, triggers, timeout
+        return Action(
+            fn=fn,
+            action_meta=ActionMeta(
+                name, params_schema, result_schema, access_control, triggers, timeout
+            ),
+            params_marshaller=params_marshaller,
+            result_marshaller=result_marshaller,
+            authorization_inject_param=get_authorization_inject_params(fn_)
         )
-        return Action(fn, action_meta, params_marshaller, result_marshaller)
 
     return wrapper_ if fn is None else wrapper_(fn)
 
@@ -152,3 +162,15 @@ def get_schema_for_result(fn: Callable) -> Schema:
         raise ServeyError(f'missing_return_annotation:{fn.__name__}')
     schema = schema_context.schema_from_type(type_)
     return schema
+
+
+def get_authorization_inject_params(fn: Callable) -> Optional[str]:
+    sig = inspect.signature(fn)
+    for p in list(sig.parameters.values()):
+        if p.name != 'authorization':
+            continue
+        type_ = p.annotation
+        type_ = get_optional_type(type_) or type_
+        type_ = resolve_forward_refs(type_)
+        if type_ == Authorization:
+            return p.name

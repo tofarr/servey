@@ -6,15 +6,15 @@ from servey.access_control.authorization import Authorization
 
 @dataclass(frozen=True)
 class PermissionAccessControl(ActionAccessControlABC):
-    view_permission: str
-    execute_permission: str
+    view_scope: str
+    execute_scope: str
 
     def is_viewable(self, authorization: Authorization) -> bool:
-        return bool(self.view_permission) and authorization.has_permission(
-            self.view_permission
+        return bool(self.view_scope) and authorization.has_scope(
+            self.view_scope
         )
 
     def is_executable(self, authorization: Authorization) -> bool:
-        return bool(self.execute_permission) and authorization.has_permission(
-            self.execute_permission
+        return bool(self.execute_scope) and authorization.has_scope(
+            self.execute_scope
         )
