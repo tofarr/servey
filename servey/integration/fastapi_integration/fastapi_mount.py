@@ -1,38 +1,33 @@
 from dataclasses import dataclass
 from inspect import signature
-from typing import Optional, Callable, Iterable
+from typing import Optional, Callable
 
 from fastapi import FastAPI, Depends
-from fastapi.security import OAuth2PasswordBearer
 from marshy.factory.optional_marshaller_factory import get_optional_type
 
 from servey.access_control.authorization import Authorization
 from servey.access_control.authorizer_abc import AuthorizerABC
 from servey.action import Action
 from servey.action_context import ActionContext, get_default_action_context
+from servey.integration.fastapi_integration.authenticator.authenticator_abc import AuthenticatorABC
 from servey.trigger.web_trigger import WebTrigger
 
 
 @dataclass
 class FastapiMount:
-    """ Utility for mounting actions to fastapi. """
+    """ Utility for mounting actions to fastapi_integration. """
     api: FastAPI
     authorizer: AuthorizerABC
+    authenticator: AuthenticatorABC
     path_pattern: str = '/actions/{action_name}'
-    oauth2_schema: OAuth2PasswordBearer = OAuth2PasswordBearer(tokenUrl='token')
 
     def mount_all(self, action_context: Optional[ActionContext] = None):
         if not action_context:
             action_context = get_default_action_context()
         for action, trigger in action_context.get_actions_with_trigger_type(WebTrigger):
             self.mount_action(action, trigger)
-        self.mount_token()
-
-    def mount_token(self):
-        pass #HMMM
-        #self.api.post(path='/token', response_model=)
-        #def token(form_data: OAuth2PasswordRequestForm = Depends()):
-
+        if self.authenticator:
+            self.authenticator.mount_authenticator(self.api, self.authorizer)
 
     def mount_action(self, action: Action, trigger: WebTrigger):
         web_trigger = _get_web_trigger(action)
@@ -47,9 +42,10 @@ class FastapiMount:
         def fn(**kwargs):
             return action.fn(**kwargs)
 
+        schema = self.authenticator.get_schema()
         authorizer = self.authorizer
 
-        async def get_authorization(token: str = Depends(self.oauth2_schema)) -> Authorization:
+        async def get_authorization(token: str = Depends(schema)) -> Authorization:
             return authorizer.authorize(token)
 
         sig = signature(action.fn)

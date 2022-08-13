@@ -11,12 +11,11 @@ logging.basicConfig(level=LOGLEVEL)
 DEBUG = int(os.environ.get("SERVER_DEBUG", "1")) == 1
 HOST = os.environ.get("SERVER_HOST", "0.0.0.0")
 PORT = int(os.environ.get("SERVER_PORT", "8000"))
-CELERY_BROKER = os.environ.get('CELERY_BROKER')
 
 
 def start_http_server():
     import uvicorn
-    app = "servey.integration.fastapi_app:api"
+    app = "servey.integration.fastapi_integration.fastapi_app:api"
     uvicorn.run(
         app,
         host=HOST,

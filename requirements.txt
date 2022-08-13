@@ -3,10 +3,12 @@ schemey~=5.4
 
 # If using fastapi
 fastapi~=0.79
+python-multipart~=0.0
 uvicorn~=0.18
 
 # If using jwt
 pyjwt~=2.4
+cryptography~=37.0
 
 # If using aws
 boto3~=1.24

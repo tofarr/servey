@@ -1,6 +1,6 @@
+import base64
 import os
 from logging import getLogger
-from typing import Optional
 
 from servey.access_control.authorizer_abc import AuthorizerABC
 from servey.access_control.authorizer_factory_abc import AuthorizerFactoryABC
@@ -15,13 +15,13 @@ class JwtAuthorizerFactory(AuthorizerFactoryABC):
     """
     priority = 50
 
-    def create_authorizer(self) -> Optional[AuthorizerABC]:
+    def create_authorizer(self) -> AuthorizerABC:
         try:
+            from servey.access_control.jwt_authorizer import JwtAuthorizer
             jwt_secret_key = os.environ.get('JWT_SECRET_KEY')
             if jwt_secret_key is None:
-                LOGGER.debug('JWT_SECRET_KEY NOT DEFINED - Skipping...')
-                return None
-            from servey.access_control.jwt_authorizer import JwtAuthorizer
+                LOGGER.warning('JWT_SECRET_KEY NOT DEFINED - Making One Up! (Auth will fail between restarts!)')
+                jwt_secret_key = base64.b64encode(os.urandom(12)).decode('UTF-8')
             authorizer = JwtAuthorizer(jwt_secret_key)
             return authorizer
         except ModuleNotFoundError:

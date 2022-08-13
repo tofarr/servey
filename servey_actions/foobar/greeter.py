@@ -9,4 +9,4 @@ def greet(name: str) -> str:
 
 @action
 def about_me(authorization: Authorization) -> str:
-    return f"Your subject id is {authorization.subject_id}"
+    return f"Your subject id is {authorization.subject_id} and your scopes are: {' '.join(authorization.scopes)}"

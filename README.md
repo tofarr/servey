@@ -10,6 +10,10 @@ Less flexibility than fastapi - common elements.
 Why not include explicit caching? 
 The more I think about this the more I think it is needed.
 
+Authentication vs Authorization
+
+Default implementation mostly meant to be as annoying as possible while still working
+
 Why not include graphql?
 
 TODO:

@@ -40,7 +40,7 @@ class KmsAuthorizer(AuthorizerABC):
     def encode(self, authorization: Authorization) -> str:
         header = urlsafe_b64encode(json.dumps(dict(
             typ='JWT',
-            alg='HS256',
+            alg='RS256',
             kid=self.key_id
         )))
         payload = urlsafe_b64encode(json.dumps(filter_none(dict(
@@ -83,11 +83,11 @@ class KmsAuthorizer(AuthorizerABC):
         header = jwt.get_unverified_header(token)
         key_id = header.get('kid')
         public_key = self.get_public_key(key_id)
-        decoded = jwt.decode(jwt=token, key=public_key)
+        decoded = jwt.decode(jwt=token, key=public_key, algorithms=['RS256'])
         authorization = Authorization(
             subject_id=decoded.get('sub'),
             not_before=date_from_jwt(decoded, 'nbf'),
             expire_at=date_from_jwt(decoded, 'exp'),
-            scopes=frozenset(decoded.get('scopes').split(' '))
+            scopes=frozenset(decoded.get('scope').split(' '))
         )
         return authorization

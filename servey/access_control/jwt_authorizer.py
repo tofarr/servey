@@ -18,7 +18,7 @@ class JwtAuthorizer(AuthorizerABC):
     the ability to specify custom per user scopes in the access token)
     """
     private_key: Any
-    algorithm: str = 'RS256'
+    algorithm: str = 'HS256'
     kid: Optional[str] = None
     iss: Optional[str] = None
     aud: Optional[str] = None
@@ -50,12 +50,12 @@ class JwtAuthorizer(AuthorizerABC):
         return headers['kid']
 
     def authorize(self, token: str) -> Authorization:
-        decoded = jwt.decode(jwt=token, key=self.private_key)
+        decoded = jwt.decode(jwt=token, key=self.private_key, algorithms=['HS256', 'RS256'])
         authorization = Authorization(
             subject_id=decoded.get('sub'),
             not_before=date_from_jwt(decoded, 'nbf'),
             expire_at=date_from_jwt(decoded, 'exp'),
-            scopes=frozenset(decoded.get('scopes').split(' '))
+            scopes=frozenset(decoded.get('scope').split(' '))
         )
         return authorization
 
