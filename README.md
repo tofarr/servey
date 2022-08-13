@@ -1,5 +1,7 @@
 Philosophy: Get the most from AWS but allow local testing / not be completely dependent on it.
 
+Actions Mounts, and Apps
+
 Authorization should be explicit! That is why we inject it - one of the bits of magic
 
 Why not use aws directly? Vendor lock in and lack of local test ability

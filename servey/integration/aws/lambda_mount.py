@@ -1,5 +1,5 @@
 """
-This package holds a mount point for a lambda. It uses the name of the lambda from the context to try and find
+This package holds a mount point for a lambda. It uses the name of the lambda from the action_finder to try and find
 an associated action.
 
 Code generation may be a viable alternative to this package

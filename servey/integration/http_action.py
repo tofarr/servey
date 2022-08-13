@@ -6,18 +6,20 @@ import requests
 from marshy.marshaller.marshaller_abc import MarshallerABC
 
 from servey.access_control.authorization import Authorization
+from servey.access_control.authorizer_abc import AuthorizerABC
 from servey.action_abc import ActionABC
 
 
 @dataclass
 class HttpAction(ActionABC):
-    """ Remote invocation of lambda. """
+    """ Remote invocation of an action over http. """
     url: str
     param_marshaller: MarshallerABC
     result_marshaller: MarshallerABC
     method: str = "POST"
+    authorizer: Optional[AuthorizerABC] = None
 
-    def invoke(self, authorization: Authorization, **kwargs) -> Any:
+    def invoke(self, authorization: Authorization, params: Dict[str, Any]) -> Any:
         response = self.get_response(authorization, kwargs)
         result = response.json
         result = self.result_marshaller.load(result)
@@ -35,3 +37,5 @@ class HttpAction(ActionABC):
 
     def auth_to_header(self, authorization: Authorization) -> Optional[str]:
         """ Convert the authorization given to a header """
+        if self.authorizer:
+            return self.authorizer.encode(authorization)

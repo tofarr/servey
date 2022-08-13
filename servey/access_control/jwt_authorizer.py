@@ -23,10 +23,7 @@ class JwtAuthorizer(AuthorizerABC):
     iss: Optional[str] = None
     aud: Optional[str] = None
 
-    def authorize(self, token: str) -> Authorization:
-        return self.from_jwt(token)
-
-    def to_jwt(self, authorization: Authorization) -> str:
+    def encode(self, authorization: Authorization) -> str:
         headers = filter_none(dict(
             kid=self.kid
         ))
@@ -52,7 +49,7 @@ class JwtAuthorizer(AuthorizerABC):
         headers = jwt.get_unverified_header(token)
         return headers['kid']
 
-    def from_jwt(self, token: str) -> Authorization:
+    def authorize(self, token: str) -> Authorization:
         decoded = jwt.decode(jwt=token, key=self.private_key)
         authorization = Authorization(
             subject_id=decoded.get('sub'),

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from inspect import signature
-from typing import Iterator, Optional, Callable
+from typing import Optional, Callable, Iterable
 
 from fastapi import FastAPI, Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -9,6 +9,7 @@ from marshy.factory.optional_marshaller_factory import get_optional_type
 from servey.access_control.authorization import Authorization
 from servey.access_control.authorizer_abc import AuthorizerABC
 from servey.action import Action
+from servey.action_context import ActionContext, get_default_action_context
 from servey.trigger.web_trigger import WebTrigger
 
 
@@ -20,17 +21,20 @@ class FastapiMount:
     path_pattern: str = '/actions/{action_name}'
     oauth2_schema: OAuth2PasswordBearer = OAuth2PasswordBearer(tokenUrl='token')
 
-    def mount_actions(self, actions: Iterator[Action]):
-        for action in actions:
-            self.mount_action(action)
+    def mount_all(self, action_context: Optional[ActionContext] = None):
+        if not action_context:
+            action_context = get_default_action_context()
+        for action, trigger in action_context.get_actions_with_trigger_type(WebTrigger):
+            self.mount_action(action, trigger)
+        self.mount_token()
 
     def mount_token(self):
-        pass
+        pass #HMMM
         #self.api.post(path='/token', response_model=)
         #def token(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
-    def mount_action(self, action: Action):
+    def mount_action(self, action: Action, trigger: WebTrigger):
         web_trigger = _get_web_trigger(action)
         if not web_trigger:
             return

@@ -23,7 +23,7 @@ class LambdaAction(ActionABC):
         if not self.client:
             self.client = boto3.client('lambda')
 
-    def invoke(self, authorization: Authorization, **kwargs) -> Any:
+    def invoke(self, authorization: Authorization, params: Dict[str, Any]) -> Any:
         result = self.client.invoke(
             FunctionName=self.lambda_name,
             # ClientContext

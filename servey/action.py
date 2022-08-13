@@ -33,51 +33,41 @@ class Action(ActionABC):
     result_marshaller: MarshallerABC
     authorization_inject_param: Optional[str] = None
 
-    def invoke(self, authorization: Authorization, **kwargs) -> Any:
+    def __call__(self, authorization: Authorization, **kwargs) -> Any:
         self.pre_check(authorization, kwargs)
         if self.authorization_inject_param:
             kwargs[self.authorization_inject_param] = authorization
-        coroutine = self._execute_with_timeout(**kwargs)
-        loop = asyncio.get_event_loop()
-        result = loop.run_until_complete(coroutine)
-        dumped_result = self.result_marshaller.dump(result)
-        self.action_meta.result_schema.validate(dumped_result)
+        result = self.fn(**kwargs)
         return result
 
-    def invoke_async(self, authorization: Authorization, **kwargs):
-        self.pre_check(authorization, kwargs)
-        coroutine = self._execute_with_timeout(**kwargs)
+    def invoke(self, authorization: Authorization, **kwargs) -> Any:
+        """
+        Invoke this action and return the result. Local actions do not strictly enforce
+        timeouts, but will instead issue a warning to the logs. Environments like lambda
+        are not so forgiving, and may leave data in an invalid state!
+        """
+        completed = False
+
+        def timeout_check():
+            if not completed:
+                logger.error(f'action_ran_too_long:{self.action_meta.name}')
+
         loop = asyncio.get_event_loop()
-        task = loop.create_task(coroutine)
-        task.add_done_callback(self._handle_task_result)
+        loop.call_later(self.action_meta.timeout, timeout_check)
+        try:
+            return self.__call__(authorization, **kwargs)
+        finally:
+            completed = True
+
+    def invoke_async(self, authorization: Authorization, **kwargs):
+        loop = asyncio.get_event_loop()
+        loop.call_soon(lambda: self.invoke(authorization, **kwargs))
 
     def pre_check(self, authorization: Authorization, kwargs):
         if not self.action_meta.access_control.is_executable(authorization):
             raise ServeyError('insufficent_scopes')
         dumped_kwargs = self.params_marshaller.dump(kwargs)
         self.action_meta.params_schema.validate(dumped_kwargs)
-
-    async def _execute(self, **kwargs) -> Any:
-        return self.fn(**kwargs)
-
-    async def _execute_with_timeout(self, **kwargs) -> Any:
-        try:
-            returned = await asyncio.wait_for(
-                self._execute(**kwargs), timeout=self.action_meta.timeout
-            )
-            return returned
-        except asyncio.TimeoutError:
-            raise ServeyError(f"action_timeout:{self.action_meta.name}")
-
-    @staticmethod
-    def _handle_task_result(task: asyncio.Task) -> None:
-        # noinspection PyBroadException
-        try:
-            task.result()
-        except asyncio.CancelledError:
-            pass  # Task cancellation should not be logged as an error.
-        except Exception as e:
-            logger.exception(f"task_exception:{task}:{e}")
 
 
 def action(
@@ -97,7 +87,7 @@ def action(
         nonlocal name, params_schema, params_marshaller, result_schema, result_marshaller
         # Throw an error if the action is not global
         if not name:
-            name = fn.__name__
+            name = fn_.__name__
         if not params_schema:
             params_schema = get_schema_for_params(fn_)
         if not result_schema:
@@ -107,7 +97,7 @@ def action(
         if not result_marshaller:
             result_marshaller = get_default_context().get_marshaller(result_schema.python_type)
         return Action(
-            fn=fn,
+            fn=fn_,
             action_meta=ActionMeta(
                 name, params_schema, result_schema, access_control, triggers, timeout
             ),

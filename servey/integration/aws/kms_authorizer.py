@@ -37,10 +37,7 @@ class KmsAuthorizer(AuthorizerABC):
         if not self.kms:
             self.kms = boto3.client('kms')
 
-    def authorize(self, token: str) -> Authorization:
-        return self.from_jwt(token)
-
-    def to_jwt(self, authorization: Authorization) -> str:
+    def encode(self, authorization: Authorization) -> str:
         header = urlsafe_b64encode(json.dumps(dict(
             typ='JWT',
             alg='HS256',
@@ -78,7 +75,7 @@ class KmsAuthorizer(AuthorizerABC):
             public_key = self.public_keys[public_key] = response['PublicKey']
         return public_key
 
-    def from_jwt(self, token: str) -> Authorization:
+    def authorize(self, token: str) -> Authorization:
         """
         Verifying tokens only requires the public key. We cache this from kms to do verifications
         locally which is more efficient
