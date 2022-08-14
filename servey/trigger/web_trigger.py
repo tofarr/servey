@@ -15,3 +15,6 @@ class WebTriggerMethod(Enum):
 @dataclass(frozen=True)
 class WebTrigger:
     method: WebTriggerMethod = WebTriggerMethod.POST
+
+
+WEB_GET = WebTrigger(WebTriggerMethod.GET)

@@ -1,14 +1,10 @@
 from dataclasses import dataclass
-from typing import Optional, Callable, Tuple
+from typing import Optional, Tuple
 
 from fastapi import FastAPI
 
-from servey.access_control.authorizer_abc import AuthorizerABC
 from servey.action import Action
 from servey.action_context import ActionContext, get_default_action_context
-from servey.integration.fastapi_integration.authenticator.authenticator_abc import (
-    AuthenticatorABC,
-)
 from servey.integration.fastapi_integration.executor_factory.fastapi_handler_factory_abc import (
     FastapiHandlerFactoryABC,
 )

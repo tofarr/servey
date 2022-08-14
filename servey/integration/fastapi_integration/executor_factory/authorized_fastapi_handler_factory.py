@@ -16,6 +16,7 @@ from servey.integration.fastapi_integration.authenticator.authenticator_abc impo
 from servey.integration.fastapi_integration.authenticator.factory.authenticator_factory_abc import (
     create_authenticator,
 )
+from servey.integration.fastapi_integration.executor_factory.fastapi_handler_factory import convert_to_pydantic
 from servey.integration.fastapi_integration.executor_factory.fastapi_handler_factory_abc import (
     FastapiHandlerFactoryABC,
 )
@@ -83,11 +84,14 @@ class AuthorizedFastapiHandlerFactory(FastapiHandlerFactoryABC):
         sig = action.get_signature()
         parameters = []
         for param in sig.parameters.values():
-            type_ = param.annotation
-            if (get_optional_type(type_) or type_) == Authorization:
+            annotation = param.annotation
+            if (get_optional_type(annotation) or annotation) == Authorization:
                 param_name = param.name
                 is_kwarg = True
                 param = param.replace(default=Depends(self.get_authorization))
+            else:
+                annotation = convert_to_pydantic(annotation)
+                param = param.replace(annotation=annotation)
             parameters.append(param)
         if not param_name:
             param_name = "authorization"
