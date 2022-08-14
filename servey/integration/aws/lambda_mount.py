@@ -14,7 +14,10 @@ from marshy.factory.impl_marshaller_factory import get_impls
 
 from servey.access_control.authorization import AuthorizationError, Authorization
 from servey.access_control.authorizer_abc import AuthorizerABC
-from servey.access_control.authorizer_factory_abc import AuthorizerFactoryABC, create_authorizer
+from servey.access_control.authorizer_factory_abc import (
+    AuthorizerFactoryABC,
+    create_authorizer,
+)
 from servey.action import Action
 from servey.action_finder import find_actions
 from servey.servey_error import ServeyError
@@ -24,7 +27,7 @@ PARAMS_METHODS = (
     WebTriggerMethod.DELETE,
     WebTriggerMethod.GET,
     WebTriggerMethod.HEAD,
-    WebTriggerMethod.OPTIONS
+    WebTriggerMethod.OPTIONS,
 )
 LOGGER = getLogger(__name__)
 
@@ -37,24 +40,28 @@ class LambdaMount:
 
     def __post_init__(self):
         if not self.web_trigger:
-            self.web_trigger = next((
-                t for t in self.action.action_meta.triggers
-                if isinstance(t, WebTrigger)
-            ), None)
+            self.web_trigger = next(
+                (
+                    t
+                    for t in self.action.action_meta.triggers
+                    if isinstance(t, WebTrigger)
+                ),
+                None,
+            )
 
     def handler(self, event, context):
-        event_type = event.get('eventType')
-        if event_type == 'servey.1.0':
+        event_type = event.get("eventType")
+        if event_type == "servey.1.0":
             return self.handle_event(event)
-        elif event.get('httpMethod'):
+        elif event.get("httpMethod"):
             return self.handle_api_gateway_event(event)
         else:
-            raise ServeyError('unknown_event_format')
+            raise ServeyError("unknown_event_format")
 
     def handle_event(self, event: Dict):
         authorization = self.check_authorization(event)
         action = self.action
-        params = event['params']
+        params = event["params"]
         action.action_meta.params_schema.validate(params)
         params = action.params_marshaller.load(params)
         if action.authorization_inject_param:
@@ -69,30 +76,29 @@ class LambdaMount:
         if not web_trigger:
             # This could only happen if somebody goes around the framework.
             # Fix it by adding a web trigger to the action
-            raise ServeyError('non_web_triggered_lambda_from_api_gateway')
-        authorization = event['headers'].get('Authorization')
+            raise ServeyError("non_web_triggered_lambda_from_api_gateway")
+        authorization = event["headers"].get("Authorization")
         params = {}
         if web_trigger.method in PARAMS_METHODS:
-            multi_value_query_string_parameters = event.get('multiValueQueryStringParameters')
+            multi_value_query_string_parameters = event.get(
+                "multiValueQueryStringParameters"
+            )
             if multi_value_query_string_parameters:
                 params = {
                     k: v[0] if len(v) == 1 else v
                     for k, v in multi_value_query_string_parameters.items()
                 }
         else:
-            body = event.get('body')
+            body = event.get("body")
             if body:
                 params = json.loads(body)
-        return self.handle_event(dict(
-            authorization=authorization,
-            params=params
-        ))
+        return self.handle_event(dict(authorization=authorization, params=params))
 
     def check_authorization(self, event: Dict) -> Authorization:
-        authorization = event['authorization']
+        authorization = event["authorization"]
         authorization = self.authorizer.authorize(authorization)
         if not self.action.action_meta.access_control.is_executable(authorization):
-            raise AuthorizationError('forbidden')
+            raise AuthorizationError("forbidden")
         return authorization
 
 
@@ -106,8 +112,8 @@ def _get_action(context):
     global _ACTION
     if _ACTION:
         return _ACTION
-    name = context.function_name.split('-')[-1]
-    servey_action_path = os.environ.get('SERVEY_ACTION_PATH') or 'servey_actions'
+    name = context.function_name.split("-")[-1]
+    servey_action_path = os.environ.get("SERVEY_ACTION_PATH") or "servey_actions"
     for found_action in find_actions([servey_action_path]):
         action = found_action.action
         if action.action_meta.name == name:

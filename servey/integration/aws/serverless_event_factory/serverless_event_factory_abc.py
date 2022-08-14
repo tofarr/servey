@@ -11,4 +11,4 @@ class ServerlessEventFactoryABC(ABC):
 
     @abstractmethod
     def create_event(self, action_meta: ActionMeta) -> Optional[ExternalItemType]:
-        """ Create an event based on the trigger given"""
+        """Create an event based on the trigger given"""

@@ -1,17 +1,38 @@
-from abc import ABC
-from typing import Any
+from abc import ABC, abstractmethod
 
-from servey.access_control.authorization import Authorization
+from servey.executor_abc import ExecutorABC
 
 
 class ActionABC(ABC):
-    """ Invoker for a (possibly remote) action. """
+    """Definition for an action"""
 
-    def __call__(self, authorization: Authorization, **kwargs):
-        return self.invoke(authorization, **kwargs)
+    @abstractmethod
+    def create_executor(self) -> ExecutorABC:
+        """Create a subject for this action."""
 
-    def invoke(self, authorization: Authorization, **kwargs) -> Any:
-        """ Execute the action and await a response """
 
-    def invoke_async(self, authorization: Authorization, **kwargs):
-        """ Invoke the action but do not wait for a response """
+"""
+@action
+class GreeterAction:
+
+    def __call__(self, name: str) -> Any:
+        return f"Hello {name}!"
+
+greeting = GreeterAction()('Tim')
+
+@action(method_name='get_current_user')
+class CurrentUserAction(ActionABC):
+    username: str
+
+    def get_current_user(self) -> str:
+        return username
+
+current_username = CurrentUserAction().get_curent_user()
+
+@action
+def get_the_time() -> datetime
+    return datetime.now()
+
+
+now = get_the_time()
+"""

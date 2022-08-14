@@ -14,4 +14,4 @@ class ActionMeta:
     result_schema: Schema
     access_control: ActionAccessControlABC
     triggers: Tuple[TriggerABC, ...]
-    timeout: int = 30
+    timeout: int = 15

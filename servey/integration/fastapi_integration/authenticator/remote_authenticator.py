@@ -5,12 +5,15 @@ from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
 
 from servey.access_control.authorizer_abc import AuthorizerABC
-from servey.integration.fastapi_integration.authenticator.authenticator_abc import AuthenticatorABC
+from servey.integration.fastapi_integration.authenticator.authenticator_abc import (
+    AuthenticatorABC,
+)
 
 
 @dataclass
 class RemoteAuthenticator(AuthenticatorABC):
-    """ OAuth2 authenticator which is in a different domain """
+    """OAuth2 authenticator which is in a different domain"""
+
     url: str
 
     def mount_authenticator(self, fastapi: FastAPI, authorizer: AuthorizerABC):

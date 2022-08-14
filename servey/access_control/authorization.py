@@ -54,9 +54,7 @@ class Authorization:
 
     def check_all_scopes(self, scopes: Set[str]):
         if not self.has_all_scopes(scopes):
-            raise AuthorizationError(
-                f"missing_all:{self.scopes.difference(scopes)}"
-            )
+            raise AuthorizationError(f"missing_all:{self.scopes.difference(scopes)}")
 
 
 # A default ROOT scope - rules may be adjusted to remove root access

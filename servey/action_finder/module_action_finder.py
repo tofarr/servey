@@ -11,7 +11,8 @@ class ModuleActionFinder(ActionFinderABC):
     """
     Default implementation of action finder which searches for actions in a particular module
     """
-    root_module_name: str = os.environ.get('SERVEY_ACTION_PATH') or 'servey_actions'
+
+    root_module_name: str = os.environ.get("SERVEY_ACTION_PATH") or "servey_actions"
 
     def find_actions(self) -> Iterator[Action]:
         paths = []
@@ -20,5 +21,5 @@ class ModuleActionFinder(ActionFinderABC):
             module_spec = module_info.module_finder.find_spec(module_info.name)
             module = module_spec.loader.load_module(module_info.name)
             for name, value in module.__dict__.items():
-                if isinstance(value, Action):
-                    yield value
+                if hasattr(value, "__servey_action_meta__"):
+                    yield Action(value)

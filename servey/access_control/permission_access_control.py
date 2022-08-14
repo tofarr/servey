@@ -10,11 +10,7 @@ class PermissionAccessControl(ActionAccessControlABC):
     execute_scope: str
 
     def is_viewable(self, authorization: Authorization) -> bool:
-        return bool(self.view_scope) and authorization.has_scope(
-            self.view_scope
-        )
+        return bool(self.view_scope) and authorization.has_scope(self.view_scope)
 
     def is_executable(self, authorization: Authorization) -> bool:
-        return bool(self.execute_scope) and authorization.has_scope(
-            self.execute_scope
-        )
+        return bool(self.execute_scope) and authorization.has_scope(self.execute_scope)

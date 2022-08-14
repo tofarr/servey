@@ -11,7 +11,7 @@ class AuthorizerFactoryABC(ABC):
 
     @abstractmethod
     def create_authorizer(self) -> Optional[AuthorizerABC]:
-        """ Create a new authorizer instance. Return None if this was not possible """
+        """Create a new authorizer instance. Return None if this was not possible"""
 
 
 def create_authorizer():

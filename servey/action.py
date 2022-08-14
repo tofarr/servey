@@ -1,123 +1,142 @@
-import asyncio
+from __future__ import annotations
+
 import inspect
 from dataclasses import dataclass
 from logging import getLogger
-from typing import Callable, Optional, Tuple, Any
+from typing import Callable, Optional, Tuple, Union, Type, Generic, TypeVar
 
 from marshy import get_default_context
-from marshy.factory.optional_marshaller_factory import get_optional_type
 from marshy.marshaller.marshaller_abc import MarshallerABC
 from marshy.marshaller.obj_marshaller import ObjMarshaller, attr_config
 from marshy.marshaller_context import MarshallerContext
-from marshy.utils import resolve_forward_refs
 from schemey import Schema, get_default_schema_context, SchemaContext
 
 from servey.access_control.action_access_control_abc import ActionAccessControlABC
 from servey.access_control.allow_all import ALLOW_ALL
-from servey.access_control.authorization import Authorization
-from servey.action_abc import ActionABC
 from servey.action_meta import ActionMeta
+from servey.executor import Executor
 from servey.servey_error import ServeyError
 from servey.trigger.trigger_abc import TriggerABC
 from servey.trigger.web_trigger import WebTrigger, WebTriggerMethod
+from servey.util import to_snake_case
 
 logger = getLogger(__name__)
+T = TypeVar("T")
 
 
 @dataclass(frozen=True)
-class Action(ActionABC):
-    """ General action, wraps a callable function, and allows authorization parameter to be optionally injected. """
-    fn: Callable
-    action_meta: ActionMeta
-    params_marshaller: MarshallerABC
-    result_marshaller: MarshallerABC
-    authorization_inject_param: Optional[str] = None
+class Action(Generic[T]):
+    subject: Union[Type, Callable]
 
-    def __call__(self, authorization: Authorization, **kwargs) -> Any:
-        self.pre_check(authorization, kwargs)
-        if self.authorization_inject_param:
-            kwargs[self.authorization_inject_param] = authorization
-        result = self.fn(**kwargs)
-        return result
+    @property
+    def action_meta(self) -> ActionMeta:
+        return self.subject.__servey_action_meta__
 
-    def invoke(self, authorization: Authorization, **kwargs) -> Any:
-        """
-        Invoke this action and return the result. Local actions do not strictly enforce
-        timeouts, but will instead issue a warning to the logs. Environments like lambda
-        are not so forgiving, and may leave data in an invalid state!
-        """
-        completed = False
+    @property
+    def method_name(self):
+        return getattr(self.subject, "__servey_method_name__", None)
 
-        def timeout_check():
-            if not completed:
-                logger.error(f'action_ran_too_long:{self.action_meta.name}')
+    def get_signature(self) -> inspect.Signature:
+        method_name = self.method_name
+        fn = getattr(self.subject, method_name) if method_name else self.subject
+        sig = inspect.signature(fn)
+        params = list(sig.parameters.values())
+        if method_name:
+            params = params[1:]
+        sig = sig.replace(parameters=tuple(params))
+        return sig
 
-        loop = asyncio.get_event_loop()
-        loop.call_later(self.action_meta.timeout, timeout_check)
-        try:
-            return self.__call__(authorization, **kwargs)
-        finally:
-            completed = True
-
-    def invoke_async(self, authorization: Authorization, **kwargs):
-        loop = asyncio.get_event_loop()
-        loop.call_soon(lambda: self.invoke(authorization, **kwargs))
-
-    def pre_check(self, authorization: Authorization, kwargs):
-        if not self.action_meta.access_control.is_executable(authorization):
-            raise ServeyError('insufficent_scopes')
-        dumped_kwargs = self.params_marshaller.dump(kwargs)
-        self.action_meta.params_schema.validate(dumped_kwargs)
+    def create_executor(self) -> Executor:
+        if inspect.isclass(self.subject):
+            subject = self.subject()
+        else:
+            subject = self.subject
+        return Executor(subject, self.method_name)
 
 
 def action(
-    fn: Optional[Callable] = None,
+    cls_or_fn: Optional[Callable] = None,
     name: Optional[str] = None,
+    method_name: Optional[str] = None,
     params_schema: Optional[Schema] = None,
     params_marshaller: Optional[MarshallerABC] = None,
     result_schema: Optional[Schema] = None,
     result_marshaller: Optional[MarshallerABC] = None,
     access_control: ActionAccessControlABC = ALLOW_ALL,
     triggers: Tuple[TriggerABC, ...] = (WebTrigger(WebTriggerMethod.POST),),
-    timeout: int = 30,
+    timeout: int = ActionMeta.timeout,
 ):
-    """ Decorator which marks a global function as an action """
+    """
+    Decorator for actions, which may be a function or a class with a designated method_name
+    to act as the action. This decorator doesn't really do anything special aside from
+    adding metadata to the object which may be interpreted when the action is mounted.
 
-    def wrapper_(fn_: Callable):
-        nonlocal name, params_schema, params_marshaller, result_schema, result_marshaller
-        # Throw an error if the action is not global
-        if not name:
-            name = fn_.__name__
+    When mounting, operations like security checks and validations are performed, as well as
+    parameter injection for class based actions.
+    """
+
+    def wrapper_(cls_or_fn_: Callable):
+        if inspect.isclass(cls_or_fn_):
+            return wrap_class(cls_or_fn_)
+        elif callable(cls_or_fn_):
+            return wrap_fn(cls_or_fn_)
+        else:
+            raise TypeError(cls_or_fn_)
+
+    def wrap_class(cls):
+        cls = dataclass(cls)
+        name_ = name or to_snake_case(cls.name)
+        fn = getattr(cls, method_name or "__call__")
+        cls.__servey_action_meta__ = get_meta_for_fn(name_, fn, True)
+        cls.__servey_method_name__ = method_name
+        return cls
+
+    def wrap_fn(fn):
+        if method_name:
+            raise ValueError(
+                f"defining_method_name_while_wrapping_function:{method_name}"
+            )
+        fn.__servey_action_meta__ = get_meta_for_fn(fn.__name__, fn, True)
+        return fn
+
+    def get_meta_for_fn(name_: str, fn: Callable, bound: bool):
+        nonlocal params_schema, params_marshaller, result_schema, result_marshaller
         if not params_schema:
-            params_schema = get_schema_for_params(fn_)
+            params_schema = get_schema_for_params(fn, bound)
         if not result_schema:
-            result_schema = get_schema_for_result(fn_)
+            result_schema = get_schema_for_result(fn)
         if not params_marshaller:
-            params_marshaller = get_marshaller_for_params(fn_)
+            params_marshaller = get_marshaller_for_params(fn)
         if not result_marshaller:
-            result_marshaller = get_default_context().get_marshaller(result_schema.python_type)
-        return Action(
-            fn=fn_,
-            action_meta=ActionMeta(
-                name, params_schema, result_schema, access_control, triggers, timeout
-            ),
-            params_marshaller=params_marshaller,
-            result_marshaller=result_marshaller,
-            authorization_inject_param=get_authorization_inject_params(fn_)
+            result_marshaller = get_default_context().get_marshaller(
+                result_schema.python_type
+            )
+        return ActionMeta(
+            name=name_,
+            params_schema=params_schema,
+            result_schema=result_schema,
+            access_control=access_control,
+            triggers=triggers,
+            timeout=timeout,
         )
 
-    return wrapper_ if fn is None else wrapper_(fn)
+    return wrapper_ if cls_or_fn is None else wrapper_(cls_or_fn)
 
 
-def get_schema_for_params(fn: Callable, schema_context: Optional[SchemaContext] = None) -> Schema:
+def get_schema_for_params(
+    fn: Callable, bound: bool, schema_context: Optional[SchemaContext] = None
+) -> Schema:
     if not schema_context:
         schema_context = get_default_schema_context()
     sig = inspect.signature(fn)
     properties = {}
     required = []
-    for p in list(sig.parameters.values()):
+    params = list(sig.parameters.values())
+    if bound:
+        params = params[1:]
+    for p in params:
         if p.annotation is inspect.Parameter.empty:
-            raise ServeyError(f'missing_param_annotation:{fn.__name__}({p.name}')
+            raise ServeyError(f"missing_param_annotation:{fn.__name__}({p.name}")
         properties[p.name] = schema_context.schema_from_type(p.annotation).schema
         if p.default == inspect.Parameter.empty:
             required.append(p.name)
@@ -131,15 +150,19 @@ def get_schema_for_params(fn: Callable, schema_context: Optional[SchemaContext] 
     return schema
 
 
-def get_marshaller_for_params(fn: Callable, marshaller_context: Optional[MarshallerContext] = None) -> MarshallerABC:
+def get_marshaller_for_params(
+    fn: Callable, marshaller_context: Optional[MarshallerContext] = None
+) -> MarshallerABC:
     if not marshaller_context:
         marshaller_context = get_default_context()
     sig = inspect.signature(fn)
     attr_configs = []
     for p in list(sig.parameters.values()):
         if p.annotation is inspect.Parameter.empty:
-            raise ServeyError(f'missing_param_annotation:{fn.__name__}({p.name}')
-        attr_configs.append(attr_config(marshaller_context.get_marshaller(p.annotation), p.name))
+            raise ServeyError(f"missing_param_annotation:{fn.__name__}({p.name}")
+        attr_configs.append(
+            attr_config(marshaller_context.get_marshaller(p.annotation), p.name)
+        )
     marshaller = ObjMarshaller(dict, tuple(attr_configs))
     return marshaller
 
@@ -149,18 +172,6 @@ def get_schema_for_result(fn: Callable) -> Schema:
     sig = inspect.signature(fn)
     type_ = sig.return_annotation
     if type_ is inspect.Parameter.empty:
-        raise ServeyError(f'missing_return_annotation:{fn.__name__}')
+        raise ServeyError(f"missing_return_annotation:{fn.__name__}")
     schema = schema_context.schema_from_type(type_)
     return schema
-
-
-def get_authorization_inject_params(fn: Callable) -> Optional[str]:
-    sig = inspect.signature(fn)
-    for p in list(sig.parameters.values()):
-        if p.name != 'authorization':
-            continue
-        type_ = p.annotation
-        type_ = get_optional_type(type_) or type_
-        type_ = resolve_forward_refs(type_)
-        if type_ == Authorization:
-            return p.name

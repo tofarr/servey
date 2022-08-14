@@ -3,13 +3,13 @@ from enum import Enum
 
 
 class WebTriggerMethod(Enum):
-    DELETE = 'delete'
-    GET = 'get'
-    HEAD = 'head'
-    OPTIONS = 'options'
-    PATCH = 'patch'
-    POST = 'post'
-    PUT = 'put'
+    DELETE = "delete"
+    GET = "get"
+    HEAD = "head"
+    OPTIONS = "options"
+    PATCH = "patch"
+    POST = "post"
+    PUT = "put"
 
 
 @dataclass(frozen=True)

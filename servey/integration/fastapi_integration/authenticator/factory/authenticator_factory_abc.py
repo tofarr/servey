@@ -3,7 +3,9 @@ from typing import Optional
 
 from marshy.factory.impl_marshaller_factory import get_impls
 
-from servey.integration.fastapi_integration.authenticator.authenticator_abc import AuthenticatorABC
+from servey.integration.fastapi_integration.authenticator.authenticator_abc import (
+    AuthenticatorABC,
+)
 
 
 class AuthenticatorFactoryABC(ABC):
@@ -11,7 +13,7 @@ class AuthenticatorFactoryABC(ABC):
 
     @abstractmethod
     def create_authenticator(self) -> Optional[AuthenticatorABC]:
-        """ Create a new authorizer instance. Return None if this was not possible """
+        """Create a new authorizer instance. Return None if this was not possible"""
 
 
 def create_authenticator():
