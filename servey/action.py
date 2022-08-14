@@ -84,9 +84,18 @@ def action(
             raise TypeError(cls_or_fn_)
 
     def wrap_class(cls):
+        nonlocal method_name
         cls = dataclass(cls)
-        name_ = name or to_snake_case(cls.name)
-        fn = getattr(cls, method_name or "__call__")
+        name_ = name or to_snake_case(cls.__name__)
+        if method_name:
+            fn = getattr(cls, method_name)
+        else:
+            fns = [v for k, v in cls.__dict__.items() if not k.startswith('_') and callable(v)]
+            if len(fns) == 1:
+                fn = fns[0]
+                method_name = fn.__name__
+            else:
+                raise ValueError(f'multiple_methods_found:{cls}')
         cls.__servey_action_meta__ = get_meta_for_fn(name_, fn, True)
         cls.__servey_method_name__ = method_name
         return cls
@@ -106,7 +115,7 @@ def action(
         if not result_schema:
             result_schema = get_schema_for_result(fn)
         if not params_marshaller:
-            params_marshaller = get_marshaller_for_params(fn)
+            params_marshaller = get_marshaller_for_params(fn, bound)
         if not result_marshaller:
             result_marshaller = get_default_context().get_marshaller(
                 result_schema.python_type
@@ -136,7 +145,7 @@ def get_schema_for_params(
         params = params[1:]
     for p in params:
         if p.annotation is inspect.Parameter.empty:
-            raise ServeyError(f"missing_param_annotation:{fn.__name__}({p.name}")
+            raise ServeyError(f"missing_param_annotation:{fn.__name__}:{p.name}")
         properties[p.name] = schema_context.schema_from_type(p.annotation).schema
         if p.default == inspect.Parameter.empty:
             required.append(p.name)
@@ -151,13 +160,16 @@ def get_schema_for_params(
 
 
 def get_marshaller_for_params(
-    fn: Callable, marshaller_context: Optional[MarshallerContext] = None
+    fn: Callable, bound: bool, marshaller_context: Optional[MarshallerContext] = None
 ) -> MarshallerABC:
     if not marshaller_context:
         marshaller_context = get_default_context()
     sig = inspect.signature(fn)
     attr_configs = []
-    for p in list(sig.parameters.values()):
+    params = list(sig.parameters.values())
+    if bound:
+        params = params[1:]
+    for p in params:
         if p.annotation is inspect.Parameter.empty:
             raise ServeyError(f"missing_param_annotation:{fn.__name__}({p.name}")
         attr_configs.append(
