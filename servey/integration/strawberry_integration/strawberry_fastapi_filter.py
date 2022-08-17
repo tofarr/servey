@@ -1,26 +1,28 @@
 import logging
 import os
-from typing import Optional, Callable
+from inspect import Signature
+from typing import Tuple
 
 from fastapi import FastAPI
 
 from servey.action import Action
-from servey.integration.fastapi_integration.executor_factory.fastapi_handler_factory_abc import (
-    FastapiHandlerFactoryABC,
+from servey.integration.fastapi_integration.handler_filter.fastapi_handler_filter_abc import (
+    FastapiHandlerFilterABC,
+    ExecutorFn,
 )
 from servey.trigger.web_trigger import WebTrigger
 
 LOGGER = logging.getLogger(__name__)
 
 
-class StrawberryFastapiHandlerFactory(FastapiHandlerFactoryABC):
+class StrawberryFastapiFilter(FastapiHandlerFilterABC):
     graphql_path: str = os.environ.get("SERVEY_GRAPHQL_PATH") or "/graphql"
     debug: bool = int(os.environ.get("SERVER_DEBUG", "1")) == 1
 
-    def create_handler_for_action(
-        self, action: Action, trigger: WebTrigger
-    ) -> Optional[Callable]:
-        pass
+    def filter(
+        self, action: Action, trigger: WebTrigger, fn: ExecutorFn, sig: Signature
+    ) -> Tuple[ExecutorFn, Signature, bool]:
+        return fn, sig, True
 
     def mount_dependencies(self, api: FastAPI):
         try:

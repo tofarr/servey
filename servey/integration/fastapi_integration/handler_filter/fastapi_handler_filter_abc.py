@@ -11,7 +11,7 @@ from servey.trigger.web_trigger import WebTrigger
 ExecutorFn = Callable[[Executor, Dict[str, Any]], Any]
 
 
-class HandlerFilterABC(ABC):
+class FastapiHandlerFilterABC(ABC):
     """
     Sometimes the default behaviour from fastapi is not quite what we want, so this allows us to customize
     how a http request will be passed to an action.
@@ -32,8 +32,11 @@ class HandlerFilterABC(ABC):
         """Mount any routes required for this filter"""
 
 
-def create_handler_filters() -> Tuple[HandlerFilterABC]:
+def create_handler_filters() -> Tuple[FastapiHandlerFilterABC]:
     from marshy.factory.impl_marshaller_factory import get_impls
-    filters: List[HandlerFilterABC] = [f() for f in get_impls(HandlerFilterABC)]
+
+    filters: List[FastapiHandlerFilterABC] = [
+        f() for f in get_impls(FastapiHandlerFilterABC)
+    ]
     filters.sort(key=lambda f: f.priority, reverse=True)
     return tuple(filters)

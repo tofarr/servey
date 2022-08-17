@@ -40,5 +40,6 @@ def list_companies() -> List[Company]:
 
 
 @action
-def create_company(company: Company) -> type(None):
+def create_company(company: Company) -> Company:
     companies.append(company)
+    return company

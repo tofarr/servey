@@ -1,4 +1,5 @@
 import inspect
+import typing
 from enum import Enum
 from typing import Type, Optional
 
@@ -11,6 +12,10 @@ from servey.integration.strawberry_integration.entity_factory.entity_factory_abc
 )
 from servey.integration.strawberry_integration.schema_factory import SchemaFactory
 
+_TYPES_BY_ORIGIN = {
+    t.__origin__: t for t in typing.__dict__.values() if hasattr(t, "__origin__")
+}
+
 
 class GenericFactory(EntityFactoryABC):
     priority: int = 150
@@ -20,10 +25,11 @@ class GenericFactory(EntityFactoryABC):
     ) -> Optional[Type]:
         origin = typing_inspect.get_origin(annotation)
         if origin:
-            origin = schema_factory.create_type(origin)
+            origin = _TYPES_BY_ORIGIN.get(origin) or origin
+            if not origin:
+                return
             args = tuple(
-                schema_factory.create_type(a)
-                for a in typing_inspect.get_args(annotation)
+                schema_factory.get_type(a) for a in typing_inspect.get_args(annotation)
             )
             return origin[args]
 
@@ -32,9 +38,10 @@ class GenericFactory(EntityFactoryABC):
     ) -> Optional[Type]:
         origin = typing_inspect.get_origin(annotation)
         if origin:
-            origin = schema_factory.create_type(origin)
+            origin = _TYPES_BY_ORIGIN.get(origin) or origin
+            if not origin:
+                return
             args = tuple(
-                schema_factory.create_type(a)
-                for a in typing_inspect.get_args(annotation)
+                schema_factory.get_input(a) for a in typing_inspect.get_args(annotation)
             )
             return origin[args]

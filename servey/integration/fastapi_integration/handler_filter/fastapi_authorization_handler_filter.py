@@ -1,6 +1,6 @@
 from dataclasses import field, dataclass
 from inspect import Parameter, Signature
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 
 from fastapi import Depends, FastAPI
 
@@ -15,8 +15,8 @@ from servey.executor import Executor
 from servey.integration.fastapi_integration.authenticator.factory.authenticator_factory_abc import (
     get_default_authenticator,
 )
-from servey.integration.fastapi_integration.handler_filter.handler_filter_abc import (
-    HandlerFilterABC,
+from servey.integration.fastapi_integration.handler_filter.fastapi_handler_filter_abc import (
+    FastapiHandlerFilterABC,
     ExecutorFn,
 )
 from servey.integration.fastapi_integration.authenticator.authenticator_abc import (
@@ -26,7 +26,7 @@ from servey.trigger.web_trigger import WebTrigger
 
 
 @dataclass
-class AuthorizationHandlerFilter(HandlerFilterABC):
+class FastapiAuthorizationHandlerFilter(FastapiHandlerFilterABC):
     priority: int = 80
     authorizer: AuthorizerABC = field(default_factory=get_default_authorizer)
     authenticator: AuthenticatorABC = field(default_factory=get_default_authenticator)
@@ -91,8 +91,8 @@ class AuthorizationHandlerFilter(HandlerFilterABC):
 
 def _wrap_fn(
     access_control: ActionAccessControlABC,
-    authorization_field_name: str,
-    authorization_kwarg_name: str,
+    authorization_field_name: Optional[str],
+    authorization_kwarg_name: Optional[str],
     filter_authorization_kwarg: bool,
     fn: ExecutorFn,
 ) -> ExecutorFn:

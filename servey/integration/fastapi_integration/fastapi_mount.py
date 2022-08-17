@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from servey.action import Action
 from servey.action_context import ActionContext, get_default_action_context
 from servey.executor import Executor
-from servey.integration.fastapi_integration.handler_filter.handler_filter_abc import (
-    HandlerFilterABC,
+from servey.integration.fastapi_integration.handler_filter.fastapi_handler_filter_abc import (
+    FastapiHandlerFilterABC,
 )
 from servey.trigger.web_trigger import WebTrigger
 
@@ -17,7 +17,7 @@ class FastapiMount:
     """Utility for mounting actions to fastapi_integration."""
 
     api: FastAPI
-    action_filters: Tuple[HandlerFilterABC, ...]
+    handler_filters: Tuple[FastapiHandlerFilterABC, ...]
     path_pattern: str = "/actions/{action_name}"
 
     def mount_all(self, action_context: Optional[ActionContext] = None):
@@ -25,8 +25,8 @@ class FastapiMount:
             action_context = get_default_action_context()
         for action, trigger in action_context.get_actions_with_trigger_type(WebTrigger):
             self.mount_action(action, trigger)
-        for action_filter in self.action_filters:
-            action_filter.mount_dependencies(self.api)
+        for handler_filter in self.handler_filters:
+            handler_filter.mount_dependencies(self.api)
 
     def mount_action(self, action: Action, trigger: WebTrigger):
         """
@@ -43,8 +43,10 @@ class FastapiMount:
     def create_handler_for_action(self, action: Action, trigger: WebTrigger):
         fn = _handler
         sig = action.get_signature()
-        for action_filter in self.action_filters:
-            fn, sig, continue_filtering = action_filter.filter(action, trigger, fn, sig)
+        for handler_filter in self.handler_filters:
+            fn, sig, continue_filtering = handler_filter.filter(
+                action, trigger, fn, sig
+            )
             if not continue_filtering:
                 break
 

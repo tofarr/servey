@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field, fields, is_dataclass
-from inspect import Signature
-from typing import Type, Dict, List, Set, Optional, Tuple
+from typing import Type, Dict, List, Set, Optional, Any
 
 import strawberry
 import typing_inspect
@@ -15,12 +14,12 @@ from strawberry.types.fields.resolver import StrawberryResolver
 
 from servey.action import Action
 from servey.action_context import get_default_action_context, ActionContext
+from servey.executor import Executor
 from servey.integration.strawberry_integration.entity_factory.entity_factory_abc import (
     EntityFactoryABC,
 )
-from servey.integration.strawberry_integration.injector.injector_abc import InjectorABC
-from servey.integration.strawberry_integration.injector.injector_factory_abc import (
-    InjectorFactoryABC,
+from servey.integration.strawberry_integration.handler_filter.handler_filter_abc import (
+    HandlerFilterABC,
 )
 from servey.trigger.web_trigger import WebTrigger, UPDATE_METHODS
 
@@ -33,18 +32,30 @@ class SchemaFactory:
     query: Dict[str, StrawberryField] = field(default_factory=dict)
     mutation: Dict[str, StrawberryField] = field(default_factory=dict)
     entity_factories: List[EntityFactoryABC] = field(default_factory=list)
-    injector_factories: List[InjectorFactoryABC] = field(default_factory=list)
+    handler_filters: List[HandlerFilterABC] = field(default_factory=list)
 
-    def create_input(self, annotation: Type) -> Type:
+    def get_input(self, annotation: Type) -> Type:
+        if hasattr(annotation, "__name__"):
+            i = self.inputs.get(annotation.__name__)
+            if i:
+                return i
         for entity_factory in self.entity_factories:
             i = entity_factory.create_input(annotation, self)
             if i:
+                if hasattr(annotation, "__name__"):
+                    self.inputs[annotation.__name__] = i
                 return i
 
-    def create_type(self, annotation: Type):
-        for entity_factory in self.entity_factories:
-            type_ = entity_factory.create_input(annotation, self)
+    def get_type(self, annotation: Type):
+        if hasattr(annotation, "__name__"):
+            type_ = self.types.get(annotation.__name__)
             if type_:
+                return type_
+        for entity_factory in self.entity_factories:
+            type_ = entity_factory.create_type(annotation, self)
+            if type_:
+                if hasattr(annotation, "__name__"):
+                    self.types[annotation.__name__] = type_
                 return type_
 
     def add_fields(self, action_context: Optional[ActionContext] = None):
@@ -54,17 +65,18 @@ class SchemaFactory:
             self.create_field_for_action(action, trigger)
 
     def create_field_for_action(self, action: Action, trigger: WebTrigger):
-        sig, injectors = self.create_signature(action)
+        fn = _handler
+        sig = action.get_signature()
+        for handler_filter in self.handler_filters:
+            fn, sig, continue_filtering = handler_filter.filter(
+                action, trigger, fn, sig, self
+            )
+            if not continue_filtering:
+                break
 
         def resolver(**kwargs):
             executor = action.create_executor()
-            to_exclude = set()
-            for injector in injectors:
-                injector.inject(executor, kwargs, to_exclude)
-            for key in to_exclude:
-                kwargs.pop(key, None)
-            result = executor.execute(**kwargs)
-            # TODO: Convert result to strawberry type
+            result = fn(executor, kwargs)
             return result
 
         resolver.__signature__ = sig
@@ -74,22 +86,6 @@ class SchemaFactory:
             self.mutation[f.name] = f
         else:
             self.query[f.name] = f
-
-    def create_signature(self, action: Action) -> Tuple[Signature, List[InjectorABC]]:
-        sig = action.get_signature()
-        parameters = []
-        for param in sig.parameters.values():
-            parameters.append(
-                param.replace(annotation=self.create_input(param.annotation))
-            )
-        injectors = []
-        for injector_factory in self.injector_factories:
-            injector = injector_factory.create_injector(action, parameters)
-            if injector:
-                injectors.append(injector)
-        return_annotation = self.create_type(sig.return_annotation)
-        sig = sig.replace(parameters=parameters, return_annotation=return_annotation)
-        return sig, injectors
 
     def _resolve_type_futures(self, type_, resolved: Set):
         if isinstance(type_, str):
@@ -166,12 +162,16 @@ def new_schema_for_context(action_context: Optional[ActionContext] = None):
         action_context = get_default_action_context()
     entity_factories = [f() for f in get_impls(EntityFactoryABC)]
     entity_factories.sort(key=lambda f: f.priority, reverse=True)
-    injector_factories = [f() for f in get_impls(InjectorFactoryABC)]
-    injector_factories.sort(key=lambda f: f.priority, reverse=True)
+    handler_filters = [f() for f in get_impls(HandlerFilterABC)]
+    handler_filters.sort(key=lambda f: f.priority, reverse=True)
     schema_factory = SchemaFactory(
-        entity_factories=entity_factories, injector_factories=injector_factories
+        entity_factories=entity_factories, handler_filters=handler_filters
     )
     for action, trigger in action_context.get_actions_with_trigger_type(WebTrigger):
         schema_factory.create_field_for_action(action, trigger)
     schema = schema_factory.create_schema()
     return schema
+
+
+def _handler(executor: Executor, params: Dict[str, Any]) -> Any:
+    return executor.execute(**params)

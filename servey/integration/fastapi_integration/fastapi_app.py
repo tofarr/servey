@@ -10,7 +10,7 @@ import os
 from fastapi import FastAPI
 
 from servey.integration.fastapi_integration.fastapi_mount import FastapiMount
-from servey.integration.fastapi_integration.handler_filter.handler_filter_abc import (
+from servey.integration.fastapi_integration.handler_filter.fastapi_handler_filter_abc import (
     create_handler_filters,
 )
 

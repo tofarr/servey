@@ -20,11 +20,11 @@ class ForwardRefFactory(EntityFactoryABC):
     ) -> Optional[Type]:
         if typing_inspect.is_forward_ref(annotation):
             annotation = resolve_forward_refs(annotation)
-            return schema_factory.create_type(annotation)
+            return schema_factory.get_type(annotation)
 
     def create_input(
         self, annotation: Type, schema_factory: SchemaFactory
     ) -> Optional[Type]:
         if typing_inspect.is_forward_ref(annotation):
             annotation = resolve_forward_refs(annotation)
-            return schema_factory.create_input(annotation)
+            return schema_factory.get_type(annotation)
