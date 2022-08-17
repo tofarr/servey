@@ -24,7 +24,6 @@ class AlsoAboutMe:
         return f"Your subject id is {self.authorization.subject_id} and your scopes are: {' '.join(self.authorization.scopes)}"
 
 
-
 @dataclass
 class Company:
     name: str
@@ -35,7 +34,7 @@ class Company:
 companies = []
 
 
-@action
+@action(triggers=(WEB_GET,))
 def list_companies() -> List[Company]:
     return companies
 

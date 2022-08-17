@@ -28,3 +28,13 @@ def create_authorizer():
         authorizer = factory().create_authorizer()
         if authorizer:
             return authorizer
+
+
+_default_authorizer = None
+
+
+def get_default_authorizer():
+    global _default_authorizer
+    if not _default_authorizer:
+        _default_authorizer = create_authorizer()
+    return _default_authorizer

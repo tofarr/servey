@@ -26,3 +26,13 @@ def create_authenticator():
         authorizer = factory().create_authenticator()
         if authorizer:
             return authorizer
+
+
+_default_authenticator = None
+
+
+def get_default_authenticator():
+    global _default_authenticator
+    if not _default_authenticator:
+        _default_authenticator = create_authenticator()
+    return _default_authenticator

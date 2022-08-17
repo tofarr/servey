@@ -15,14 +15,14 @@ from servey.integration.fastapi_integration.authenticator.factory.local_authenti
 from servey.integration.fastapi_integration.authenticator.factory.remote_authenticator_factory import (
     RemoteAuthenticatorFactory,
 )
-from servey.integration.fastapi_integration.executor_factory.authorized_fastapi_handler_factory import (
-    AuthorizedFastapiHandlerFactory,
+from servey.integration.fastapi_integration.handler_filter.authorization_handler_filter import (
+    AuthorizationHandlerFilter,
 )
-from servey.integration.fastapi_integration.executor_factory.fastapi_handler_factory import (
-    FastapiHandlerFactory,
+from servey.integration.fastapi_integration.handler_filter.body_handler_filter import (
+    BodyHandlerFilter,
 )
-from servey.integration.fastapi_integration.executor_factory.fastapi_handler_factory_abc import (
-    FastapiHandlerFactoryABC,
+from servey.integration.fastapi_integration.handler_filter.handler_filter_abc import (
+    HandlerFilterABC,
 )
 
 priority = 100
@@ -34,5 +34,13 @@ def configure(context: MarshallerContext):
     register_impl(AuthenticatorFactoryABC, RemoteAuthenticatorFactory, context)
     register_impl(AuthorizerFactoryABC, KmsAuthorizerFactory, context)
     register_impl(AuthorizerFactoryABC, JwtAuthorizerFactory, context)
-    register_impl(FastapiHandlerFactoryABC, FastapiHandlerFactory, context)
-    register_impl(FastapiHandlerFactoryABC, AuthorizedFastapiHandlerFactory, context)
+
+    register_impl(HandlerFilterABC, AuthorizationHandlerFilter, context)
+    register_impl(HandlerFilterABC, BodyHandlerFilter, context)
+    """
+    register_impl(EntityFactoryABC, DataclassFactory, context)
+    register_impl(EntityFactoryABC, EnumFactory, context)
+    register_impl(EntityFactoryABC, ForwardRefFactory, context)
+    register_impl(EntityFactoryABC, GenericFactory, context)
+    register_impl(EntityFactoryABC, PrimitiveFactory, context)
+    """

@@ -90,12 +90,16 @@ def action(
         if method_name:
             fn = getattr(cls, method_name)
         else:
-            fns = [v for k, v in cls.__dict__.items() if not k.startswith('_') and callable(v)]
+            fns = [
+                v
+                for k, v in cls.__dict__.items()
+                if not k.startswith("_") and callable(v)
+            ]
             if len(fns) == 1:
                 fn = fns[0]
                 method_name = fn.__name__
             else:
-                raise ValueError(f'multiple_methods_found:{cls}')
+                raise ValueError(f"multiple_methods_found:{cls}")
         cls.__servey_action_meta__ = get_meta_for_fn(name_, fn, True)
         cls.__servey_method_name__ = method_name
         return cls

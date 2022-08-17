@@ -21,3 +21,5 @@ celery~=5.2
 
 #Dev dependency with aws
 pyyaml~=6.0
+
+strawberry-graphql

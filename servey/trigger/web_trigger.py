@@ -18,3 +18,14 @@ class WebTrigger:
 
 
 WEB_GET = WebTrigger(WebTriggerMethod.GET)
+BODY_METHODS = (
+    WebTriggerMethod.PATCH,
+    WebTriggerMethod.POST,
+    WebTriggerMethod.PUT,
+)
+UPDATE_METHODS = (
+    WebTriggerMethod.DELETE,
+    WebTriggerMethod.PATCH,
+    WebTriggerMethod.POST,
+    WebTriggerMethod.PUT,
+)

@@ -21,14 +21,8 @@ from servey.access_control.authorizer_factory_abc import (
 from servey.action import Action
 from servey.action_finder import find_actions
 from servey.servey_error import ServeyError
-from servey.trigger.web_trigger import WebTrigger, WebTriggerMethod
+from servey.trigger.web_trigger import WebTrigger, WebTriggerMethod, BODY_METHODS
 
-PARAMS_METHODS = (
-    WebTriggerMethod.DELETE,
-    WebTriggerMethod.GET,
-    WebTriggerMethod.HEAD,
-    WebTriggerMethod.OPTIONS,
-)
 LOGGER = getLogger(__name__)
 
 
@@ -79,7 +73,11 @@ class LambdaMount:
             raise ServeyError("non_web_triggered_lambda_from_api_gateway")
         authorization = event["headers"].get("Authorization")
         params = {}
-        if web_trigger.method in PARAMS_METHODS:
+        if web_trigger.method in BODY_METHODS:
+            body = event.get("body")
+            if body:
+                params = json.loads(body)
+        else:
             multi_value_query_string_parameters = event.get(
                 "multiValueQueryStringParameters"
             )
@@ -88,10 +86,6 @@ class LambdaMount:
                     k: v[0] if len(v) == 1 else v
                     for k, v in multi_value_query_string_parameters.items()
                 }
-        else:
-            body = event.get("body")
-            if body:
-                params = json.loads(body)
         return self.handle_event(dict(authorization=authorization, params=params))
 
     def check_authorization(self, event: Dict) -> Authorization:

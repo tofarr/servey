@@ -9,17 +9,17 @@ import os
 
 from fastapi import FastAPI
 
-from servey.integration.fastapi_integration.executor_factory.fastapi_handler_factory_abc import (
-    create_fastapi_handler_factories,
-)
 from servey.integration.fastapi_integration.fastapi_mount import FastapiMount
+from servey.integration.fastapi_integration.handler_filter.handler_filter_abc import (
+    create_handler_filters,
+)
 
 LOGGER = logging.getLogger(__name__)
 TITLE = os.environ.get("FAST_API_TITLE") or "Servey"
 VERSION = os.environ.get("FAST_API_VERSION") or "0.1.0"
 SERVEY_FASTAPI_PATH = os.environ.get("SERVEY_FASTAPI_PATH") or "/actions/{action_name}"
 api = FastAPI(title=TITLE, version=VERSION)
-FastapiMount(api, create_fastapi_handler_factories(), SERVEY_FASTAPI_PATH).mount_all()
+FastapiMount(api, create_handler_filters(), SERVEY_FASTAPI_PATH).mount_all()
 CELERY_BROKER = os.environ.get("CELERY_BROKER")
 
 if CELERY_BROKER is None:

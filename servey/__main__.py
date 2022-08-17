@@ -21,8 +21,8 @@ def start_http_server():
         app,
         host=HOST,
         port=PORT,
-        log_level="debug",
-        reload=True,
+        log_level=LOGLEVEL.lower(),
+        reload=DEBUG,
         reload_dirs=["."],
     )
 

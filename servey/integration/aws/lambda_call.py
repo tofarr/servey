@@ -14,6 +14,7 @@ from servey.servey_error import ServeyError
 @dataclass
 class LambdaCall:
     """Action which Executes a remote lambda."""
+
     lambda_name: str
     param_schema: Schema
     param_marshaller: MarshallerABC
@@ -51,9 +52,7 @@ class LambdaCall:
             Payload=self.create_payload(authorization, kwargs),
         )
 
-    def create_payload(
-        self, kwargs: Dict[str, Any]
-    ) -> str:
+    def create_payload(self, kwargs: Dict[str, Any]) -> str:
         authorization = None
         if self.authorization_arg:
             authorization = kwargs.pop(self.authorization_arg, None)
@@ -62,6 +61,6 @@ class LambdaCall:
         self.param_schema.validate(params)
         payload = dict(params=params)
         if authorization:
-            payload['authorization'] = authorization
+            payload["authorization"] = authorization
         dumped = json.dumps(payload)
         return dumped

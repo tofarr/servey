@@ -11,15 +11,26 @@ from schemey import Schema
 
 from servey.access_control.authorization import Authorization
 from servey.access_control.authorizer_abc import AuthorizerABC
-from servey.action import get_marshaller_for_params, get_schema_for_params, get_schema_for_result
+from servey.action import (
+    get_marshaller_for_params,
+    get_schema_for_params,
+    get_schema_for_result,
+)
 from servey.servey_error import ServeyError
 from servey.trigger.web_trigger import WebTriggerMethod
 
-URL_PARAMS_METHODS = (WebTriggerMethod.GET, WebTriggerMethod.DELETE, WebTriggerMethod.OPTIONS, WebTriggerMethod.HEAD)
+URL_PARAMS_METHODS = (
+    WebTriggerMethod.GET,
+    WebTriggerMethod.DELETE,
+    WebTriggerMethod.OPTIONS,
+    WebTriggerMethod.HEAD,
+)
+
 
 @dataclass
 class HttpCall:
     """Remote invocation of an action over http."""
+
     url: str
     param_schema: Schema
     param_marshaller: MarshallerABC
@@ -51,9 +62,7 @@ class HttpCall:
                 auth=self.auth_to_header(kwargs),
             )
         else:
-            return method(
-                self.url, auth=self.auth_to_header(kwargs), json=params
-            )
+            return method(self.url, auth=self.auth_to_header(kwargs), json=params)
 
     def auth_to_header(self, kwargs: Dict[str, Any]) -> Optional[str]:
         """Convert the authorization given to a header"""
@@ -71,11 +80,12 @@ def http_action(
     result_schema: Optional[Schema] = None,
     result_marshaller: Optional[MarshallerABC] = None,
     method: str = HttpCall.method,
-    authorizer: Optional[AuthorizerABC] = None
+    authorizer: Optional[AuthorizerABC] = None,
 ):
-    """ 
+    """
     Take a function (typically just a mock and convert it into a remote http action
     """
+
     def wrapper(fn_):
         nonlocal param_schema, param_marshaller, result_schema, result_marshaller
         sig = inspect.signature(fn_)
@@ -100,15 +110,16 @@ def http_action(
             result_marshaller=result_marshaller,
             method=method,
             authorizer=authorizer,
-            authorization_arg=authorization_arg
+            authorization_arg=authorization_arg,
         )
         call.__call__.__signature__ = sig
         return call
+
     return wrapper  # Always has args - at least URL!
 
 
 def get_authorization_arg(sig: inspect.Signature) -> Optional[str]:
     for param in sig.parameters.values():
-        type_ =  param.annotation
+        type_ = param.annotation
         if (get_optional_type(type_) or type_) == Authorization:
             return param.name
