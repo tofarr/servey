@@ -17,6 +17,15 @@ from servey.integration.fastapi_integration.authenticator.factory.local_authenti
 from servey.integration.fastapi_integration.authenticator.factory.remote_authenticator_factory import (
     RemoteAuthenticatorFactory,
 )
+from servey.integration.starlette_integ.route_factory.action_route_factory import (
+    ActionRouteFactory,
+)
+from servey.integration.starlette_integ.route_factory.openapi_route_factory import (
+    OpenapiRouteFactory,
+)
+from servey.integration.starlette_integ.route_factory.route_factory_abc import (
+    RouteFactoryABC,
+)
 
 priority = 100
 LOGGER = logging.getLogger(__name__)
@@ -25,6 +34,7 @@ LOGGER = logging.getLogger(__name__)
 def configure(context: MarshallerContext):
     register_impl(ActionFinderABC, ModuleActionFinder, context)
     configure_auth(context)
+    configure_starlette(context)
     configure_fastapi(context)
     configure_aws(context)
     configure_strawberry(context)
@@ -34,6 +44,37 @@ def configure_auth(context: MarshallerContext):
     register_impl(AuthenticatorFactoryABC, LocalAuthenticatorFactory, context)
     register_impl(AuthenticatorFactoryABC, RemoteAuthenticatorFactory, context)
     register_impl(AuthorizerFactoryABC, JwtAuthorizerFactory, context)
+
+
+def configure_starlette(context: MarshallerContext):
+    try:
+        from servey.integration.starlette_integ.parser.parser_abc import (
+            ParserFactoryABC,
+        )
+        from servey.integration.starlette_integ.parser.authorizing_parser import (
+            AuthorizingParserFactory,
+        )
+        from servey.integration.starlette_integ.parser.body_parser import (
+            BodyParserFactory,
+        )
+        from servey.integration.starlette_integ.parser.query_string_parser import (
+            QueryStringParserFactory,
+        )
+        from servey.integration.starlette_integ.render.render_abc import (
+            RenderFactoryABC,
+        )
+        from servey.integration.starlette_integ.render.body_render import (
+            BodyRenderFactory,
+        )
+
+        register_impl(ParserFactoryABC, AuthorizingParserFactory, context)
+        register_impl(ParserFactoryABC, BodyParserFactory, context)
+        register_impl(ParserFactoryABC, QueryStringParserFactory, context)
+        register_impl(RenderFactoryABC, BodyRenderFactory, context)
+        register_impl(RouteFactoryABC, ActionRouteFactory, context)
+        register_impl(RouteFactoryABC, OpenapiRouteFactory, context)
+    except ModuleNotFoundError:
+        LOGGER.info("Starlette not installed - Skipping")
 
 
 def configure_fastapi(context: MarshallerContext):

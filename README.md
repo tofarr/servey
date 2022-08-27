@@ -16,9 +16,7 @@ Default implementation mostly meant to be as annoying as possible while still wo
 
 
 TODO:
-* Integrate with strawberry
-* Finish serverless integration
-* Remote actions
+* Finish aws integration
 * Test Coverage
 
 rate limiting needs persistence, but can be in access_control - maybe add to persisty goodies

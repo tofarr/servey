@@ -3,10 +3,11 @@ from datetime import datetime
 from typing import Any, Optional
 
 import jwt
+from jwt import DecodeError
 from marshy.types import ExternalItemType
 from schemey.util import filter_none
 
-from servey.access_control.authorization import Authorization
+from servey.access_control.authorization import Authorization, AuthorizationError
 from servey.access_control.authorizer_abc import AuthorizerABC
 
 
@@ -55,16 +56,19 @@ class JwtAuthorizer(AuthorizerABC):
         return headers["kid"]
 
     def authorize(self, token: str) -> Authorization:
-        decoded = jwt.decode(
-            jwt=token, key=self.private_key, algorithms=["HS256", "RS256"]
-        )
-        authorization = Authorization(
-            subject_id=decoded.get("sub"),
-            not_before=date_from_jwt(decoded, "nbf"),
-            expire_at=date_from_jwt(decoded, "exp"),
-            scopes=frozenset(decoded.get("scope").split(" ")),
-        )
-        return authorization
+        try:
+            decoded = jwt.decode(
+                jwt=token, key=self.private_key, algorithms=["HS256", "RS256"]
+            )
+            authorization = Authorization(
+                subject_id=decoded.get("sub"),
+                not_before=date_from_jwt(decoded, "nbf"),
+                expire_at=date_from_jwt(decoded, "exp"),
+                scopes=frozenset(decoded.get("scope").split(" ")),
+            )
+            return authorization
+        except DecodeError as e:
+            raise AuthorizationError(e)
 
 
 def date_from_jwt(decoded: ExternalItemType, key: str) -> Optional[datetime]:

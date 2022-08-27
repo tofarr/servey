@@ -6,9 +6,10 @@ from typing import Any, Optional, Dict
 
 import boto3
 import jwt
+from jwt import DecodeError
 from schemey.util import filter_none
 
-from servey.access_control.authorization import Authorization
+from servey.access_control.authorization import Authorization, AuthorizationError
 from servey.access_control.authorizer_abc import AuthorizerABC
 from servey.access_control.jwt_authorizer import date_from_jwt
 
@@ -85,14 +86,17 @@ class KmsAuthorizer(AuthorizerABC):
         Verifying tokens only requires the public key. We cache this from kms to do verifications
         locally which is more efficient
         """
-        header = jwt.get_unverified_header(token)
-        key_id = header.get("kid")
-        public_key = self.get_public_key(key_id)
-        decoded = jwt.decode(jwt=token, key=public_key, algorithms=["RS256"])
-        authorization = Authorization(
-            subject_id=decoded.get("sub"),
-            not_before=date_from_jwt(decoded, "nbf"),
-            expire_at=date_from_jwt(decoded, "exp"),
-            scopes=frozenset(decoded.get("scope").split(" ")),
-        )
-        return authorization
+        try:
+            header = jwt.get_unverified_header(token)
+            key_id = header.get("kid")
+            public_key = self.get_public_key(key_id)
+            decoded = jwt.decode(jwt=token, key=public_key, algorithms=["RS256"])
+            authorization = Authorization(
+                subject_id=decoded.get("sub"),
+                not_before=date_from_jwt(decoded, "nbf"),
+                expire_at=date_from_jwt(decoded, "exp"),
+                scopes=frozenset(decoded.get("scope").split(" ")),
+            )
+            return authorization
+        except DecodeError as e:
+            raise AuthorizationError(e)

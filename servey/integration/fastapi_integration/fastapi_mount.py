@@ -59,12 +59,5 @@ class FastapiMount:
         return route_handler
 
 
-def _get_web_trigger(action: Action) -> Optional[WebTrigger]:
-    trigger = next(
-        (t for t in action.action_meta.triggers if isinstance(t, WebTrigger)), None
-    )
-    return trigger
-
-
 def _handler(executor: Executor, params: Dict[str, Any]) -> Any:
     return executor.execute(**params)

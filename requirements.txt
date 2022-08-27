@@ -1,6 +1,9 @@
 marshy~=2.5
 schemey~=5.4
 
+# If using starlette (Maybe a requirement?)
+starlette~=0.19
+
 # If using fastapi
 fastapi~=0.79
 python-multipart~=0.0

@@ -126,7 +126,10 @@ def action(
             )
         return ActionMeta(
             name=name_,
+            description=fn.__doc__,
+            params_marshaller=params_marshaller,
             params_schema=params_schema,
+            result_marshaller=result_marshaller,
             result_schema=result_schema,
             access_control=access_control,
             triggers=triggers,

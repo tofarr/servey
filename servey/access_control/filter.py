@@ -16,6 +16,13 @@ def get_authorization_field_name(action: Action) -> Optional[str]:
                 return f.name
 
 
+def get_authorization_kwarg_name(action: Action) -> Optional[str]:
+    params = action.get_signature().parameters.values()
+    for param in params:
+        if is_authorization(param.annotation):
+            return param.name
+
+
 def is_authorization(annotation: Type) -> bool:
     annotation = get_optional_type(annotation) or annotation
     return annotation == Authorization

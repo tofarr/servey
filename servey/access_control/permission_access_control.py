@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from servey.access_control.action_access_control_abc import ActionAccessControlABC
 from servey.access_control.authorization import Authorization
@@ -9,8 +10,12 @@ class PermissionAccessControl(ActionAccessControlABC):
     view_scope: str
     execute_scope: str
 
-    def is_viewable(self, authorization: Authorization) -> bool:
-        return bool(self.view_scope) and authorization.has_scope(self.view_scope)
+    def is_viewable(self, authorization: Optional[Authorization]) -> bool:
+        return bool(authorization and self.view_scope) and authorization.has_scope(
+            self.view_scope
+        )
 
-    def is_executable(self, authorization: Authorization) -> bool:
-        return bool(self.execute_scope) and authorization.has_scope(self.execute_scope)
+    def is_executable(self, authorization: Optional[Authorization]) -> bool:
+        return bool(authorization and self.execute_scope) and authorization.has_scope(
+            self.execute_scope
+        )
