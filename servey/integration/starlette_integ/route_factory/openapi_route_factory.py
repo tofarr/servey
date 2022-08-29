@@ -1,11 +1,12 @@
 import os
-from dataclasses import field
+from dataclasses import field, dataclass
 from typing import Iterator
 
 from schemey.util import filter_none
 from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
-from starlette.routing import Route
+from starlette.routing import Route, Mount
+from starlette.staticfiles import StaticFiles
 
 from servey.action_context import get_default_action_context
 from servey.integration.starlette_integ.route_factory.action_route_factory import (
@@ -16,15 +17,16 @@ from servey.integration.starlette_integ.route_factory.route_factory_abc import (
 )
 
 
+@dataclass
 class OpenapiRouteFactory(RouteFactoryABC):
     title: str = field(
-        default_factory=lambda: os.environ.get("SERVEY_API_TITLE" or "Servey")
+        default_factory=lambda: os.environ.get("SERVEY_API_TITLE") or "Servey"
     )
     description: str = field(
         default_factory=lambda: os.environ.get("SERVEY_API_DESCRIPTION")
     )
     version: str = field(
-        default_factory=lambda: os.environ.get("SERVEY_API_VERSION" or "0.1.0")
+        default_factory=lambda: os.environ.get("SERVEY_API_VERSION") or "0.1.0"
     )
     action_route_factory: ActionRouteFactory = field(default_factory=ActionRouteFactory)
 
@@ -32,7 +34,7 @@ class OpenapiRouteFactory(RouteFactoryABC):
         yield Route(
             "/openapi.json", endpoint=self.openapi_schema, include_in_schema=False
         )
-        yield Route("/docs", endpoint=self.docs, include_in_schema=False)
+        yield Mount("/docs", app=StaticFiles(packages=['servey.integration.starlette_integ'], html=True), name='docs')
 
     def openapi_schema(self, request: Request) -> Response:
         schema = {
@@ -55,7 +57,3 @@ class OpenapiRouteFactory(RouteFactoryABC):
         ):
             action_route.to_openapi_schema(schema)
         return JSONResponse(schema)
-
-    def docs(self, request: Request) -> Response:
-        # TODO: Dump swagger docs here...
-        return JSONResponse(True)

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Tuple, Dict, Any, Optional
 
 from marshy.types import ExternalItemType
+from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
 from servey.action import Action
@@ -24,15 +25,17 @@ class QueryStringParser(ParserABC):
 
     async def parse(self, request: Request) -> Tuple[Executor, Dict[str, Any]]:
         executor = self.action.create_executor()
-        params = request.query_params
-        self.action.action_meta.params_schema.validate(params)
+        params = dict(request.query_params)
+        error = next(self.action.action_meta.params_schema.iter_errors(params), None)
+        if error:
+            raise HTTPException(422, str(error))
         kwargs = self.action.action_meta.params_marshaller.load(params)
         return executor, kwargs
 
     def to_openapi_schema(
         self, path_method: ExternalItemType, components: ExternalItemType
     ):
-        schema = self.action.action_meta.result_schema
+        schema = self.action.action_meta.params_schema
         properties = schema.schema["properties"]
         required = set(schema.schema.get("required") or [])
         path_method["parameters"] = [
@@ -44,6 +47,10 @@ class QueryStringParser(ParserABC):
             }
             for k, v in properties.items()
         ]
+        responses: ExternalItemType = path_method['responses']
+        responses["422"] = {
+            "description": "Validation Error"
+        }
 
 
 class QueryStringParserFactory(ParserFactoryABC):

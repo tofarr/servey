@@ -37,7 +37,7 @@ class AuthorizingParser(ParserABC):
         authorization = self.get_authorization(request)
         if not self.action.action_meta.access_control.is_executable(authorization):
             raise AuthorizationError()
-        executor, kwargs = self.parser.parse(request)
+        executor, kwargs = await self.parser.parse(request)
         if self.field_name:
             setattr(executor.subject, self.field_name, authorization)
         if self.kwarg_name:
@@ -59,6 +59,18 @@ class AuthorizingParser(ParserABC):
             responses["403"] = {"description": "Unauthorized"}
         if not path_method.get("security"):
             path_method["security"] = [{"OAuth2PasswordBearer": []}]
+        if not components.get('securitySchemas'):
+            components['securitySchemes'] = {
+                'OAuth2PasswordBearer': {
+                    'type': "oauth2",
+                    'flows': {
+                        'password': {
+                            'scopes': {},
+                            'tokenUrl': "/login"
+                        }
+                    }
+                }
+            }
 
 
 @dataclass

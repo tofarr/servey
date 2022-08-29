@@ -17,15 +17,6 @@ from servey.integration.fastapi_integration.authenticator.factory.local_authenti
 from servey.integration.fastapi_integration.authenticator.factory.remote_authenticator_factory import (
     RemoteAuthenticatorFactory,
 )
-from servey.integration.starlette_integ.route_factory.action_route_factory import (
-    ActionRouteFactory,
-)
-from servey.integration.starlette_integ.route_factory.openapi_route_factory import (
-    OpenapiRouteFactory,
-)
-from servey.integration.starlette_integ.route_factory.route_factory_abc import (
-    RouteFactoryABC,
-)
 
 priority = 100
 LOGGER = logging.getLogger(__name__)
@@ -66,13 +57,25 @@ def configure_starlette(context: MarshallerContext):
         from servey.integration.starlette_integ.render.body_render import (
             BodyRenderFactory,
         )
-
+        from servey.integration.starlette_integ.route_factory.action_route_factory import (
+            ActionRouteFactory,
+        )
+        from servey.integration.starlette_integ.route_factory.authenticator_route_factory import (
+            AuthenticatorRouteFactory
+        )
+        from servey.integration.starlette_integ.route_factory.openapi_route_factory import (
+            OpenapiRouteFactory,
+        )
+        from servey.integration.starlette_integ.route_factory.route_factory_abc import (
+            RouteFactoryABC,
+        )
         register_impl(ParserFactoryABC, AuthorizingParserFactory, context)
         register_impl(ParserFactoryABC, BodyParserFactory, context)
         register_impl(ParserFactoryABC, QueryStringParserFactory, context)
         register_impl(RenderFactoryABC, BodyRenderFactory, context)
         register_impl(RouteFactoryABC, ActionRouteFactory, context)
         register_impl(RouteFactoryABC, OpenapiRouteFactory, context)
+        register_impl(RouteFactoryABC, AuthenticatorRouteFactory, context)
     except ModuleNotFoundError:
         LOGGER.info("Starlette not installed - Skipping")
 

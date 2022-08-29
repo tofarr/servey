@@ -109,7 +109,7 @@ def action(
             raise ValueError(
                 f"defining_method_name_while_wrapping_function:{method_name}"
             )
-        fn.__servey_action_meta__ = get_meta_for_fn(fn.__name__, fn, True)
+        fn.__servey_action_meta__ = get_meta_for_fn(fn.__name__, fn, False)
         return fn
 
     def get_meta_for_fn(name_: str, fn: Callable, bound: bool):

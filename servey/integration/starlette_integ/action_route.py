@@ -29,8 +29,8 @@ class ActionRoute:
         )
 
     async def execute(self, request: Request) -> JSONResponse:
-        executor, kwargs = self.parse(request)
-        result = executor.execute(kwargs)
+        executor, kwargs = await self.parser.parse(request)
+        result = executor.execute(**kwargs)
         action_meta = self.action.action_meta
         dumped = action_meta.result_marshaller.dump(result)
         action_meta.result_schema.validate(dumped)
@@ -52,8 +52,10 @@ class ActionRoute:
             path = paths[self.path] = {}
         for method in self.methods:
             responses = {}
-            path_method = path[method.value()] = {"responses": responses}
+            path_method = path[method.value] = {"responses": responses}
             path_method["operationId"] = self.action.action_meta.name
+            if self.action.action_meta.description:
+                path_method['summary'] = self.action.action_meta.description
             # Tags?
             self.parser.to_openapi_schema(path_method, components)
             self.render.to_openapi_schema(responses, components)

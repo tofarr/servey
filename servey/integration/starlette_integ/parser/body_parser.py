@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Tuple, Optional, Dict, Any
 
 from marshy.types import ExternalItemType
+from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
 from servey.action import Action
@@ -25,18 +26,24 @@ class BodyParser(ParserABC):
     async def parse(self, request: Request) -> Tuple[Executor, Dict[str, Any]]:
         executor = self.action.create_executor()
         params: ExternalItemType = await request.json()
-        self.action.action_meta.params_schema.validate(params)
+        error = next(self.action.action_meta.params_schema.iter_errors(params), None)
+        if error:
+            raise HTTPException(422, str(error))
         kwargs = self.action.action_meta.params_marshaller.load(params)
         return executor, kwargs
 
     def to_openapi_schema(
         self, path_method: ExternalItemType, components: ExternalItemType
     ):
-        schema = self.action.action_meta.result_schema
+        schema = self.action.action_meta.params_schema
         schema = with_isolated_references(schema.schema, schema.schema, components)
         path_method["requestBody"] = {
             "content": {"application/json": {"schema": schema}},
             "required": True,
+        }
+        responses: ExternalItemType = path_method['responses']
+        responses["422"] = {
+            "description": "Validation Error"
         }
 
 
