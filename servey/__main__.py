@@ -16,7 +16,7 @@ PORT = int(os.environ.get("SERVER_PORT", "8000"))
 def start_http_server():
     import uvicorn
 
-    app = "servey.integration.fastapi_integration.fastapi_app:api"
+    app = "servey.integration.starlette_integ.starlette_app:app"
     uvicorn.run(
         app,
         host=HOST,

@@ -27,4 +27,4 @@ def setup_periodic_tasks(sender, **kwargs):
         FixedRateTrigger
     ):
         task = globals()[action.action_meta.name]
-        sender.add_periodic_task(trigger.interval, task.s(trigger.authorization))
+        sender.add_periodic_task(trigger.interval, task.s())

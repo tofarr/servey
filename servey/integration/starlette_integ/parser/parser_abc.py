@@ -39,4 +39,5 @@ def create_parser_factories():
     from marshy.factory.impl_marshaller_factory import get_impls
 
     factories = [f() for f in get_impls(ParserFactoryABC)]
+    factories.sort(key=lambda f: f.priority, reverse=True)
     return factories

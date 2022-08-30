@@ -27,4 +27,5 @@ def mount_action(action: Action, trigger: FixedRateTrigger):
 async def fixed_rate_task(action: Action, trigger: FixedRateTrigger):
     while True:
         await asyncio.sleep(trigger.interval)
-        action.Execute_async(trigger.authorization)
+        executor = action.create_executor()
+        executor.execute_async()

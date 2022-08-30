@@ -96,7 +96,7 @@ class AuthorizationHandlerFilter(HandlerFilterABC):
         request = info.context.get("request")
         if request:
             token = request.headers.get("Authorization")
-            if token and token.startswith("Bearer "):
+            if token and token.lower().startswith("bearer "):
                 token = token[7:]
                 authorization = self.authorizer.authorize(token)
                 info.context["authorization"] = authorization

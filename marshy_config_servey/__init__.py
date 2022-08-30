@@ -4,19 +4,8 @@ from marshy.factory.impl_marshaller_factory import register_impl
 from marshy.marshaller_context import MarshallerContext
 
 from servey.access_control.authorizer_factory_abc import AuthorizerFactoryABC
-from servey.access_control.jwt_authorizer_factory import JwtAuthorizerFactory
 from servey.action_finder.action_finder_abc import ActionFinderABC
 from servey.action_finder.module_action_finder import ModuleActionFinder
-from servey.integration.aws.kms_authorizer_factory import KmsAuthorizerFactory
-from servey.integration.fastapi_integration.authenticator.factory.authenticator_factory_abc import (
-    AuthenticatorFactoryABC,
-)
-from servey.integration.fastapi_integration.authenticator.factory.local_authenticator_factory import (
-    LocalAuthenticatorFactory,
-)
-from servey.integration.fastapi_integration.authenticator.factory.remote_authenticator_factory import (
-    RemoteAuthenticatorFactory,
-)
 
 priority = 100
 LOGGER = logging.getLogger(__name__)
@@ -26,14 +15,12 @@ def configure(context: MarshallerContext):
     register_impl(ActionFinderABC, ModuleActionFinder, context)
     configure_auth(context)
     configure_starlette(context)
-    configure_fastapi(context)
     configure_aws(context)
     configure_strawberry(context)
 
 
 def configure_auth(context: MarshallerContext):
-    register_impl(AuthenticatorFactoryABC, LocalAuthenticatorFactory, context)
-    register_impl(AuthenticatorFactoryABC, RemoteAuthenticatorFactory, context)
+    from servey.access_control.jwt_authorizer_factory import JwtAuthorizerFactory
     register_impl(AuthorizerFactoryABC, JwtAuthorizerFactory, context)
 
 
@@ -69,6 +56,8 @@ def configure_starlette(context: MarshallerContext):
         from servey.integration.starlette_integ.route_factory.route_factory_abc import (
             RouteFactoryABC,
         )
+        from servey.integration.strawberry_integration.strawberry_starlette_route_factory import \
+            StrawberryStarletteRouteFactory
         register_impl(ParserFactoryABC, AuthorizingParserFactory, context)
         register_impl(ParserFactoryABC, BodyParserFactory, context)
         register_impl(ParserFactoryABC, QueryStringParserFactory, context)
@@ -76,32 +65,9 @@ def configure_starlette(context: MarshallerContext):
         register_impl(RouteFactoryABC, ActionRouteFactory, context)
         register_impl(RouteFactoryABC, OpenapiRouteFactory, context)
         register_impl(RouteFactoryABC, AuthenticatorRouteFactory, context)
+        register_impl(RouteFactoryABC, StrawberryStarletteRouteFactory, context)
     except ModuleNotFoundError:
         LOGGER.info("Starlette not installed - Skipping")
-
-
-def configure_fastapi(context: MarshallerContext):
-    try:
-        from servey.integration.fastapi_integration.handler_filter.fastapi_handler_filter_abc import (
-            FastapiHandlerFilterABC,
-        )
-        from servey.integration.fastapi_integration.handler_filter.fastapi_authorization_handler_filter import (
-            FastapiAuthorizationHandlerFilter,
-        )
-        from servey.integration.fastapi_integration.handler_filter.body_handler_filter import (
-            BodyHandlerFilter,
-        )
-        from servey.integration.strawberry_integration.strawberry_fastapi_filter import (
-            StrawberryFastapiFilter,
-        )
-
-        register_impl(
-            FastapiHandlerFilterABC, FastapiAuthorizationHandlerFilter, context
-        )
-        register_impl(FastapiHandlerFilterABC, BodyHandlerFilter, context)
-        register_impl(FastapiHandlerFilterABC, StrawberryFastapiFilter, context)
-    except ModuleNotFoundError:
-        LOGGER.info("FastApi Module not found: skipping")
 
 
 def configure_strawberry(context: MarshallerContext):
@@ -148,4 +114,8 @@ def configure_strawberry(context: MarshallerContext):
 
 
 def configure_aws(context: MarshallerContext):
-    register_impl(AuthorizerFactoryABC, KmsAuthorizerFactory, context)
+    try:
+        from servey.integration.aws.kms_authorizer_factory import KmsAuthorizerFactory
+        register_impl(AuthorizerFactoryABC, KmsAuthorizerFactory, context)
+    except ModuleNotFoundError:
+        LOGGER.info("AWS Module not found: skipping")
