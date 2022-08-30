@@ -22,4 +22,4 @@ class ModuleActionFinder(ActionFinderABC):
             module = module_spec.loader.load_module(module_info.name)
             for name, value in module.__dict__.items():
                 if hasattr(value, "__servey_action_meta__"):
-                    yield Action(value)
+                    yield Action(value.__servey_action_meta__, value)

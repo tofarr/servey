@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import Tuple, Optional, Dict, Any
 
@@ -25,7 +26,8 @@ class BodyParser(ParserABC):
 
     async def parse(self, request: Request) -> Tuple[Executor, Dict[str, Any]]:
         executor = self.action.create_executor()
-        params: ExternalItemType = await request.json()
+        body = await request.body()
+        params: ExternalItemType = json.loads(body) if body else {}
         error = next(self.action.action_meta.params_schema.iter_errors(params), None)
         if error:
             raise HTTPException(422, str(error))

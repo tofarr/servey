@@ -26,11 +26,8 @@ T = TypeVar("T")
 
 @dataclass(frozen=True)
 class Action(Generic[T]):
+    action_meta: ActionMeta
     subject: Union[Type, Callable]
-
-    @property
-    def action_meta(self) -> ActionMeta:
-        return self.subject.__servey_action_meta__
 
     @property
     def method_name(self):

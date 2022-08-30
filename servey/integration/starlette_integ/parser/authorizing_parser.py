@@ -10,7 +10,7 @@ from servey.access_control.authorizer_abc import AuthorizerABC
 from servey.access_control.authorizer_factory_abc import get_default_authorizer
 from servey.access_control.filter import (
     get_authorization_field_name,
-    get_authorization_kwarg_name,
+    get_authorization_kwarg_name, action_without_kwarg,
 )
 from servey.action import Action
 from servey.executor import Executor
@@ -95,10 +95,14 @@ class AuthorizingParserFactory(ParserFactoryABC):
             and not kwarg_name
         ):
             return
+        wrapped_action = action
+        if kwarg_name:
+            wrapped_action = action_without_kwarg(action, kwarg_name)
+
         self.ignore = True
         try:
             for factory in parser_factories:
-                parser = factory.create(action, trigger, parser_factories)
+                parser = factory.create(wrapped_action, trigger, parser_factories)
                 if parser:
                     return AuthorizingParser(
                         action, self.authorizer, parser, field_name, kwarg_name
