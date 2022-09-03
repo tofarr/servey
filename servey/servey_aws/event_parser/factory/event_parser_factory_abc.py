@@ -2,8 +2,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Tuple, Optional
 
-from servey2.action.finder.found_action import FoundAction
-from servey2.servey_aws.event_parser.event_parser_abc import EventParserABC
+from servey.action.finder.found_action import FoundAction
+from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
 
 
 class EventParserFactoryABC(ABC):

@@ -9,10 +9,10 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-from servey2.security.authorization import Authorization, ROOT
-from servey2.security.authorizer.authorizer_abc import AuthorizerABC
-from servey2.security.authorizer.authorizer_factory_abc import get_default_authorizer
-from servey2.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
+from servey.security.authorization import Authorization, ROOT
+from servey.security.authorizer.authorizer_abc import AuthorizerABC
+from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
+from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
 
 LOGGER = getLogger(__name__)
 

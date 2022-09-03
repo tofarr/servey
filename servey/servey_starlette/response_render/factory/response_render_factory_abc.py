@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from servey.integration.starlette_integ.render.render_abc import RenderFactoryABC
-from servey2.action.finder.found_action import FoundAction
-from servey2.servey_starlette.response_render.response_render_abc import ResponseRenderABC
+from servey.action.finder.found_action import FoundAction
+from servey.servey_starlette.response_render.response_render_abc import ResponseRenderABC
 
 
 class ResponseRenderFactoryABC(ABC):

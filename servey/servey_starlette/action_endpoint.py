@@ -6,11 +6,11 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Route
 
-from servey2.servey_starlette.request_parser.request_parser_abc import RequestParserABC
-from servey2.servey_starlette.response_render.response_render_abc import (
+from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
+from servey.servey_starlette.response_render.response_render_abc import (
     ResponseRenderABC,
 )
-from servey2.action.trigger.web_trigger import WebTriggerMethod
+from servey.action.trigger.web_trigger import WebTriggerMethod
 
 
 @dataclass

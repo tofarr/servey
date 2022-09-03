@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 
-from servey2.security.authorization import Authorization
+from servey.security.authorization import Authorization
 
 
 class AuthorizerABC(ABC):

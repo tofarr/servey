@@ -2,15 +2,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Tuple, Optional
 
-from servey2.action.finder.found_action import FoundAction
-from servey2.security.access_control.allow_all import ALLOW_ALL
-from servey2.security.authorizer.authorizer_abc import AuthorizerABC
-from servey2.security.authorizer.authorizer_factory_abc import get_default_authorizer
-from servey2.servey_aws.event_parser.authorizing_event_parser import AuthorizingEventParser
-from servey2.servey_aws.event_parser.event_parser_abc import EventParserABC
-from servey2.servey_aws.event_parser.factory.event_parser_factory_abc import EventParserFactoryABC
-from servey2.servey_starlette.request_parser.factory.authorizing_parser_factory import get_inject_at
-from servey2.servey_starlette.request_parser.factory.self_parser_factory import strip_injected_from_action
+from servey.action.finder.found_action import FoundAction
+from servey.security.access_control.allow_all import ALLOW_ALL
+from servey.security.authorizer.authorizer_abc import AuthorizerABC
+from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
+from servey.servey_aws.event_parser.authorizing_event_parser import AuthorizingEventParser
+from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
+from servey.servey_aws.event_parser.factory.event_parser_factory_abc import EventParserFactoryABC
+from servey.servey_starlette.request_parser.factory.authorizing_parser_factory import get_inject_at
+from servey.servey_starlette.request_parser.factory.self_parser_factory import strip_injected_from_action
 
 
 @dataclass

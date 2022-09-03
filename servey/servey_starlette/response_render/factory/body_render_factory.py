@@ -4,10 +4,10 @@ from typing import Optional
 
 from marshy import get_default_context
 
-from servey2.action.finder.found_action import FoundAction
-from servey2.servey_starlette.response_render.body_render import BodyRender
-from servey2.servey_starlette.response_render.factory.response_render_factory_abc import ResponseRenderFactoryABC
-from servey2.servey_starlette.response_render.response_render_abc import ResponseRenderABC
+from servey.action.finder.found_action import FoundAction
+from servey.servey_starlette.response_render.body_render import BodyRender
+from servey.servey_starlette.response_render.factory.response_render_factory_abc import ResponseRenderFactoryABC
+from servey.servey_starlette.response_render.response_render_abc import ResponseRenderABC
 
 
 class BodyRenderFactory(ResponseRenderFactoryABC):

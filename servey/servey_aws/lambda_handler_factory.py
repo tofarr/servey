@@ -1,15 +1,15 @@
 from dataclasses import dataclass, field
 from typing import Tuple, Iterator
 
-from servey2.action.finder.action_finder_abc import find_actions
-from servey2.action.finder.found_action import FoundAction
-from servey2.servey_aws.event_parser.event_parser_abc import EventParserABC
-from servey2.servey_aws.event_parser.factory.event_parser_factory_abc import create_parser_factories, \
+from servey.action.finder.action_finder_abc import find_actions
+from servey.action.finder.found_action import FoundAction
+from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
+from servey.servey_aws.event_parser.factory.event_parser_factory_abc import create_parser_factories, \
     EventParserFactoryABC
-from servey2.servey_aws.lambda_handler import LambdaHandler
-from servey2.servey_aws.result_render.factory.result_render_factory_abc import ResultRenderFactoryABC, \
+from servey.servey_aws.lambda_handler import LambdaHandler
+from servey.servey_aws.result_render.factory.result_render_factory_abc import ResultRenderFactoryABC, \
     create_render_factories
-from servey2.servey_aws.result_render.result_render_abc import ResultRenderABC
+from servey.servey_aws.result_render.result_render_abc import ResultRenderABC
 
 
 @dataclass

@@ -7,11 +7,11 @@ from marshy.marshaller.marshaller_abc import MarshallerABC
 from marshy.marshaller.obj_marshaller import attr_config, ObjMarshaller
 from marshy.marshaller_context import MarshallerContext
 
-from servey2.action.finder.found_action import FoundAction
-from servey2.action.trigger.web_trigger import WebTrigger, BODY_METHODS
-from servey2.servey_starlette.request_parser.body_parser import BodyParser
-from servey2.servey_starlette.request_parser.factory.request_parser_factory_abc import RequestParserFactoryABC
-from servey2.servey_starlette.request_parser.request_parser_abc import RequestParserABC
+from servey.action.finder.found_action import FoundAction
+from servey.action.trigger.web_trigger import WebTrigger, BODY_METHODS
+from servey.servey_starlette.request_parser.body_parser import BodyParser
+from servey.servey_starlette.request_parser.factory.request_parser_factory_abc import RequestParserFactoryABC
+from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
 
 
 class BodyParserFactory(RequestParserFactoryABC):

@@ -7,8 +7,8 @@ from schemey import Schema
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
-from servey2.servey_starlette.request_parser.request_parser_abc import RequestParserABC
-from servey2.servey_starlette.util import with_isolated_references
+from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
+from servey.servey_starlette.util import with_isolated_references
 
 
 @dataclass

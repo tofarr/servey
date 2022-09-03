@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Optional
 
-from servey2.security.authorization import Authorization
+from servey.security.authorization import Authorization
 
 
 class ActionAccessControlABC(ABC):

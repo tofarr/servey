@@ -4,13 +4,13 @@ from typing import Optional, Callable, Tuple
 from schemey import Schema, SchemaContext, get_default_schema_context
 
 from servey.servey_error import ServeyError
-from servey2.action.action_meta import ActionMeta
-from servey2.security.access_control.action_access_control_abc import (
+from servey.action.action_meta import ActionMeta
+from servey.security.access_control.action_access_control_abc import (
     ActionAccessControlABC,
 )
-from servey2.security.access_control.allow_all import ALLOW_ALL
-from servey2.action.trigger.trigger_abc import TriggerABC
-from servey2.action.trigger.web_trigger import WebTrigger, WebTriggerMethod
+from servey.security.access_control.allow_all import ALLOW_ALL
+from servey.action.trigger.trigger_abc import TriggerABC
+from servey.action.trigger.web_trigger import WebTrigger, WebTriggerMethod
 
 
 def action(

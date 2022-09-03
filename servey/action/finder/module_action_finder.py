@@ -4,8 +4,8 @@ import pkgutil
 import os
 from typing import Iterator
 
-from servey2.action.finder.action_finder_abc import ActionFinderABC
-from servey2.action.finder.found_action import FoundAction
+from servey.action.finder.action_finder_abc import ActionFinderABC
+from servey.action.finder.found_action import FoundAction
 
 
 class ModuleActionFinder(ActionFinderABC):

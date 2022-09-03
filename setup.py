@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="lambsync",
+    name="servey",
     version=__version__,
     author="Tim O'Farrell",
     author_email="tofarr@gmail.com",

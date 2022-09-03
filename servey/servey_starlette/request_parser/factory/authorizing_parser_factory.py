@@ -4,18 +4,18 @@ from typing import Tuple, Optional
 
 from marshy.factory.optional_marshaller_factory import get_optional_type
 
-from servey2.action.finder.found_action import FoundAction
-from servey2.action.trigger.web_trigger import WebTrigger
-from servey2.security.access_control.allow_all import ALLOW_ALL
-from servey2.security.authorization import Authorization
-from servey2.security.authorizer.authorizer_abc import AuthorizerABC
-from servey2.security.authorizer.authorizer_factory_abc import get_default_authorizer
-from servey2.servey_starlette.request_parser.authorizing_parser import AuthorizingParser
-from servey2.servey_starlette.request_parser.factory.request_parser_factory_abc import (
+from servey.action.finder.found_action import FoundAction
+from servey.action.trigger.web_trigger import WebTrigger
+from servey.security.access_control.allow_all import ALLOW_ALL
+from servey.security.authorization import Authorization
+from servey.security.authorizer.authorizer_abc import AuthorizerABC
+from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
+from servey.servey_starlette.request_parser.authorizing_parser import AuthorizingParser
+from servey.servey_starlette.request_parser.factory.request_parser_factory_abc import (
     RequestParserFactoryABC,
 )
-from servey2.servey_starlette.request_parser.factory.self_parser_factory import strip_injected_from_action
-from servey2.servey_starlette.request_parser.request_parser_abc import RequestParserABC
+from servey.servey_starlette.request_parser.factory.self_parser_factory import strip_injected_from_action
+from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
 
 
 @dataclass

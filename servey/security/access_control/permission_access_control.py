@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from servey2.security.access_control.action_access_control_abc import (
+from servey.security.access_control.action_access_control_abc import (
     ActionAccessControlABC,
 )
-from servey2.security.authorization import Authorization
+from servey.security.authorization import Authorization
 
 
 @dataclass(frozen=True)

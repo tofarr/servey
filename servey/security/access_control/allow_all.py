@@ -1,8 +1,8 @@
-from servey2.security.access_control.action_access_control_abc import (
+from servey.security.access_control.action_access_control_abc import (
     ActionAccessControlABC,
 )
-from servey2.security.authorization import Authorization
-from servey2.util.singleton_abc import SingletonABC
+from servey.security.authorization import Authorization
+from servey.util.singleton_abc import SingletonABC
 
 
 class AllowAll(SingletonABC, ActionAccessControlABC):

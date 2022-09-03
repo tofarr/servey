@@ -3,8 +3,8 @@ from logging import getLogger
 from typing import Optional
 from uuid import uuid4
 
-from servey2.security.authorizer.authorizer_abc import AuthorizerABC
-from servey2.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
+from servey.security.authorizer.authorizer_abc import AuthorizerABC
+from servey.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
 
 LOGGER = getLogger(__name__)
 
@@ -24,7 +24,7 @@ class KmsAuthorizerFactory(AuthorizerFactoryABC):
             if kms_key_id is None:
                 LOGGER.debug("KMS_SECRET_KEY NOT DEFINED - SKIPPING...")
                 return
-            from servey2.servey_aws.authorizer.kms_authorizer import KmsAuthorizer
+            from servey.servey_aws.authorizer.kms_authorizer import KmsAuthorizer
             authorizer = KmsAuthorizer(kms_key_id)
             return authorizer
         except ModuleNotFoundError:

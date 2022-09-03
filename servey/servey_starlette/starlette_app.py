@@ -3,7 +3,7 @@ import logging
 from marshy.factory.impl_marshaller_factory import get_impls
 from starlette.applications import Starlette
 
-from servey2.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
+from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
 
 LOGGER = logging.getLogger(__name__)
 routes = []

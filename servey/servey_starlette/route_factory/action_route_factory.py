@@ -3,7 +3,7 @@ from typing import Optional, Iterator, List
 
 from starlette.routing import Route
 
-from servey2.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
+from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
 
 
 @dataclass

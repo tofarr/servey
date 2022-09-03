@@ -8,10 +8,10 @@ from starlette.responses import Response, JSONResponse
 from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
 
-from servey2.servey_starlette.route_factory.action_route_factory import (
+from servey.servey_starlette.route_factory.action_route_factory import (
     ActionRouteFactory,
 )
-from servey2.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
+from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
 
 
 @dataclass

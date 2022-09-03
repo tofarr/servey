@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse
 
 from servey.executor import Executor
 from servey.integration.starlette_integ.util import with_isolated_references
-from servey2.servey_starlette.response_render.response_render_abc import (
+from servey.servey_starlette.response_render.response_render_abc import (
     ResponseRenderABC,
 )
 

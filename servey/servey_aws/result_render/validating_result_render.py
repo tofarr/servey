@@ -4,7 +4,7 @@ from typing import Any
 from marshy import ExternalType
 from schemey import Schema
 
-from servey2.servey_aws.result_render.result_render_abc import ResultRenderABC
+from servey.servey_aws.result_render.result_render_abc import ResultRenderABC
 
 
 @dataclass

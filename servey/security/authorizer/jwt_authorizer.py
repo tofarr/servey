@@ -7,8 +7,8 @@ from jwt import DecodeError
 from marshy.types import ExternalItemType
 from schemey.util import filter_none
 
-from servey2.security.authorization import Authorization, AuthorizationError
-from servey2.security.authorizer.authorizer_abc import AuthorizerABC
+from servey.security.authorization import Authorization, AuthorizationError
+from servey.security.authorizer.authorizer_abc import AuthorizerABC
 
 
 @dataclass

@@ -3,7 +3,7 @@ from typing import Iterator, Type, Tuple, TypeVar
 
 from marshy.factory.impl_marshaller_factory import get_impls
 
-from servey2.action.finder.found_action import FoundAction
+from servey.action.finder.found_action import FoundAction
 
 T = TypeVar("T")
 

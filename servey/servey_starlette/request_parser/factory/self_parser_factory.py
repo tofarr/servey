@@ -3,14 +3,14 @@ from dataclasses import dataclass, replace
 from logging import getLogger
 from typing import Tuple, Optional, Callable
 
-from servey2.action.finder.found_action import FoundAction
-from servey2.action.trigger.web_trigger import WebTrigger
-from servey2.servey_starlette.request_parser.factory.request_parser_factory_abc import (
+from servey.action.finder.found_action import FoundAction
+from servey.action.trigger.web_trigger import WebTrigger
+from servey.servey_starlette.request_parser.factory.request_parser_factory_abc import (
     RequestParserFactoryABC,
 )
-from servey2.servey_starlette.request_parser.request_parser_abc import RequestParserABC
-from servey2.servey_starlette.request_parser.self_parser import SelfParser
-from servey2.servey_starlette.util import strip_injected_from_schema, wrap_fn_for_injection
+from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
+from servey.servey_starlette.request_parser.self_parser import SelfParser
+from servey.servey_starlette.util import strip_injected_from_schema, wrap_fn_for_injection
 
 LOGGER = getLogger(__name__)
 

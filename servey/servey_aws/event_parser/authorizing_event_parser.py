@@ -3,12 +3,12 @@ from typing import Dict, Any, Optional
 
 from marshy.types import ExternalItemType
 
-from servey2.security.access_control.action_access_control_abc import ActionAccessControlABC
-from servey2.security.access_control.allow_all import ALLOW_ALL
-from servey2.security.authorization import AuthorizationError
-from servey2.security.authorizer.authorizer_abc import AuthorizerABC
-from servey2.servey_aws.event_parser.event_parser_abc import EventParserABC
-from servey2.servey_starlette.util import inject_value_at
+from servey.security.access_control.action_access_control_abc import ActionAccessControlABC
+from servey.security.access_control.allow_all import ALLOW_ALL
+from servey.security.authorization import AuthorizationError
+from servey.security.authorizer.authorizer_abc import AuthorizerABC
+from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
+from servey.servey_starlette.util import inject_value_at
 
 
 @dataclass

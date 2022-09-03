@@ -3,9 +3,9 @@ from typing import Callable
 
 from marshy.types import ExternalItemType
 
-from servey2.action.action_meta import ActionMeta
-from servey2.servey_aws.event_parser.event_parser_abc import EventParserABC
-from servey2.servey_aws.result_render.result_render_abc import ResultRenderABC
+from servey.action.action_meta import ActionMeta
+from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
+from servey.servey_aws.result_render.result_render_abc import ResultRenderABC
 
 
 @dataclass

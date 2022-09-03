@@ -4,7 +4,7 @@ from typing import Dict, Any, Callable
 from marshy.types import ExternalItemType
 from starlette.requests import Request
 
-from servey2.servey_starlette.request_parser.request_parser_abc import RequestParserABC
+from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
 
 
 @dataclass
