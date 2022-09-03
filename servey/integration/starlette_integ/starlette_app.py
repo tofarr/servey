@@ -21,4 +21,3 @@ if CELERY_BROKER is None:
     from servey.integration.local_schedule_app import mount_all
 
     mount_all()
-

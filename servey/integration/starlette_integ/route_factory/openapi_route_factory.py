@@ -34,7 +34,11 @@ class OpenapiRouteFactory(RouteFactoryABC):
         yield Route(
             "/openapi.json", endpoint=self.openapi_schema, include_in_schema=False
         )
-        yield Mount("/docs", app=StaticFiles(packages=['servey.integration.starlette_integ'], html=True), name='docs')
+        yield Mount(
+            "/docs",
+            app=StaticFiles(packages=["servey.integration.starlette_integ"], html=True),
+            name="docs",
+        )
 
     def openapi_schema(self, request: Request) -> Response:
         schema = {

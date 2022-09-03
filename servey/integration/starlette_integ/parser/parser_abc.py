@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import abstractmethod, ABC
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Any, Dict
 
 from marshy.types import ExternalItemType
 from starlette.requests import Request
@@ -14,7 +14,7 @@ class ParserABC(ABC):
     priority: int = 100
 
     @abstractmethod
-    async def parse(self, request: Request) -> Tuple[Executor, ExternalItemType]:
+    async def parse(self, request: Request) -> Tuple[Executor, Dict[str, Any]]:
         """Parse a request"""
 
     @abstractmethod

@@ -43,10 +43,8 @@ class BodyParser(ParserABC):
             "content": {"application/json": {"schema": schema}},
             "required": True,
         }
-        responses: ExternalItemType = path_method['responses']
-        responses["422"] = {
-            "description": "Validation Error"
-        }
+        responses: ExternalItemType = path_method["responses"]
+        responses["422"] = {"description": "Validation Error"}
 
 
 class BodyParserFactory(ParserFactoryABC):

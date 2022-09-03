@@ -21,6 +21,7 @@ def configure(context: MarshallerContext):
 
 def configure_auth(context: MarshallerContext):
     from servey.access_control.jwt_authorizer_factory import JwtAuthorizerFactory
+
     register_impl(AuthorizerFactoryABC, JwtAuthorizerFactory, context)
 
 
@@ -48,7 +49,7 @@ def configure_starlette(context: MarshallerContext):
             ActionRouteFactory,
         )
         from servey.integration.starlette_integ.route_factory.authenticator_route_factory import (
-            AuthenticatorRouteFactory
+            AuthenticatorRouteFactory,
         )
         from servey.integration.starlette_integ.route_factory.openapi_route_factory import (
             OpenapiRouteFactory,
@@ -56,8 +57,10 @@ def configure_starlette(context: MarshallerContext):
         from servey.integration.starlette_integ.route_factory.route_factory_abc import (
             RouteFactoryABC,
         )
-        from servey.integration.strawberry_integration.strawberry_starlette_route_factory import \
-            StrawberryStarletteRouteFactory
+        from servey.integration.strawberry_integration.strawberry_starlette_route_factory import (
+            StrawberryStarletteRouteFactory,
+        )
+
         register_impl(ParserFactoryABC, AuthorizingParserFactory, context)
         register_impl(ParserFactoryABC, BodyParserFactory, context)
         register_impl(ParserFactoryABC, QueryStringParserFactory, context)
@@ -116,6 +119,7 @@ def configure_strawberry(context: MarshallerContext):
 def configure_aws(context: MarshallerContext):
     try:
         from servey.integration.aws.kms_authorizer_factory import KmsAuthorizerFactory
+
         register_impl(AuthorizerFactoryABC, KmsAuthorizerFactory, context)
     except ModuleNotFoundError:
         LOGGER.info("AWS Module not found: skipping")

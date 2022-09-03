@@ -12,18 +12,20 @@ from starlette.routing import Route
 from servey.access_control.authorization import Authorization, ROOT
 from servey.access_control.authorizer_abc import AuthorizerABC
 from servey.access_control.authorizer_factory_abc import get_default_authorizer
-from servey.integration.starlette_integ.route_factory.route_factory_abc import RouteFactoryABC
+from servey.integration.starlette_integ.route_factory.route_factory_abc import (
+    RouteFactoryABC,
+)
 
 LOGGER = getLogger(__name__)
 
 
 class AuthenticatorRouteFactory(RouteFactoryABC):
-    """ Route factory which performs authentication. """
+    """Route factory which performs authentication."""
 
     def create_routes(self) -> Iterator[Route]:
         # Create an authenticator object based on username and password
         authenticator = RootPasswordAuthenticator()
-        yield Route(path='/login', methods=['post'], endpoint=authenticator.login)
+        yield Route(path="/login", methods=["post"], endpoint=authenticator.login)
 
 
 def _default_password():
@@ -31,9 +33,9 @@ def _default_password():
     if not password:
         password = (
             base64.b64encode(os.urandom(12))
-                .decode("UTF-8")
-                .replace("+", "")
-                .replace("/", "")
+            .decode("UTF-8")
+            .replace("+", "")
+            .replace("/", "")
         )
         LOGGER.warning(f"Using Temporary Password: {password}")
     return password
@@ -41,7 +43,9 @@ def _default_password():
 
 @dataclass
 class RootPasswordAuthenticator:
-    username: str = field(default_factory=lambda: os.environ.get("DEBUG_AUTHENTICATOR_USERNAME") or "root")
+    username: str = field(
+        default_factory=lambda: os.environ.get("DEBUG_AUTHENTICATOR_USERNAME") or "root"
+    )
     password: str = field(default_factory=_default_password)
     authorization: Authorization = field(default=ROOT)
     authorizer: AuthorizerABC = field(default_factory=get_default_authorizer)
@@ -49,13 +53,13 @@ class RootPasswordAuthenticator:
     async def login(self, request: Request) -> JSONResponse:
         form_data = await request.form()
         if (
-                form_data['username'] == self.username
-                and form_data['password'] == self.password
+            form_data["username"] == self.username
+            and form_data["password"] == self.password
         ):
-            return JSONResponse({
-                "access_token": self.authorizer.encode(self.authorization),
-                "token_type": "bearer",
-            })
-        raise HTTPException(
-            status_code=400, detail="Incorrect username or password"
-        )
+            return JSONResponse(
+                {
+                    "access_token": self.authorizer.encode(self.authorization),
+                    "token_type": "bearer",
+                }
+            )
+        raise HTTPException(status_code=400, detail="Incorrect username or password")

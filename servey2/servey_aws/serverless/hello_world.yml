@@ -1,0 +1,29 @@
+service: helloworld
+package:
+  exclude:
+    - aws/**
+    - node_modules/**
+    - venv/**
+    - .venv/**
+provider:
+  name: aws
+  runtime: python3.7
+  tracing: true
+  environment:
+    TOFARR_AWS_UTILS_APP_CONFIG: hello_world.app_config.HelloWorldAppConfig
+    LOG_LEVEL: INFO
+custom:
+  appSync:
+    name: hello_world
+    authenticationType: AWS_IAM
+    mappingTemplatesLocation: mapping_templates
+    defaultMappingTemplates:
+      request: request_mapping_template.vm
+      response: response_mapping_template.vm
+  pythonRequirements:
+    useDownloadCache: false
+    useStaticCache: false
+plugins:
+  - serverless-python-requirements
+  - serverless-prune-plugin
+  - serverless-appsync-plugin

@@ -1,0 +1,280 @@
+# Welcome to serverless. Read the docs
+# https://serverless.com/framework/docs/
+
+# Serverless.yml is the configuration the CLI
+# uses to deploy your code to your provider of choice
+
+# The `service` block is the name of the service
+service: content-email
+
+package:
+  exclude:
+    - aws/**
+    - lambda/**
+    - builddocs/**
+    - docs/**
+    - tests/**
+    - node_modules/**
+    - other/**
+    - terraform/**
+    - '**/\.#*'
+    - '*/*\.egg-info'
+    - venv/**
+    - .venv/**
+    - .tmp_cache/**
+
+# The `provider` block defines where your service will be deployed
+provider:
+  name: aws
+  runtime: python3.9
+  environment:
+    pythonenv: ${self:custom.env.pythonenv}
+    ACCOUNT_ID: ${self:custom.env.ACCOUNT_ID}
+    MAILGUN_EVENT_URL: ${self:custom.env.MAILGUN_EVENT_URL}
+    STREAM_KEY: ${self:custom.env.STREAM_KEY}
+    STREAM_SECRET: ${self:custom.env.STREAM_SECRET}
+    STREAM_LOCATION: ${self:custom.env.STREAM_LOCATION}
+    USER_POOL_ID: ${self:custom.env.USER_POOL_ID}
+    IMAGES_BUCKET: ${self:custom.env.IMAGES_BUCKET}
+    S3_METADATA_BUCKET: ${self:custom.env.S3_METADATA_BUCKET}
+    APP_ROOT_URL: ${self:custom.env.APP_ROOT_URL}
+    IMGIX_DOMAIN: ${self:custom.env.IMGIX_DOMAIN}
+    IMAGE_ROOT_URL: ${self:custom.env.IMAGE_ROOT_URL}
+    MAILGUN_API_KEY: ${self:custom.env.MAILGUN_API_KEY}
+    MAILGUN_DOMAIN_NAME: ${self:custom.env.MAILGUN_DOMAIN_NAME}
+    SEARCH_DOMAIN: ${self:custom.env.SEARCH_DOMAIN}
+    WEB_DOMAIN: ${self:custom.env.WEB_DOMAIN}
+    PYTHON_AIRBRAKE_PROJECT_ID: ${self:custom.env.PYTHON_AIRBRAKE_PROJECT_ID}
+    PYTHON_AIRBRAKE_PROJECT_KEY: ${self:custom.env.PYTHON_AIRBRAKE_PROJECT_KEY}
+    PYTHON_AIRBRAKE_PROJECT_ENV: ${self:custom.env.PYTHON_AIRBRAKE_PROJECT_ENV}
+    AIRBRAKE_PROJECT_ID: ${self:custom.env.PYTHON_AIRBRAKE_PROJECT_ID}
+    AIRBRAKE_PROJECT_KEY: ${self:custom.env.PYTHON_AIRBRAKE_PROJECT_KEY}
+    AIRBRAKE_PROJECT_ENV: ${self:custom.env.PYTHON_AIRBRAKE_PROJECT_ENV}
+    SEGMENT_WRITE_KEY: ${self:custom.env.SEGMENT_WRITE_KEY}
+    NAMED_ENV: ${opt:env, 'dev'}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource: '*'
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:BatchGetItem
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:DescribeStream
+        - dynamodb:ListTables
+        - dynamodb:ListStreams
+      Resource: arn:aws:dynamodb:us-east-1:*:*
+    -  Effect: Allow
+       Action:
+         - lambda:InvokeFunction
+       Resource: "*"
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminGetUser
+      Resource: arn:aws:cognito-idp:us-east-1:*:*
+    - Effect: Allow
+      Action:
+        - es:ESHttpDelete
+        - es:ESHttpGet
+        - es:ESHttpHead
+        - es:ESHttpPost
+        - es:ESHttpPut
+      Resource: arn:aws:es:us-east-1:*:*
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+        - s3:PutObjectAcl
+      Resource: arn:aws:s3:::${self:custom.env.S3_METADATA_BUCKET}/*
+    - Effect: Allow
+      Action:
+        - kms:Decrypt
+        - kms:Encrypt
+        - kms:GenerateDataKey
+      Resource: ${self:custom.env.EVENT_METADATA_BUCKET_KMS_KEY_ARN}
+plugins:
+  - serverless-python-requirements
+  - serverless-dynamodb-local
+  - serverless-prune-plugin
+  - serverless-plugin-aws-alerts
+  - serverless-pseudo-parameters
+
+# The `functions` block defines what code to deploy
+functions:
+  #approveComment:
+  #  handler: comment.lambda.lambda_approve.lambda_approve
+
+  createConfiguration:
+    handler: content_email.lambdas.content_email.create_configuration
+    alarms:
+      - functionDuration
+      - name: FunctionDuration
+        namespace: 'AWS/Lambda'
+        metric: durationWarning
+        threshold: 500
+        statistic: Average
+        period: 180
+        evaluationPeriods: 5
+        comparisonOperator: GreaterThanThreshold
+        treatMissingData: notBreaching
+
+  previewConfiguration:
+    handler: content_email.lambdas.content_email.preview_configuration
+    timeout: 300
+    alarms:
+      - functionDuration
+      - name: FunctionDuration
+        namespace: 'AWS/Lambda'
+        metric: durationWarning
+        threshold: 500
+        statistic: Average
+        period: 180
+        evaluationPeriods: 5
+        comparisonOperator: GreaterThanThreshold
+        treatMissingData: notBreaching
+
+  modifyConfiguration:
+    handler: content_email.lambdas.content_email.modify_configuration
+
+  testLoadable:
+    handler: content_email.lambdas.content_email.test_loadable
+
+  disableConfiguration:
+    handler: content_email.lambdas.content_email.delete_configuration
+    alarms:
+      - functionDuration
+      - name: FunctionDuration
+        namespace: 'AWS/Lambda'
+        metric: durationWarning
+        threshold: 400
+        statistic: Average
+        period: 180
+        evaluationPeriods: 5
+        comparisonOperator: GreaterThanThreshold
+        treatMissingData: notBreaching
+
+  getProcessingHistory:
+    handler:
+      content_email.lambdas.content_email.processing_history
+    timeout: 300
+
+  getRecipientHistory:
+    handler:
+      content_email.lambdas.content_email.get_recipient_history
+    timeout: 300
+
+  getConfiguration:
+    handler: content_email.lambdas.content_email.get_configuration
+
+
+  getConfigurations:
+    handler: content_email.lambdas.content_email.get_configurations
+    alarms:
+      - functionDuration
+      - name: FunctionDuration
+        namespace: 'AWS/Lambda'
+        metric: durationWarning
+        threshold: 400
+        statistic: Average
+        period: 180
+        evaluationPeriods: 5
+        comparisonOperator: GreaterThanThreshold
+        treatMissingData: notBreaching
+
+
+  fireScheduledSends:
+    handler: content_email.lambdas.content_email.fire_scheduled
+    timeout: 30
+    events:
+      - schedule:
+          name: 'fireScheduledContentEmail'
+          description: 'periodically checks for content email to send'
+          rate: rate(5 minutes)
+
+  processConfiguration:
+    handler: content_email.lambdas.content_email.process_configuration
+    timeout: 900
+
+  processContinuation:
+    handler: content_email.lambdas.content_email.process_continuation
+    timeout: 900
+
+  mailgunEventHandler:
+    handler: content_email.lambdas.content_email.mailgun_event
+    timeout: 30
+    events:
+      - http:
+          path: mailevent
+          method: post
+
+  unsubscribe:
+    handler: content_email.lambdas.content_email.unsubscribe
+    timeout: 30
+
+custom:
+  env:
+    PYTHON_AIRBRAKE_PROJECT_ID: ${ssm:/es/env/${opt:env, 'dev'}/airbrake/PYTHON_AIRBRAKE_PROJECT_ID~true}
+    PYTHON_AIRBRAKE_PROJECT_KEY: ${ssm:/es/env/${opt:env, 'dev'}/airbrake/PYTHON_AIRBRAKE_PROJECT_KEY~true}
+    PYTHON_AIRBRAKE_PROJECT_ENV: ${ssm:/es/env/${opt:env, 'dev'}/airbrake/PYTHON_AIRBRAKE_PROJECT_ENV}
+    USER_POOL_ID: ${ssm:/es/env/${opt:env, 'dev'}/aws/cognito/USER_POOL_ID~true}
+    SEARCH_DOMAIN: ${ssm:/es/env/${opt:env, 'dev'}/project/SEARCH_DOMAIN}
+    WEB_DOMAIN: ${ssm:/es/env/${opt:env, 'dev'}/project/WEB_DOMAIN}
+    SEGMENT_WRITE_KEY: ${ssm:/es/env/${opt:env, 'dev'}/segment/PYTHON_SEGMENT_WRITE_KEY~true}
+    IMAGES_BUCKET: ${ssm:/es/env/${opt:env, 'dev'}/aws/s3/IMAGES_BUCKET}
+    S3_METADATA_BUCKET: ${ssm:/es/env/${opt:env, 'dev'}/aws/s3/S3_METADATA_BUCKET}
+    ACCOUNT_ID: ${ssm:/es/env/${opt:env, 'dev'}/aws/deployment/ACCOUNT_ID~true}
+    EVENT_METADATA_BUCKET_KMS_KEY_ARN: ${ssm:/es/env/${opt:env, 'dev'}/aws/kms/EVENT_METADATA_BUCKET_KMS_KEY_ARN~true}
+    MAILGUN_EVENT_URL: ${ssm:/es/env/${opt:env, 'dev'}/mailgun/MAILGUN_EVENT_URL}
+    STREAM_KEY: ${ssm:/es/env/${opt:env, 'dev'}/getstream/STREAM_KEY~true}
+    STREAM_SECRET: ${ssm:/es/env/${opt:env, 'dev'}/getstream/STREAM_SECRET~true}
+    STREAM_LOCATION: ${ssm:/es/env/${opt:env, 'dev'}/getstream/STREAM_LOCATION~true}
+    APP_ROOT_URL: ${ssm:/es/env/${opt:env, 'dev'}/project/APP_ROOT_URL}
+    IMGIX_DOMAIN: ${ssm:/es/env/${opt:env, 'dev'}/imgix/IMGIX_DOMAIN}
+    IMAGE_ROOT_URL: ${ssm:/es/env/${opt:env, 'dev'}/project/IMAGE_ROOT_URL}
+    MAILGUN_API_KEY: ${ssm:/es/env/${opt:env, 'dev'}/mailgun/MAILGUN_API_KEY~true}
+    MAILGUN_DOMAIN_NAME: ${ssm:/es/env/${opt:env, 'dev'}/mailgun/MAILGUN_DOMAIN_NAME}
+    AIRBRAKE_PROJECT_ID: ${ssm:/es/env/${opt:env, 'dev'}/airbrake/PYTHON_AIRBRAKE_PROJECT_ID~true}
+    AIRBRAKE_PROJECT_KEY: ${ssm:/es/env/${opt:env, 'dev'}/airbrake/PYTHON_AIRBRAKE_PROJECT_KEY~true}
+    AIRBRAKE_PROJECT_ENV: ${ssm:/es/env/${opt:env, 'dev'}/airbrake/PYTHON_AIRBRAKE_PROJECT_ENV}
+    pythonenv: DEV
+  stage: ${opt:env}
+  prune:
+    automatic: true
+    number: 1
+  dynamodb:
+    start:
+      migrate: true
+  pythonRequirements:
+    pipCmdExtraArgs:
+      - --require-hashes
+      - --no-deps
+    cacheLocation: .tmp_cache
+  snsAlerts: arn:aws:sns:${aws:region}:${aws:accountId}:ops-alerts
+  alerts:
+    dashboards: true
+    topics:
+      alarm:
+        topic: "${self:custom.snsAlerts}"
+    alarms:
+      - functionThrottles
+      #- functionErrors
+      #- functionInvocations
+      #- functionDuration
+    # Override alarm defaults
+    definitions:
+      #functionErrors:
+      #  treatMissingData: notBreaching
+      functionThrottles:
+        treatMissingData: notBreaching
+      #functionInvocations:
+      #  treatMissingData: notBreaching

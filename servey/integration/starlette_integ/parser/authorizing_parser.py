@@ -10,7 +10,8 @@ from servey.access_control.authorizer_abc import AuthorizerABC
 from servey.access_control.authorizer_factory_abc import get_default_authorizer
 from servey.access_control.filter import (
     get_authorization_field_name,
-    get_authorization_kwarg_name, action_without_kwarg,
+    get_authorization_kwarg_name,
+    action_without_kwarg,
 )
 from servey.action import Action
 from servey.executor import Executor
@@ -54,21 +55,16 @@ class AuthorizingParser(ParserABC):
     def to_openapi_schema(
         self, path_method: ExternalItemType, components: ExternalItemType
     ):
-        responses: ExternalItemType = path_method['responses']
+        responses: ExternalItemType = path_method["responses"]
         if not responses.get("403"):
             responses["403"] = {"description": "Unauthorized"}
         if not path_method.get("security"):
             path_method["security"] = [{"OAuth2PasswordBearer": []}]
-        if not components.get('securitySchemas'):
-            components['securitySchemes'] = {
-                'OAuth2PasswordBearer': {
-                    'type': "oauth2",
-                    'flows': {
-                        'password': {
-                            'scopes': {},
-                            'tokenUrl': "/login"
-                        }
-                    }
+        if not components.get("securitySchemas"):
+            components["securitySchemes"] = {
+                "OAuth2PasswordBearer": {
+                    "type": "oauth2",
+                    "flows": {"password": {"scopes": {}, "tokenUrl": "/login"}},
                 }
             }
 

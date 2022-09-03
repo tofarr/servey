@@ -47,10 +47,8 @@ class QueryStringParser(ParserABC):
             }
             for k, v in properties.items()
         ]
-        responses: ExternalItemType = path_method['responses']
-        responses["422"] = {
-            "description": "Validation Error"
-        }
+        responses: ExternalItemType = path_method["responses"]
+        responses["422"] = {"description": "Validation Error"}
 
 
 class QueryStringParserFactory(ParserFactoryABC):

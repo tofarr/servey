@@ -4,17 +4,13 @@ schemey~=5.4
 # If using starlette (Maybe a requirement?)
 starlette~=0.19
 
-# If using fastapi
-fastapi~=0.79
-python-multipart~=0.0
-uvicorn~=0.18
-
 # If using jwt
 pyjwt~=2.4
 cryptography~=37.0
 
 # If using aws
 boto3~=1.24
+mangum~=0.15
 
 # If using http actions
 requests~=2.28
@@ -25,4 +21,8 @@ celery~=5.2
 #Dev dependency with aws
 pyyaml~=6.0
 
-strawberry-graphql
+# If using strawberry
+strawberry-graphql~=0.125
+
+# Only for dev if using AWS
+ruamel.yaml~=0.17

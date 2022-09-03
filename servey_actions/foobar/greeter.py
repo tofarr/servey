@@ -8,13 +8,13 @@ from servey.trigger.web_trigger import WEB_GET
 
 @action(triggers=(WEB_GET,))
 def greet(name: str) -> str:
-    """ Issue a greeting! """
+    """Issue a greeting!"""
     return f"Hello {name}"
 
 
 @action
 def about_me(authorization: Authorization) -> str:
-    """ Give some info about the current authorization """
+    """Give some info about the current authorization"""
     return f"Your subject id is {authorization.subject_id} and your scopes are: {' '.join(authorization.scopes)}"
 
 
@@ -23,7 +23,7 @@ class AlsoAboutMe:
     authorization: Optional[Authorization] = None
 
     def about_me(self) -> str:
-        """ Give some info about the current authorization (Injected as a field rather than a kwarg) """
+        """Give some info about the current authorization (Injected as a field rather than a kwarg)"""
         return f"Your subject id is {self.authorization.subject_id} and your scopes are: {' '.join(self.authorization.scopes)}"
 
 
