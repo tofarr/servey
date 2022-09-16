@@ -9,7 +9,7 @@ import jwt
 from jwt import DecodeError
 from schemey.util import filter_none
 
-from servey.access_control.authorization import AuthorizationError
+from servey.security.access_control.authorization import AuthorizationError
 from servey.security.authorization import Authorization
 from servey.security.authorizer.authorizer_abc import AuthorizerABC
 from servey.security.authorizer.jwt_authorizer import date_from_jwt

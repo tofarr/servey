@@ -4,19 +4,19 @@ from typing import Any, Dict, Optional, Tuple
 
 from strawberry.types import Info
 
-from servey.access_control.action_access_control_abc import ActionAccessControlABC
-from servey.access_control.allow_all import ALLOW_ALL
-from servey.access_control.authorization import Authorization, AuthorizationError
-from servey.access_control.authorizer_abc import AuthorizerABC
-from servey.access_control.authorizer_factory_abc import get_default_authorizer
-from servey.access_control.filter import get_authorization_field_name, is_authorization
+from servey.security.access_control.action_access_control_abc import ActionAccessControlABC
+from servey.security.access_control.allow_all import ALLOW_ALL
+from servey.security.access_control.authorization import Authorization, AuthorizationError
+from servey.security.access_control.authorizer_abc import AuthorizerABC
+from servey.security.access_control.authorizer_factory_abc import get_default_authorizer
+from servey.security.access_control.filter import get_authorization_field_name, is_authorization
 from servey.action import Action
 from servey.executor import Executor
-from servey.integration.strawberry_integration.handler_filter.handler_filter_abc import (
+from servey.servey_strawberry.handler_filter.handler_filter_abc import (
     HandlerFilterABC,
     ExecutorFn,
 )
-from servey.integration.strawberry_integration.schema_factory import SchemaFactory
+from servey.servey_strawberry.schema_factory import SchemaFactory
 from servey.trigger.web_trigger import WebTrigger
 
 

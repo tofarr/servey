@@ -7,7 +7,7 @@ from typing import Iterator
 from starlette.routing import Route, WebSocketRoute, Mount
 from starlette.staticfiles import StaticFiles
 
-from servey.integration.starlette_integ.route_factory.route_factory_abc import (
+from servey.servey_starlette.route_factory.route_factory_abc import (
     RouteFactoryABC,
 )
 
@@ -24,7 +24,7 @@ class StrawberryStarletteRouteFactory(RouteFactoryABC):
     def create_routes(self) -> Iterator[Route]:
         # Create an authenticator object based on username and password
         try:
-            from servey.integration.strawberry_integration.schema_factory import (
+            from servey.servey_strawberry.schema_factory import (
                 new_schema_for_context,
             )
             from strawberry.asgi import GraphQL

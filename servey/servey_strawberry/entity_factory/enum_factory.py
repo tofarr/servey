@@ -5,10 +5,10 @@ from typing import Type, Optional
 import strawberry
 from marshy.utils import resolve_forward_refs
 
-from servey.integration.strawberry_integration.entity_factory.entity_factory_abc import (
+from servey.servey_strawberry.entity_factory.entity_factory_abc import (
     EntityFactoryABC,
 )
-from servey.integration.strawberry_integration.schema_factory import SchemaFactory
+from servey.servey_strawberry.schema_factory import SchemaFactory
 
 
 class EnumFactory(EntityFactoryABC):

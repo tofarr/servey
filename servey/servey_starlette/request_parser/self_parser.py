@@ -23,4 +23,4 @@ class SelfParser(RequestParserABC):
         self, path_method: ExternalItemType, components: ExternalItemType
     ):
         # Simply delegate - self should not be visible externally!
-        return await self.parser.to_openapi_schema(path_method, components)
+        return self.parser.to_openapi_schema(path_method, components)

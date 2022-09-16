@@ -6,10 +6,10 @@ from strawberry.types import Info
 
 from servey.action import Action
 from servey.executor import Executor
-from servey.integration.strawberry_integration.handler_filter.handler_filter_abc import (
+from servey.servey_strawberry.handler_filter.handler_filter_abc import (
     HandlerFilterABC,
 )
-from servey.integration.strawberry_integration.schema_factory import SchemaFactory
+from servey.servey_strawberry.schema_factory import SchemaFactory
 from servey.trigger.web_trigger import WebTrigger
 
 ExecutorFn = Callable[[Executor, Dict[str, Any]], Any]

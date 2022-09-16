@@ -2,8 +2,8 @@ import base64
 import os
 from logging import getLogger
 
-from servey.access_control.authorizer_abc import AuthorizerABC
-from servey.access_control.authorizer_factory_abc import AuthorizerFactoryABC
+from servey.security.authorizer.authorizer_abc import AuthorizerABC
+from servey.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
 
 LOGGER = getLogger(__name__)
 
@@ -18,8 +18,7 @@ class JwtAuthorizerFactory(AuthorizerFactoryABC):
 
     def create_authorizer(self) -> AuthorizerABC:
         try:
-            from servey.access_control.jwt_authorizer import JwtAuthorizer
-
+            from servey.security.authorizer.jwt_authorizer import JwtAuthorizer
             jwt_secret_key = os.environ.get("JWT_SECRET_KEY")
             if jwt_secret_key is None:
                 LOGGER.warning(

@@ -1,13 +1,12 @@
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 from marshy.marshaller.marshaller_abc import MarshallerABC
 from marshy.types import ExternalItemType
 from schemey import Schema
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 
-from servey.executor import Executor
-from servey.integration.starlette_integ.util import with_isolated_references
+from servey.servey_starlette.util import with_isolated_references
 from servey.servey_starlette.response_render.response_render_abc import (
     ResponseRenderABC,
 )
@@ -18,7 +17,7 @@ class BodyRender(ResponseRenderABC):
     marshaller: MarshallerABC
     schema: Optional[Schema] = None
 
-    def render(self, executor: Executor, result: Any) -> JSONResponse:
+    def render(self, kwargs: Dict[str, Any], result: Any) -> Response:
         dumped = self.marshaller.dump(result)
         if self.schema:
             self.schema.validate(dumped)

@@ -15,10 +15,10 @@ from strawberry.types.fields.resolver import StrawberryResolver
 from servey.action import Action
 from servey.action_context import get_default_action_context, ActionContext
 from servey.executor import Executor
-from servey.integration.strawberry_integration.entity_factory.entity_factory_abc import (
+from servey.servey_strawberry.entity_factory.entity_factory_abc import (
     EntityFactoryABC,
 )
-from servey.integration.strawberry_integration.handler_filter.handler_filter_abc import (
+from servey.servey_strawberry.handler_filter.handler_filter_abc import (
     HandlerFilterABC,
 )
 from servey.trigger.web_trigger import WebTrigger, UPDATE_METHODS

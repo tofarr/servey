@@ -8,7 +8,7 @@ from servey.trigger.web_trigger import WebTrigger
 
 ExecutorFn = Callable[[Executor, Dict[str, Any]], Any]
 # String to prevent circular import
-SchemaFactory = "servey.integration.strawberry_integration.schema_factory.SchemaFactory"
+SchemaFactory = "servey.servey_strawberry.schema_factory.SchemaFactory"
 
 
 class HandlerFilterABC(ABC):

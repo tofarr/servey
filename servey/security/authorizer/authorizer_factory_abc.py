@@ -3,7 +3,7 @@ from typing import Optional
 
 from marshy.factory.impl_marshaller_factory import get_impls
 
-from servey.access_control.authorizer_abc import AuthorizerABC
+from servey.security.authorizer.authorizer_abc import AuthorizerABC
 
 
 class AuthorizerFactoryABC(ABC):

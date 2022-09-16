@@ -33,7 +33,7 @@ class OpenapiRouteFactory(RouteFactoryABC):
         )
         yield Mount(
             "/docs",
-            app=StaticFiles(packages=["servey.integration.starlette_integ"], html=True),
+            app=StaticFiles(packages=["servey.servey_starlette"], html=True),
             name="docs",
         )
 

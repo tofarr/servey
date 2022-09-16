@@ -3,8 +3,8 @@ from typing import Tuple
 
 from schemey import Schema
 
-from servey.access_control.action_access_control_abc import ActionAccessControlABC
-from servey.trigger.trigger_abc import TriggerABC
+from servey.action.trigger.trigger_abc import TriggerABC
+from servey.security.access_control.action_access_control_abc import ActionAccessControlABC
 
 
 @dataclass

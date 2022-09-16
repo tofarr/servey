@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, List
 
-from servey.access_control.authorization import Authorization
+from servey.security.access_control.authorization import Authorization
 from servey.action import action
 from servey.trigger.web_trigger import WEB_GET
 

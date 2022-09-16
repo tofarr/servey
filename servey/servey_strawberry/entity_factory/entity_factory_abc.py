@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 from typing import Type, Optional
 
-SchemaFactory = "servey.integration.strawberry_integration.schema_factory.SchemaFactory"
+SchemaFactory = "servey.servey_strawberry.schema_factory.SchemaFactory"
 
 
 class EntityFactoryABC(ABC):
