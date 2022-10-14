@@ -1,5 +1,5 @@
-from dataclasses import field
-from typing import Tuple, Optional
+from dataclasses import field, dataclass
+from typing import Optional, List
 
 from marshy import get_default_context
 from marshy.marshaller_context import MarshallerContext
@@ -12,6 +12,7 @@ from servey.servey_starlette.request_parser.query_string_parser import QueryStri
 from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
 
 
+@dataclass
 class QueryStringParserFactory(RequestParserFactoryABC):
     marshaller_context: MarshallerContext = field(default_factory=get_default_context)
     priority: int = 50
@@ -20,7 +21,7 @@ class QueryStringParserFactory(RequestParserFactoryABC):
         self,
         action: FoundAction,
         trigger: WebTrigger,
-        parser_factories: Tuple[RequestParserFactoryABC],
+        parser_factories: List[RequestParserFactoryABC],
     ) -> Optional[RequestParserABC]:
         if trigger.method not in BODY_METHODS:
             return QueryStringParser(

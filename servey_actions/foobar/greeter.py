@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import List
 
-from servey.security.access_control.authorization import Authorization
-from servey.action import action
-from servey.trigger.web_trigger import WEB_GET
+from servey.action.action import action
+from servey.action.trigger.web_trigger import WEB_GET
+from servey.security.authorization import Authorization
 
 
 @action(triggers=(WEB_GET,))
@@ -16,15 +16,6 @@ def greet(name: str) -> str:
 def about_me(authorization: Authorization) -> str:
     """Give some info about the current authorization"""
     return f"Your subject id is {authorization.subject_id} and your scopes are: {' '.join(authorization.scopes)}"
-
-
-@action
-class AlsoAboutMe:
-    authorization: Optional[Authorization] = None
-
-    def about_me(self) -> str:
-        """Give some info about the current authorization (Injected as a field rather than a kwarg)"""
-        return f"Your subject id is {self.authorization.subject_id} and your scopes are: {' '.join(self.authorization.scopes)}"
 
 
 @dataclass

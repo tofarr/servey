@@ -1,7 +1,7 @@
 import inspect
 from dataclasses import dataclass, replace
 from logging import getLogger
-from typing import Tuple, Optional, Callable
+from typing import Optional, Callable, List
 
 from servey.action.finder.found_action import FoundAction
 from servey.action.trigger.web_trigger import WebTrigger
@@ -24,7 +24,7 @@ class SelfParserFactory(RequestParserFactoryABC):
         self,
         action: FoundAction,
         trigger: WebTrigger,
-        parser_factories: Tuple[RequestParserFactoryABC],
+        parser_factories: List[RequestParserFactoryABC],
     ) -> Optional[RequestParserABC]:
         if self.skip or not action.owner:
             return

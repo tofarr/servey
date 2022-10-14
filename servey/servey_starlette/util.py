@@ -59,7 +59,7 @@ def strip_injected_from_schema(schema: Schema, inject_at: str) -> Schema:
     del current['properties'][path[-1]]
     if current['required']:
         current['required'] = [r for r in current['required'] if r != path[-1]]
-    result_schema = schema_from_json(result)
+    result_schema = Schema(current, schema.python_type)
     return result_schema
 
 

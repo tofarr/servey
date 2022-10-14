@@ -42,12 +42,10 @@ def configure_starlette_request_parser(context: MarshallerContext):
     from servey.servey_starlette.request_parser.factory.body_parser_factory import BodyParserFactory
     from servey.servey_starlette.request_parser.factory.query_string_parser_factory import QueryStringParserFactory
     from servey.servey_starlette.request_parser.factory.request_parser_factory_abc import RequestParserFactoryABC
-    from servey.servey_starlette.request_parser.factory.self_parser_factory import SelfParserFactory
 
     register_impl(RequestParserFactoryABC, AuthorizingParserFactory, context)
     register_impl(RequestParserFactoryABC, BodyParserFactory, context)
     register_impl(RequestParserFactoryABC, QueryStringParserFactory, context)
-    register_impl(RequestParserFactoryABC, SelfParserFactory, context)
 
 
 def configure_starlette_response_render(context: MarshallerContext):

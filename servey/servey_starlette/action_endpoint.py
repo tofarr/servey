@@ -17,7 +17,7 @@ from servey.action.trigger.web_trigger import WebTriggerMethod
 class ActionEndpoint:
     name: str
     path: str
-    callable: Callable
+    fn: Callable
     methods: Tuple[WebTriggerMethod, ...]
     parser: RequestParserABC
     render: ResponseRenderABC
@@ -30,7 +30,7 @@ class ActionEndpoint:
 
     async def execute(self, request: Request) -> Response:
         kwargs = await self.parser.parse(request)
-        result = self.callable(**kwargs)
+        result = self.fn(**kwargs)
         response = self.render.render(kwargs, result)
         return response
 

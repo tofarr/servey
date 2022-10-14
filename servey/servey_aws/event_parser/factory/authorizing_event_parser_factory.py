@@ -10,7 +10,6 @@ from servey.servey_aws.event_parser.authorizing_event_parser import AuthorizingE
 from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
 from servey.servey_aws.event_parser.factory.event_parser_factory_abc import EventParserFactoryABC
 from servey.servey_starlette.request_parser.factory.authorizing_parser_factory import get_inject_at
-from servey.servey_starlette.request_parser.factory.self_parser_factory import strip_injected_from_action
 
 
 @dataclass

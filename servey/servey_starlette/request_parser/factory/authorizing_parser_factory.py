@@ -1,6 +1,6 @@
 import inspect
 from dataclasses import dataclass, field, is_dataclass, fields
-from typing import Tuple, Optional
+from typing import List, Optional
 
 from marshy.factory.optional_marshaller_factory import get_optional_type
 
@@ -28,7 +28,7 @@ class AuthorizingParserFactory(RequestParserFactoryABC):
         self,
         action: FoundAction,
         trigger: WebTrigger,
-        parser_factories: Tuple[RequestParserFactoryABC],
+        parser_factories: List[RequestParserFactoryABC],
     ) -> Optional[RequestParserABC]:
         if self.skip:
             return

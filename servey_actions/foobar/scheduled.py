@@ -1,5 +1,5 @@
 from servey.action import action
-from servey.trigger.fixed_rate_trigger import FixedRateTrigger
+from servey.action.trigger.fixed_rate_trigger import FixedRateTrigger
 
 
 # @action(triggers=(FixedRateTrigger(5),))

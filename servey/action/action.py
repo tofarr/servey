@@ -3,8 +3,8 @@ from typing import Optional, Callable, Tuple
 
 from schemey import Schema, SchemaContext, get_default_schema_context
 
-from servey.servey_error import ServeyError
 from servey.action.action_meta import ActionMeta
+from servey.errors import ServeyError
 from servey.security.access_control.action_access_control_abc import (
     ActionAccessControlABC,
 )
@@ -34,15 +34,15 @@ def action(
         fn_.__servey_action_meta__ = get_meta_for_fn(fn_.__name__, fn_)
         return fn_
 
-    def get_meta_for_fn(name_: str, fn: Callable):
+    def get_meta_for_fn(name_: str, fn_: Callable):
         nonlocal params_schema, result_schema
         if not params_schema:
-            params_schema = get_schema_for_params(fn)
+            params_schema = get_schema_for_params(fn_)
         if not result_schema:
-            result_schema = get_schema_for_result(fn)
+            result_schema = get_schema_for_result(fn_)
         return ActionMeta(
             name=name_,
-            description=fn.__doc__,
+            description=fn_.__doc__,
             params_schema=params_schema,
             result_schema=result_schema,
             access_control=access_control,
@@ -62,7 +62,12 @@ def get_schema_for_params(
     properties = {}
     required = []
     params = list(sig.parameters.values())
-    for p in params:
+    for i, p in enumerate(params):
+        if i == 0 and p.name in ('self', 'cls'):
+            # The action annotation may be applied to a method instead of a function.
+            # Unfortunately, this means that the type is unknown at this point - that's sort of ok because
+            # a standard finder won't pick up this function anyway without a service annotation.
+            continue
         if p.annotation is inspect.Parameter.empty:
             raise ServeyError(f"missing_param_annotation:{fn.__name__}:{p.name}")
         properties[p.name] = schema_context.schema_from_type(p.annotation).schema

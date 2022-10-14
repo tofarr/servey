@@ -1,6 +1,6 @@
 import inspect
-from dataclasses import field
-from typing import Tuple, Optional, Callable
+from dataclasses import field, dataclass
+from typing import List, Optional, Callable
 
 from marshy import get_default_context
 from marshy.marshaller.marshaller_abc import MarshallerABC
@@ -14,6 +14,7 @@ from servey.servey_starlette.request_parser.factory.request_parser_factory_abc i
 from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
 
 
+@dataclass
 class BodyParserFactory(RequestParserFactoryABC):
     marshaller_context: MarshallerContext = field(default_factory=get_default_context)
     priority: int = 50
@@ -22,7 +23,7 @@ class BodyParserFactory(RequestParserFactoryABC):
         self,
         action: FoundAction,
         trigger: WebTrigger,
-        parser_factories: Tuple[RequestParserFactoryABC],
+        parser_factories: List[RequestParserFactoryABC],
     ) -> Optional[RequestParserABC]:
         if trigger.method in BODY_METHODS:
             return BodyParser(
