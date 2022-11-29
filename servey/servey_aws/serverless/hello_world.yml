@@ -1,10 +1,10 @@
 service: helloworld
 package:
   exclude:
-    - aws/**
-    - node_modules/**
-    - venv/**
-    - .venv/**
+  - aws/**
+  - node_modules/**
+  - venv/**
+  - .venv/**
 provider:
   name: aws
   runtime: python3.7
@@ -24,6 +24,6 @@ custom:
     useDownloadCache: false
     useStaticCache: false
 plugins:
-  - serverless-python-requirements
-  - serverless-prune-plugin
-  - serverless-appsync-plugin
+- serverless-python-requirements
+- serverless-prune-plugin
+- serverless-appsync-plugin
