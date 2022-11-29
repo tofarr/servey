@@ -1,4 +1,3 @@
-import base64
 import os
 from dataclasses import dataclass
 from logging import getLogger
@@ -25,11 +24,11 @@ class StrawberryStarletteRouteFactory(RouteFactoryABC):
         # Create an authenticator object based on username and password
         try:
             from servey.servey_strawberry.schema_factory import (
-                new_schema_for_context,
+                new_schema_for_actions,
             )
             from strawberry.asgi import GraphQL
 
-            schema = new_schema_for_context()
+            schema = new_schema_for_actions()
             graphql_app = GraphQL(schema, debug=self.debug)
             yield Route(path=self.graphql_path, methods=["post"], endpoint=graphql_app)
             yield WebSocketRoute(path=self.graphql_path, endpoint=graphql_app)
@@ -37,7 +36,7 @@ class StrawberryStarletteRouteFactory(RouteFactoryABC):
                 yield Mount(
                     "/graphiql",
                     app=StaticFiles(
-                        packages=["servey.integration.strawberry_integration"],
+                        packages=["servey.servey_strawberry"],
                         html=True,
                     ),
                     name="graphiql",

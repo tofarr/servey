@@ -1,14 +1,10 @@
 from abc import ABC, abstractmethod
-from inspect import Signature
-from typing import Callable, Tuple, Dict, Any, List
+from typing import Callable, Tuple, List, TYPE_CHECKING
 
-from servey.action import Action
-from servey.executor import Executor
-from servey.trigger.web_trigger import WebTrigger
-
-ExecutorFn = Callable[[Executor, Dict[str, Any]], Any]
-# String to prevent circular import
-SchemaFactory = "servey.servey_strawberry.schema_factory.SchemaFactory"
+from servey.action.action_meta import ActionMeta
+from servey.action.trigger.web_trigger import WebTrigger
+if TYPE_CHECKING:
+    from servey.servey_strawberry.schema_factory import SchemaFactory
 
 
 class HandlerFilterABC(ABC):
@@ -23,12 +19,11 @@ class HandlerFilterABC(ABC):
     @abstractmethod
     def filter(
         self,
-        action: Action,
+        fn: Callable,
+        action_meta: ActionMeta,
         trigger: WebTrigger,
-        fn: ExecutorFn,
-        sig: Signature,
-        schema_factory: SchemaFactory,
-    ) -> Tuple[ExecutorFn, Signature, bool]:
+        schema_factory: "SchemaFactory",
+    ) -> Tuple[Callable, ActionMeta, bool]:
         """Filter the action given. The callable is a function"""
 
 

@@ -1,18 +1,12 @@
-from abc import abstractmethod
-from inspect import Signature
-from typing import Callable, Tuple, Dict, Any
+import inspect
+from typing import Callable, Tuple
 
-from strawberry.types import Info
-
-from servey.action import Action
-from servey.executor import Executor
+from servey.action.action_meta import ActionMeta
+from servey.action.trigger.web_trigger import WebTrigger
 from servey.servey_strawberry.handler_filter.handler_filter_abc import (
     HandlerFilterABC,
 )
 from servey.servey_strawberry.schema_factory import SchemaFactory
-from servey.trigger.web_trigger import WebTrigger
-
-ExecutorFn = Callable[[Executor, Dict[str, Any]], Any]
 
 
 class StrawberryTypeHandlerFilter(HandlerFilterABC):
@@ -26,13 +20,12 @@ class StrawberryTypeHandlerFilter(HandlerFilterABC):
 
     def filter(
         self,
-        action: Action,
+        fn: Callable,
+        action_meta: ActionMeta,
         trigger: WebTrigger,
-        fn: ExecutorFn,
-        sig: Signature,
         schema_factory: SchemaFactory,
-    ) -> Tuple[ExecutorFn, Signature, bool]:
-        """Filter the action given. The callable is a function"""
+    ) -> Tuple[Callable, ActionMeta, bool]:
+        sig = inspect.signature(fn)
         params = [
             p.replace(annotation=schema_factory.get_input(p.annotation))
             for p in sig.parameters.values()
@@ -41,4 +34,12 @@ class StrawberryTypeHandlerFilter(HandlerFilterABC):
             parameters=params,
             return_annotation=schema_factory.get_type(sig.return_annotation),
         )
-        return fn, sig, True
+
+        def resolver(**kwargs):
+            # Should we unwrap strawberry inputs here?
+            result = fn(**kwargs)
+            # Should we wrap the result type here?
+            return result
+
+        resolver.__signature__ = sig
+        return resolver, action_meta, True

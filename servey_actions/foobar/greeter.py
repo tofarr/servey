@@ -12,7 +12,7 @@ def greet(name: str) -> str:
     return f"Hello {name}"
 
 
-@action
+@action(triggers=(WEB_GET,))
 def about_me(authorization: Authorization) -> str:
     """Give some info about the current authorization"""
     return f"Your subject id is {authorization.subject_id} and your scopes are: {' '.join(authorization.scopes)}"

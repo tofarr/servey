@@ -12,7 +12,7 @@ def configure(context: MarshallerContext):
     configure_auth(context)
     configure_starlette(context)
     #configure_aws(context)
-    #configure_strawberry(context)
+    configure_strawberry(context)
 
 
 def configure_action_finder(context: MarshallerContext):
@@ -64,7 +64,6 @@ def configure_starlette_route_factory(context: MarshallerContext):
     register_impl(RouteFactoryABC, OpenapiRouteFactory, context)
 
 
-"""
 def configure_strawberry(context: MarshallerContext):
     try:
         from servey.servey_strawberry.handler_filter.handler_filter_abc import (
@@ -95,6 +94,8 @@ def configure_strawberry(context: MarshallerContext):
         from servey.servey_strawberry.entity_factory.no_op_factory import (
             NoOpFactory,
         )
+        from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
+        from servey.servey_strawberry.strawberry_starlette_route_factory import StrawberryStarletteRouteFactory
 
         register_impl(HandlerFilterABC, AuthorizationHandlerFilter, context)
         register_impl(HandlerFilterABC, StrawberryTypeHandlerFilter, context)
@@ -104,10 +105,12 @@ def configure_strawberry(context: MarshallerContext):
         register_impl(EntityFactoryABC, ForwardRefFactory, context)
         register_impl(EntityFactoryABC, GenericFactory, context)
         register_impl(EntityFactoryABC, NoOpFactory, context)
+        register_impl(RouteFactoryABC, StrawberryStarletteRouteFactory, context)
     except ModuleNotFoundError:
         LOGGER.info("Strawberry Module not found: skipping")
 
 
+"""
 def configure_aws(context: MarshallerContext):
     try:
         from servey.servey_aws.kms_authorizer_factory import KmsAuthorizerFactory

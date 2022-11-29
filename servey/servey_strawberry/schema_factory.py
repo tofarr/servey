@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, fields, is_dataclass
-from typing import Type, Dict, List, Set, Optional, Any
+from typing import Type, Dict, List, Set
 
 import strawberry
 import typing_inspect
@@ -12,16 +12,15 @@ from strawberry.field import StrawberryField, UNRESOLVED
 from strawberry.type import StrawberryOptional, StrawberryContainer
 from strawberry.types.fields.resolver import StrawberryResolver
 
-from servey.action import Action
-from servey.action_context import get_default_action_context, ActionContext
-from servey.executor import Executor
+from servey.action.finder.action_finder_abc import find_actions_with_trigger_type
+from servey.action.finder.found_action import FoundAction
+from servey.action.trigger.web_trigger import WebTrigger, UPDATE_METHODS
 from servey.servey_strawberry.entity_factory.entity_factory_abc import (
     EntityFactoryABC,
 )
 from servey.servey_strawberry.handler_filter.handler_filter_abc import (
     HandlerFilterABC,
 )
-from servey.trigger.web_trigger import WebTrigger, UPDATE_METHODS
 
 
 @dataclass
@@ -58,29 +57,15 @@ class SchemaFactory:
                     self.types[annotation.__name__] = type_
                 return type_
 
-    def add_fields(self, action_context: Optional[ActionContext] = None):
-        if not action_context:
-            action_context = get_default_action_context()
-        for action, trigger in action_context.get_actions_with_trigger_type(WebTrigger):
-            self.create_field_for_action(action, trigger)
-
-    def create_field_for_action(self, action: Action, trigger: WebTrigger):
-        fn = _handler
-        sig = action.get_signature()
+    def create_field_for_action(self, action: FoundAction, trigger: WebTrigger):
+        fn = action.fn
+        action_meta = action.action_meta
         for handler_filter in self.handler_filters:
-            fn, sig, continue_filtering = handler_filter.filter(
-                action, trigger, fn, sig, self
-            )
+            fn, action_meta, continue_filtering = handler_filter.filter(fn, action_meta, trigger, self)
             if not continue_filtering:
                 break
 
-        def resolver(**kwargs):
-            executor = action.create_executor()
-            result = fn(executor, kwargs)
-            return result
-
-        resolver.__signature__ = sig
-        f = strawberry.field(resolver=resolver)
+        f = strawberry.field(resolver=fn)
         f.name = action.action_meta.name
         if trigger.method in UPDATE_METHODS:
             self.mutation[f.name] = f
@@ -157,9 +142,7 @@ class SchemaFactory:
         return schema
 
 
-def new_schema_for_context(action_context: Optional[ActionContext] = None):
-    if not action_context:
-        action_context = get_default_action_context()
+def new_schema_for_actions():
     entity_factories = [f() for f in get_impls(EntityFactoryABC)]
     entity_factories.sort(key=lambda f: f.priority, reverse=True)
     handler_filters = [f() for f in get_impls(HandlerFilterABC)]
@@ -167,11 +150,7 @@ def new_schema_for_context(action_context: Optional[ActionContext] = None):
     schema_factory = SchemaFactory(
         entity_factories=entity_factories, handler_filters=handler_filters
     )
-    for action, trigger in action_context.get_actions_with_trigger_type(WebTrigger):
+    for action, trigger in find_actions_with_trigger_type(WebTrigger):
         schema_factory.create_field_for_action(action, trigger)
     schema = schema_factory.create_schema()
     return schema
-
-
-def _handler(executor: Executor, params: Dict[str, Any]) -> Any:
-    return executor.execute(**params)
