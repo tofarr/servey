@@ -15,7 +15,7 @@ class YmlConfigABC(ABC):
         """ Configure the serverless env """
 
 
-def configure(main_serverless_yml_file: str = 'serverless.yml'):
+def configure(main_serverless_yml_file: str):
     for impl in get_impls(YmlConfigABC):
         impl().configure(main_serverless_yml_file)
 

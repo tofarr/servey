@@ -27,9 +27,11 @@ class ActionFunctionConfig(YmlConfigABC):
         for action in find_actions():
             action_meta = action.action_meta
             lambda_definition = lambda_definitions[action_meta.name] = dict(
-                handler=f'servey.servey_aws.lambda_app.{action_meta.name}',
+                handler=f'{action.fn.__module__}.{action.fn.__name__}',
                 timeout=action_meta.timeout
             )
+            if action_meta.description:
+                lambda_definition['description'] = action_meta.description
             for trigger in action_meta.triggers:
                 for handler in trigger_handlers:
                     handler.handle_trigger(action_meta, trigger, lambda_definition)

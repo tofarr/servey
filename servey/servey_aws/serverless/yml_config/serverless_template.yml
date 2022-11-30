@@ -1,0 +1,25 @@
+service: {service_name}
+package:
+  exclude:
+  - aws/**
+  - node_modules/**
+  - venv/**
+  - .venv/**
+provider:
+  name: aws
+  runtime: python3.9
+  tracing: true
+  environment:
+    LOG_LEVEL: INFO
+custom:
+  # Are we gonna use appsync, api gateway, or strawberry?
+  #appSync:
+  #  name: {service_name}
+  #  authenticationType: AWS_IAM
+  pythonRequirements:
+    useDownloadCache: false
+    useStaticCache: false
+plugins:
+- serverless-python-requirements
+- serverless-prune-plugin
+# - serverless-appsync-plugin

@@ -1,8 +1,8 @@
 from marshy.types import ExternalItemType
 
-from servey.trigger.trigger_abc import TriggerABC
 from servey.action.action_meta import ActionMeta
 from servey.action.trigger.fixed_rate_trigger import FixedRateTrigger
+from servey.action.trigger.trigger_abc import TriggerABC
 from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import TriggerHandlerABC
 
 

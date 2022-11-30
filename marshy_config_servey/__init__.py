@@ -11,7 +11,7 @@ def configure(context: MarshallerContext):
     configure_action_finder(context)
     configure_auth(context)
     configure_starlette(context)
-    #configure_aws(context)
+    configure_aws(context)
     configure_strawberry(context)
 
 
@@ -110,12 +110,21 @@ def configure_strawberry(context: MarshallerContext):
         LOGGER.info("Strawberry Module not found: skipping")
 
 
-"""
 def configure_aws(context: MarshallerContext):
     try:
-        from servey.servey_aws.kms_authorizer_factory import KmsAuthorizerFactory
-
+        from servey.servey_aws.authorizer.kms_authorizer_factory import KmsAuthorizerFactory
+        from servey.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
         register_impl(AuthorizerFactoryABC, KmsAuthorizerFactory, context)
+        from servey.servey_aws.serverless.yml_config.yml_config_abc import YmlConfigABC
+        from servey.servey_aws.serverless.yml_config.action_function_config import ActionFunctionConfig
+        from servey.servey_aws.serverless.yml_config.appsync_config import AppsyncConfig
+        register_impl(YmlConfigABC, ActionFunctionConfig, context)
+        register_impl(YmlConfigABC, AppsyncConfig, context)
+        from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import TriggerHandlerABC
+        from servey.servey_aws.serverless.trigger_handler.web_trigger_handler import WebTriggerHandler
+        from servey.servey_aws.serverless.trigger_handler.fixed_rate_trigger_handler import FixedRateTriggerHandler
+        register_impl(TriggerHandlerABC, WebTriggerHandler, context)
+        register_impl(TriggerHandlerABC, FixedRateTriggerHandler, context)
     except ModuleNotFoundError:
         LOGGER.info("AWS Module not found: skipping")
-"""
+
