@@ -61,7 +61,9 @@ class SchemaFactory:
         fn = action.fn
         action_meta = action.action_meta
         for handler_filter in self.handler_filters:
-            fn, action_meta, continue_filtering = handler_filter.filter(fn, action_meta, trigger, self)
+            fn, action_meta, continue_filtering = handler_filter.filter(
+                fn, action_meta, trigger, self
+            )
             if not continue_filtering:
                 break
 
@@ -130,13 +132,19 @@ class SchemaFactory:
             **self.query,
             "__annotations__": {f.name: f.type for f in self.query.values()},
         }
-        queries = strawberry.type(type("Query", (), query_params))
+        queries = (
+            strawberry.type(type("Query", (), query_params)) if self.query else None
+        )
 
         mutation_params = {
             **self.mutation,
             "__annotations__": {f.name: f.type for f in self.mutation.values()},
         }
-        mutations = strawberry.type(type("Mutation", (), mutation_params))
+        mutations = (
+            strawberry.type(type("Mutation", (), mutation_params))
+            if self.mutation
+            else None
+        )
 
         schema = strawberry.Schema(queries, mutations)
         return schema

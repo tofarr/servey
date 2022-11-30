@@ -63,7 +63,7 @@ def get_schema_for_params(
     required = []
     params = list(sig.parameters.values())
     for i, p in enumerate(params):
-        if i == 0 and p.name in ('self', 'cls'):
+        if i == 0 and p.name in ("self", "cls"):
             # The action annotation may be applied to a method instead of a function.
             # Unfortunately, this means that the type is unknown at this point - that's sort of ok because
             # a standard finder won't pick up this function anyway without a service annotation.

@@ -43,4 +43,4 @@ class StrawberryStarletteRouteFactory(RouteFactoryABC):
                 )
 
         except ModuleNotFoundError:
-            LOGGER.info("Graphql not found - skipping")
+            LOGGER.error("Graphql not found - skipping")

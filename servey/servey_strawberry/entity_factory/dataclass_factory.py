@@ -20,7 +20,20 @@ class DataclassFactory(EntityFactoryABC):
         type_ = schema_factory.types.get(annotation.__name__)
         if type_:
             return type_
-        wrap_type = dataclass(type(annotation.__name__, (annotation,), {}))
+
+        params = {'__annotations__': {}}
+        for f in fields(annotation):
+            params['__annotations__'][f.name] = schema_factory.get_type(f.type)
+
+        """
+        # noinspection PyDataclass
+        params = {
+            '__annotations__': {
+                f.name: schema_factory.get_type(f.type) for f in fields(annotation)
+            },
+        }
+        """
+        wrap_type = dataclass(type(annotation.__name__, tuple(), params))
         type_ = strawberry.type(wrap_type)
         schema_factory.types[annotation.__name__] = type_
         # noinspection PyDataclass
@@ -37,7 +50,14 @@ class DataclassFactory(EntityFactoryABC):
         input_ = schema_factory.inputs.get(name)
         if input_:
             return input_
-        wrap_type = dataclass(type(name, (annotation,), {}))
+
+        # noinspection PyDataclass
+        params = {
+            '__annotations__': {
+                f.name: schema_factory.get_input(f.type) for f in fields(annotation)
+            },
+        }
+        wrap_type = dataclass(type(name, tuple(), params))
         input_ = strawberry.input(wrap_type)
         schema_factory.inputs[name] = input_
         # noinspection PyDataclass

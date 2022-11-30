@@ -3,7 +3,9 @@ from typing import Dict, Any, Optional
 
 from marshy.types import ExternalItemType
 
-from servey.security.access_control.action_access_control_abc import ActionAccessControlABC
+from servey.security.access_control.action_access_control_abc import (
+    ActionAccessControlABC,
+)
 from servey.security.access_control.allow_all import ALLOW_ALL
 from servey.security.authorization import AuthorizationError
 from servey.security.authorizer.authorizer_abc import AuthorizerABC
@@ -28,7 +30,7 @@ class AuthorizingEventParser(EventParserABC):
         return parsed
 
     def get_authorization(self, event: ExternalItemType):
-        token = event.get('token')
+        token = event.get("token")
         if token:
             authorization = self.authorizer.authorize(token)
             return authorization

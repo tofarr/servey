@@ -6,7 +6,6 @@ from servey.action.trigger.fixed_rate_trigger import FixedRateTrigger
 
 
 class FixedRateTriggerThread(Thread):
-
     def __init__(self, fn: Callable, fixed_rate_trigger: FixedRateTrigger):
         Thread.__init__(self, daemon=True)
         self.fn = fn

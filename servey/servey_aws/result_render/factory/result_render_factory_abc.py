@@ -10,8 +10,10 @@ class ResultRenderFactoryABC(ABC):
     priority: int = 100
 
     @abstractmethod
-    def create(self, action: FoundAction, factories: Tuple[ResultRenderFactoryABC, ...]) -> Optional[ResultRenderABC]:
-        """ Create an event parser """
+    def create(
+        self, action: FoundAction, factories: Tuple[ResultRenderFactoryABC, ...]
+    ) -> Optional[ResultRenderABC]:
+        """Create an event parser"""
 
 
 def create_render_factories() -> Tuple[ResultRenderFactoryABC, ...]:

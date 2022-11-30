@@ -25,6 +25,7 @@ class KmsAuthorizerFactory(AuthorizerFactoryABC):
                 LOGGER.debug("KMS_SECRET_KEY NOT DEFINED - SKIPPING...")
                 return
             from servey.servey_aws.authorizer.kms_authorizer import KmsAuthorizer
+
             authorizer = KmsAuthorizer(kms_key_id)
             return authorizer
         except ModuleNotFoundError:

@@ -55,6 +55,8 @@ class OpenapiRouteFactory(RouteFactoryABC):
         if os.environ.get("SERVER_HOST"):
             schema["servers"] = [{"url": os.environ.get("SERVER_HOST")}]
         for action, trigger in find_actions_with_trigger_type(WebTrigger):
-            action_endpoint = self.action_route_factory.create_action_endpoint(action, trigger)
+            action_endpoint = self.action_route_factory.create_action_endpoint(
+                action, trigger
+            )
             action_endpoint.to_openapi_schema(schema)
         return JSONResponse(schema)

@@ -25,7 +25,10 @@ class ActionEndpoint:
 
     def to_route(self) -> Route:
         return Route(
-            self.path, name=self.name, endpoint=self.execute, methods=[m.value for m in self.methods]
+            self.path,
+            name=self.name,
+            endpoint=self.execute,
+            methods=[m.value for m in self.methods],
         )
 
     async def execute(self, request: Request) -> Response:

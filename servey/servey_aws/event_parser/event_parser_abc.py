@@ -5,7 +5,6 @@ from marshy.types import ExternalItemType
 
 
 class EventParserABC(ABC):
-
     @abstractmethod
     def parse(self, event: ExternalItemType, context) -> Dict[str, Any]:
-        """ Parse kwargs from an event """
+        """Parse kwargs from an event"""

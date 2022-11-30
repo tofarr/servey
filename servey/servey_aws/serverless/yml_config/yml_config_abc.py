@@ -16,7 +16,7 @@ class YmlConfigABC(ABC):
 
     @abstractmethod
     def configure(self, main_serverless_yml_file: str):
-        """ Configure the serverless env """
+        """Configure the serverless env"""
 
 
 def configure(main_serverless_yml_file: str):
@@ -24,9 +24,13 @@ def configure(main_serverless_yml_file: str):
         impl().configure(main_serverless_yml_file)
 
 
-def ensure_ref_in_file(main_serverless_yml_file: str, insertion_point: List[str], referenced_serverless_yml_file: str):
+def ensure_ref_in_file(
+    main_serverless_yml_file: str,
+    insertion_point: List[str],
+    referenced_serverless_yml_file: str,
+):
     yaml = YAML()
-    with open(main_serverless_yml_file, 'r') as reader:
+    with open(main_serverless_yml_file, "r") as reader:
         root = yaml.load(reader)
         reference = "${file(" + referenced_serverless_yml_file + ")}"
         parent = _follow_path(root, insertion_point[:-1])
@@ -34,12 +38,14 @@ def ensure_ref_in_file(main_serverless_yml_file: str, insertion_point: List[str]
         if not references:
             parent[insertion_point[-1]] = [reference]
         elif not isinstance(references, list):
-            raise ValueError(f"{main_serverless_yml_file} : {'.'.join(insertion_point)} should be a list!")
+            raise ValueError(
+                f"{main_serverless_yml_file} : {'.'.join(insertion_point)} should be a list!"
+            )
         elif reference in references:
             return  # Already exists - no action needed
         else:
             references.append(reference)
-    with open(main_serverless_yml_file, 'w') as writer:
+    with open(main_serverless_yml_file, "w") as writer:
         yaml.dump(root, writer)
 
 

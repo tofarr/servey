@@ -14,11 +14,9 @@ from servey.action.trigger.fixed_rate_trigger import FixedRateTrigger
 
 _CELERY_BROKER = os.environ.get("CELERY_BROKER")
 _LOGGER = logging.getLogger(__name__)
-_LOGGER.info(f'Starting celery with broker {_CELERY_BROKER}')
+_LOGGER.info(f"Starting celery with broker {_CELERY_BROKER}")
 app = Celery(broker=_CELERY_BROKER)
-for _action, _ in find_actions_with_trigger_type(
-    FixedRateTrigger
-):
+for _action, _ in find_actions_with_trigger_type(FixedRateTrigger):
     globals()[_action.action_meta.name] = app.task(_action)
 
 

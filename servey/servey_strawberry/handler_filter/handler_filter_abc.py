@@ -3,6 +3,7 @@ from typing import Callable, Tuple, List, TYPE_CHECKING
 
 from servey.action.action_meta import ActionMeta
 from servey.action.trigger.web_trigger import WebTrigger
+
 if TYPE_CHECKING:
     from servey.servey_strawberry.schema_factory import SchemaFactory
 

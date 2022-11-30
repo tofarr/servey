@@ -53,22 +53,26 @@ def inject_value_at(path: str, current, value):
 def strip_injected_from_schema(schema: Schema, inject_at: str) -> Schema:
     result = deepcopy(schema.schema)
     current = result
-    path = inject_at.split('.')
+    path = inject_at.split(".")
     for p in path[:-1]:
-        current = current['properties'][p]
-    del current['properties'][path[-1]]
-    if current['required']:
-        current['required'] = [r for r in current['required'] if r != path[-1]]
+        current = current["properties"][p]
+    del current["properties"][path[-1]]
+    if current["required"]:
+        current["required"] = [r for r in current["required"] if r != path[-1]]
     result_schema = Schema(current, schema.python_type)
     return result_schema
 
 
 # noinspection PyTypeChecker
-def wrap_fn_for_injection(fn: Callable, inject_at: str, value_factory: Callable) -> Callable:
+def wrap_fn_for_injection(
+    fn: Callable, inject_at: str, value_factory: Callable
+) -> Callable:
     sig = inspect.signature(fn)
-    path = inject_at.split('.')
+    path = inject_at.split(".")
     if len(path) == 1:
-        sig = sig.replace(parameters=tuple(p for p in sig.parameters.values() if p.name != inject_at))
+        sig = sig.replace(
+            parameters=tuple(p for p in sig.parameters.values() if p.name != inject_at)
+        )
 
     def wrapper(**kwargs):
         value = value_factory()

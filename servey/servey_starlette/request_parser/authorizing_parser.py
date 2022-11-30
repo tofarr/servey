@@ -4,7 +4,9 @@ from typing import Optional, Dict, Any
 from marshy.types import ExternalItemType
 from starlette.requests import Request
 
-from servey.security.access_control.action_access_control_abc import ActionAccessControlABC
+from servey.security.access_control.action_access_control_abc import (
+    ActionAccessControlABC,
+)
 from servey.security.access_control.allow_all import ALLOW_ALL
 from servey.security.authorization import AuthorizationError
 from servey.security.authorizer.authorizer_abc import AuthorizerABC

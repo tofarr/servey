@@ -19,6 +19,7 @@ class JwtAuthorizerFactory(AuthorizerFactoryABC):
     def create_authorizer(self) -> AuthorizerABC:
         try:
             from servey.security.authorizer.jwt_authorizer import JwtAuthorizer
+
             jwt_secret_key = os.environ.get("JWT_SECRET_KEY")
             if jwt_secret_key is None:
                 LOGGER.warning(

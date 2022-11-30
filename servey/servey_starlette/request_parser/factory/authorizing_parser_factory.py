@@ -14,7 +14,9 @@ from servey.servey_starlette.request_parser.authorizing_parser import Authorizin
 from servey.servey_starlette.request_parser.factory.request_parser_factory_abc import (
     RequestParserFactoryABC,
 )
-from servey.servey_starlette.request_parser.factory.self_parser_factory import strip_injected_from_action
+from servey.servey_starlette.request_parser.factory.self_parser_factory import (
+    strip_injected_from_action,
+)
 from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
 
 
@@ -33,10 +35,7 @@ class AuthorizingParserFactory(RequestParserFactoryABC):
         if self.skip:
             return
         inject_at = get_inject_at(action)
-        if (
-            action.action_meta.access_control == ALLOW_ALL
-            and not inject_at
-        ):
+        if action.action_meta.access_control == ALLOW_ALL and not inject_at:
             return
         wrapped_action = action
         if inject_at:
@@ -49,7 +48,10 @@ class AuthorizingParserFactory(RequestParserFactoryABC):
                 parser = factory.create(wrapped_action, trigger, parser_factories)
                 if parser:
                     return AuthorizingParser(
-                        self.authorizer, parser, inject_at, action.action_meta.access_control
+                        self.authorizer,
+                        parser,
+                        inject_at,
+                        action.action_meta.access_control,
                     )
         finally:
             self.skip = False

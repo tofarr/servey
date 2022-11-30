@@ -8,6 +8,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 def configure(context: MarshallerContext):
+    from marshy.factory.dataclass_marshaller_factory import DataclassMarshallerFactory
+    context.register_factory(DataclassMarshallerFactory(priority=101, exclude_dumped_values=tuple()))
     configure_action_finder(context)
     configure_auth(context)
     configure_starlette(context)
@@ -18,12 +20,14 @@ def configure(context: MarshallerContext):
 def configure_action_finder(context: MarshallerContext):
     from servey.action.finder.action_finder_abc import ActionFinderABC
     from servey.action.finder.module_action_finder import ModuleActionFinder
+
     register_impl(ActionFinderABC, ModuleActionFinder, context)
 
 
 def configure_auth(context: MarshallerContext):
     from servey.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
     from servey.security.authorizer.jwt_authorizer_factory import JwtAuthorizerFactory
+
     register_impl(AuthorizerFactoryABC, JwtAuthorizerFactory, context)
 
 
@@ -38,10 +42,18 @@ def configure_starlette(context: MarshallerContext):
 
 
 def configure_starlette_request_parser(context: MarshallerContext):
-    from servey.servey_starlette.request_parser.factory.authorizing_parser_factory import AuthorizingParserFactory
-    from servey.servey_starlette.request_parser.factory.body_parser_factory import BodyParserFactory
-    from servey.servey_starlette.request_parser.factory.query_string_parser_factory import QueryStringParserFactory
-    from servey.servey_starlette.request_parser.factory.request_parser_factory_abc import RequestParserFactoryABC
+    from servey.servey_starlette.request_parser.factory.authorizing_parser_factory import (
+        AuthorizingParserFactory,
+    )
+    from servey.servey_starlette.request_parser.factory.body_parser_factory import (
+        BodyParserFactory,
+    )
+    from servey.servey_starlette.request_parser.factory.query_string_parser_factory import (
+        QueryStringParserFactory,
+    )
+    from servey.servey_starlette.request_parser.factory.request_parser_factory_abc import (
+        RequestParserFactoryABC,
+    )
 
     register_impl(RequestParserFactoryABC, AuthorizingParserFactory, context)
     register_impl(RequestParserFactoryABC, BodyParserFactory, context)
@@ -49,16 +61,28 @@ def configure_starlette_request_parser(context: MarshallerContext):
 
 
 def configure_starlette_response_render(context: MarshallerContext):
-    from servey.servey_starlette.response_render.factory.body_render_factory import BodyRenderFactory
-    from servey.servey_starlette.response_render.factory.response_render_factory_abc import ResponseRenderFactoryABC
+    from servey.servey_starlette.response_render.factory.body_render_factory import (
+        BodyRenderFactory,
+    )
+    from servey.servey_starlette.response_render.factory.response_render_factory_abc import (
+        ResponseRenderFactoryABC,
+    )
+
     register_impl(ResponseRenderFactoryABC, BodyRenderFactory, context)
 
 
 def configure_starlette_route_factory(context: MarshallerContext):
-    from servey.servey_starlette.route_factory.action_route_factory import ActionRouteFactory
-    from servey.servey_starlette.route_factory.authenticator_route_factory import AuthenticatorRouteFactory
-    from servey.servey_starlette.route_factory.openapi_route_factory import OpenapiRouteFactory
+    from servey.servey_starlette.route_factory.action_route_factory import (
+        ActionRouteFactory,
+    )
+    from servey.servey_starlette.route_factory.authenticator_route_factory import (
+        AuthenticatorRouteFactory,
+    )
+    from servey.servey_starlette.route_factory.openapi_route_factory import (
+        OpenapiRouteFactory,
+    )
     from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
+
     register_impl(RouteFactoryABC, ActionRouteFactory, context)
     register_impl(RouteFactoryABC, AuthenticatorRouteFactory, context)
     register_impl(RouteFactoryABC, OpenapiRouteFactory, context)
@@ -94,8 +118,12 @@ def configure_strawberry(context: MarshallerContext):
         from servey.servey_strawberry.entity_factory.no_op_factory import (
             NoOpFactory,
         )
-        from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
-        from servey.servey_strawberry.strawberry_starlette_route_factory import StrawberryStarletteRouteFactory
+        from servey.servey_starlette.route_factory.route_factory_abc import (
+            RouteFactoryABC,
+        )
+        from servey.servey_strawberry.strawberry_starlette_route_factory import (
+            StrawberryStarletteRouteFactory,
+        )
 
         register_impl(HandlerFilterABC, AuthorizationHandlerFilter, context)
         register_impl(HandlerFilterABC, StrawberryTypeHandlerFilter, context)
@@ -112,19 +140,33 @@ def configure_strawberry(context: MarshallerContext):
 
 def configure_aws(context: MarshallerContext):
     try:
-        from servey.servey_aws.authorizer.kms_authorizer_factory import KmsAuthorizerFactory
-        from servey.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
+        from servey.servey_aws.authorizer.kms_authorizer_factory import (
+            KmsAuthorizerFactory,
+        )
+        from servey.security.authorizer.authorizer_factory_abc import (
+            AuthorizerFactoryABC,
+        )
+
         register_impl(AuthorizerFactoryABC, KmsAuthorizerFactory, context)
         from servey.servey_aws.serverless.yml_config.yml_config_abc import YmlConfigABC
-        from servey.servey_aws.serverless.yml_config.action_function_config import ActionFunctionConfig
+        from servey.servey_aws.serverless.yml_config.action_function_config import (
+            ActionFunctionConfig,
+        )
         from servey.servey_aws.serverless.yml_config.appsync_config import AppsyncConfig
+
         register_impl(YmlConfigABC, ActionFunctionConfig, context)
         register_impl(YmlConfigABC, AppsyncConfig, context)
-        from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import TriggerHandlerABC
-        from servey.servey_aws.serverless.trigger_handler.web_trigger_handler import WebTriggerHandler
-        from servey.servey_aws.serverless.trigger_handler.fixed_rate_trigger_handler import FixedRateTriggerHandler
+        from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
+            TriggerHandlerABC,
+        )
+        from servey.servey_aws.serverless.trigger_handler.web_trigger_handler import (
+            WebTriggerHandler,
+        )
+        from servey.servey_aws.serverless.trigger_handler.fixed_rate_trigger_handler import (
+            FixedRateTriggerHandler,
+        )
+
         register_impl(TriggerHandlerABC, WebTriggerHandler, context)
         register_impl(TriggerHandlerABC, FixedRateTriggerHandler, context)
     except ModuleNotFoundError:
         LOGGER.info("AWS Module not found: skipping")
-

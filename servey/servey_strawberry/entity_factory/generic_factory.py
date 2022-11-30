@@ -1,5 +1,4 @@
-import typing
-from typing import Type, Optional
+from typing import Optional, List, Set, Type
 
 import typing_inspect
 
@@ -9,7 +8,10 @@ from servey.servey_strawberry.entity_factory.entity_factory_abc import (
 from servey.servey_strawberry.schema_factory import SchemaFactory
 
 _TYPES_BY_ORIGIN = {
-    t.__origin__: t for t in typing.__dict__.values() if hasattr(t, "__origin__")
+    #t.__origin__: t for t in typing.__dict__.values() if hasattr(t, "__origin__")
+    list: List,
+    set: List,
+    frozenset: List
 }
 
 
