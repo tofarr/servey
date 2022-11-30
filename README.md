@@ -1,3 +1,5 @@
+This is very much a work in progress - I'll update this readme when it is production ready.
+
 Philosophy: Get the most from AWS but allow local testing / not be completely dependent on it.
 
 Actions Mounts, Handlers and Apps
@@ -18,5 +20,6 @@ Default implementation mostly meant to be as annoying as possible while still wo
 TODO:
 * Finish aws integration
 * Test Coverage
+* Caching
 
 rate limiting needs persistence, but can be in access_control - maybe add to persisty goodies
