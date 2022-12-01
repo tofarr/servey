@@ -8,13 +8,9 @@ package:
 provider:
   name: aws
   runtime: python3.9
-  tracing: true
   environment:
     LOG_LEVEL: INFO
 custom:
-  appSync:
-    name: {service_name}
-    authenticationType: AWS_IAM
   pythonRequirements:
     useDownloadCache: false
     useStaticCache: false

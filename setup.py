@@ -17,7 +17,7 @@ extras_require = {
     ],
     "scheduler": ["celery~=5.2"],
     "aws": [
-        "boto3~=1.24",
+        "boto3~=1.26",
         "pyyaml~=6.0",
         "ruamel.yaml~=0.17",
         "strawberry-graphql~=0.125",  # We need this to generate the graphql schema - or do we?
@@ -42,7 +42,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/tofarr/servey",
     packages=setuptools.find_packages(exclude=("tests",)),
-    package_data={"": ["*.html", "*.js", "*.css"]},
+    package_data={"": ["*.html", "*.js", "*.css", "*.yml"]},
     include_package_data=True,
     install_requires=[
         "marshy~=3.0",

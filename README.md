@@ -25,3 +25,11 @@ TODO:
 rate limiting needs persistence, but can be in access_control - maybe add to persisty goodies
 
 python -m servey --sls-generate
+
+
+```
+pip install setuptools wheel
+python setup.py sdist bdist_wheel
+pip install twine
+python -m twine upload dist/*
+```

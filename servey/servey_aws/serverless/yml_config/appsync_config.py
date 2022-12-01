@@ -24,7 +24,7 @@ class AppsyncConfig(YmlConfigABC):
     def configure(self, main_serverless_yml_file: str):
         ensure_ref_in_file(
             main_serverless_yml_file,
-            ["custom", "appsync"],
+            ["custom", "appSync"],
             self.servey_actions_yml_file,
         )
         self.build_appsync_schema()
@@ -40,16 +40,22 @@ class AppsyncConfig(YmlConfigABC):
         from servey.servey_strawberry.schema_factory import new_schema_for_actions
 
         with open(self.servey_appsync_schema_file, "w") as writer:
-            writer.write("/*\n")
-            writer.write(GENERATED_HEADER)
-            writer.write(f"\nUpdated at: {datetime.now().isoformat()}")
-            writer.write("\n*/\n\n")
-            writer.write(str(new_schema_for_actions()))
+            writer.write("# ")
+            writer.write(GENERATED_HEADER.replace("\n", "\n# "))
+            writer.write(f"\n# Updated at: {datetime.now().isoformat()}\n\n")
+            schema = str(new_schema_for_actions())
+            schema = schema.replace('\n"""Date with time (isoformat)"""\nscalar DateTime\n', '')
+            schema = schema.replace('DateTime', 'AWSDateTime')
+            writer.write(schema)
 
     def build_servey_action_functions_yml(self) -> ExternalItemType:
         appsync_definitions = {
             "name": os.environ.get("SERVICE_NAME") or "servey_app",
-            "authenticationType": "AWS_IAM",
+            "authenticationType": "API_KEY",
+            "defaultMappingTemplates": {
+                "request": False,
+                "response": False
+            },
             "mappingTemplates": [],
             "dataSources": [],
             "schema": self.servey_appsync_schema_file,
@@ -74,7 +80,7 @@ class AppsyncConfig(YmlConfigABC):
                 },
             }
             if action_meta.description:
-                data_source["description"] = action_meta.description
+                data_source["description"] = action_meta.description.strip()
             appsync_definitions["dataSources"].append(data_source)
 
         return appsync_definitions

@@ -45,7 +45,7 @@ class ActionFunctionConfig(YmlConfigABC):
                 timeout=action_meta.timeout,
             )
             if action_meta.description:
-                lambda_definition["description"] = action_meta.description
+                lambda_definition["description"] = action_meta.description.strip()
             # TODO: Configure caching
             for trigger in action_meta.triggers:
                 for handler in trigger_handlers:

@@ -45,7 +45,7 @@ def generate_serverless_scaffold():
 
         template = resources.read_text(yml_config, "serverless_template.yml")
         serverless_yml_content = template.format(
-            service_name=os.environ.get("SERVICE_NAME") or "servey_app"
+            service_name=os.environ.get("SERVICE_NAME") or "serveyApp"
         )
         with open(main_serverless_yml_file, "w") as f:
             f.write(serverless_yml_content)

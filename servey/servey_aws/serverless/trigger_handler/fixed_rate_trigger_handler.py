@@ -22,11 +22,11 @@ class FixedRateTriggerHandler(TriggerHandlerABC):
             return
         events = lambda_definition.get("events")
         if not events:
-            events = lambda_definition["events"] = {}
+            events = lambda_definition["events"] = []
         for unit, seconds in UNITS:
             if not trigger.interval % seconds:
                 events["schedule"] = dict(
                     rate=f"rate({trigger.interval / seconds} {unit})"
                 )
                 return
-        events["schedule"] = dict(rate=f"rate({trigger.interval} seconds)")
+        events.append(dict(schedule=dict(rate=f"rate({trigger.interval} seconds)")))

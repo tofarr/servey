@@ -19,5 +19,5 @@ class WebTriggerHandler(TriggerHandlerABC):
             return
         events = lambda_definition.get("events")
         if not events:
-            events = lambda_definition["events"] = {}
-        events["http"] = dict(path=action_meta.name, method=trigger.method.value)
+            events = lambda_definition["events"] = []
+        events.append(dict(http=dict(path=action_meta.name, method=trigger.method.value, cors=True)))
