@@ -1,6 +1,10 @@
 import inspect
 from typing import Optional, Callable, Tuple
 
+from marshy import get_default_context
+from marshy.marshaller.marshaller_abc import MarshallerABC
+from marshy.marshaller.obj_marshaller import attr_config, ObjMarshaller
+from marshy.marshaller_context import MarshallerContext
 from schemey import Schema, SchemaContext, get_default_schema_context
 
 from servey.action.action_meta import ActionMeta
@@ -91,3 +95,21 @@ def get_schema_for_result(fn: Callable) -> Schema:
         raise ServeyError(f"missing_return_annotation:{fn.__name__}")
     schema = schema_context.schema_from_type(type_)
     return schema
+
+
+def get_marshaller_for_params(
+    fn: Callable, marshaller_context: Optional[MarshallerContext] = None
+) -> MarshallerABC:
+    if not marshaller_context:
+        marshaller_context = get_default_context()
+    sig = inspect.signature(fn)
+    attr_configs = []
+    params = list(sig.parameters.values())
+    for p in params:
+        if p.annotation is inspect.Parameter.empty:
+            raise TypeError(f"missing_param_annotation:{fn.__name__}({p.name}")
+        attr_configs.append(
+            attr_config(marshaller_context.get_marshaller(p.annotation), p.name)
+        )
+    marshaller = ObjMarshaller(dict, tuple(attr_configs))
+    return marshaller

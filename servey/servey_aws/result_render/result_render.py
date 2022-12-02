@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -11,6 +12,6 @@ from servey.servey_aws.result_render.result_render_abc import ResultRenderABC
 class ResultRender(ResultRenderABC):
     marshaller: MarshallerABC
 
-    def render_result(self, result: Any) -> ExternalType:
+    def render(self, result: Any) -> ExternalType:
         dumped = self.marshaller.dump(result)
         return dumped

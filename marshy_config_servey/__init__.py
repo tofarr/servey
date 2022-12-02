@@ -3,6 +3,9 @@ import logging
 from marshy.factory.impl_marshaller_factory import register_impl
 from marshy.marshaller_context import MarshallerContext
 
+from servey.action.marshallers.to_second_datetime_marshaller import ToSecondDatetimeMarshaller
+from servey.servey_aws.event_parser.factory.appsync_event_parser_factory import AppsyncEventParserFactory
+
 priority = 100
 LOGGER = logging.getLogger(__name__)
 
@@ -10,10 +13,12 @@ LOGGER = logging.getLogger(__name__)
 def configure(context: MarshallerContext):
     from marshy.factory.dataclass_marshaller_factory import DataclassMarshallerFactory
     context.register_factory(DataclassMarshallerFactory(priority=101, exclude_dumped_values=tuple()))
+    context.register_marshaller(ToSecondDatetimeMarshaller())
     configure_action_finder(context)
     configure_auth(context)
     configure_starlette(context)
     configure_aws(context)
+    configure_serverless(context)
     configure_strawberry(context)
 
 
@@ -134,7 +139,8 @@ def configure_strawberry(context: MarshallerContext):
         register_impl(EntityFactoryABC, GenericFactory, context)
         register_impl(EntityFactoryABC, NoOpFactory, context)
         register_impl(RouteFactoryABC, StrawberryStarletteRouteFactory, context)
-    except ModuleNotFoundError:
+    except ModuleNotFoundError as e:
+        LOGGER.error(e)
         LOGGER.info("Strawberry Module not found: skipping")
 
 
@@ -148,6 +154,29 @@ def configure_aws(context: MarshallerContext):
         )
 
         register_impl(AuthorizerFactoryABC, KmsAuthorizerFactory, context)
+
+        from servey.servey_aws.event_parser.factory.event_parser_factory import EventParserFactory
+        from servey.servey_aws.event_parser.factory.event_parser_factory_abc import EventParserFactoryABC
+        from servey.servey_aws.event_parser.factory.api_gateway_event_parser_factory import ApiGatewayEventParserFactory
+        register_impl(EventParserFactoryABC, EventParserFactory, context)
+        register_impl(EventParserFactoryABC, ApiGatewayEventParserFactory, context)
+        register_impl(EventParserFactoryABC, AppsyncEventParserFactory, context)
+
+        from servey.servey_aws.result_render.factory.result_render_factory import ResultRenderFactory
+        from servey.servey_aws.result_render.factory.result_render_factory_abc import ResultRenderFactoryABC
+        from servey.servey_aws.result_render.factory.api_gateway_result_render_factory import (
+            ApiGatewayResultRenderFactory
+        )
+        register_impl(ResultRenderFactoryABC, ResultRenderFactory, context)
+        register_impl(ResultRenderFactoryABC, ApiGatewayResultRenderFactory, context)
+
+    except ModuleNotFoundError as e:
+        LOGGER.error(e)
+        LOGGER.info("AWS module not found: skipping")
+
+
+def configure_serverless(context: MarshallerContext):
+    try:
         from servey.servey_aws.serverless.yml_config.yml_config_abc import YmlConfigABC
         from servey.servey_aws.serverless.yml_config.action_function_config import (
             ActionFunctionConfig,
@@ -168,5 +197,8 @@ def configure_aws(context: MarshallerContext):
 
         register_impl(TriggerHandlerABC, WebTriggerHandler, context)
         register_impl(TriggerHandlerABC, FixedRateTriggerHandler, context)
-    except ModuleNotFoundError:
-        LOGGER.info("AWS Module not found: skipping")
+
+    except ModuleNotFoundError as e:
+        LOGGER.error(e)
+        LOGGER.info("Serverless module not found: skipping")
+

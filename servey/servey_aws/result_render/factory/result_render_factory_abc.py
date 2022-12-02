@@ -1,8 +1,11 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Callable
+
+from marshy.types import ExternalItemType
 
 from servey.action.finder.found_action import FoundAction
+from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
 from servey.servey_aws.result_render.result_render_abc import ResultRenderABC
 
 
@@ -11,7 +14,7 @@ class ResultRenderFactoryABC(ABC):
 
     @abstractmethod
     def create(
-        self, action: FoundAction, factories: Tuple[ResultRenderFactoryABC, ...]
+        self, fn: Callable, event: ExternalItemType, context, parser: EventParserABC
     ) -> Optional[ResultRenderABC]:
         """Create an event parser"""
 
