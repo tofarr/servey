@@ -51,7 +51,7 @@ def strip_injected_from_action(
     action: FoundAction, inject_at: str, constructor: Callable
 ) -> FoundAction:
     """
-    Create a version of the action given where the injected argument given is stripped out,
+    Create a version of the action_ given where the injected argument given is stripped out,
     effectively behaving as if it does not exist
     """
     action = FoundAction(

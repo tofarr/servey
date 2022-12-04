@@ -5,6 +5,7 @@ package:
   - node_modules/**
   - venv/**
   - .venv/**
+  - tests/**
 provider:
   name: aws
   runtime: python3.9

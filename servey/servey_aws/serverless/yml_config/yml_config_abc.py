@@ -46,7 +46,7 @@ def ensure_ref_in_file(
                 f"{main_serverless_yml_file} : {'.'.join(insertion_point)} should be a list!"
             )
         elif reference in references:
-            return  # Already exists - no action needed
+            return  # Already exists - no action_ needed
         else:
             references.append(reference)
     with open(main_serverless_yml_file, "w") as writer:

@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 extras_require = {
-    "dev": ["black"],
+    "dev": ["black", "pytest"],
     "server": [
         "starlette~=0.19",
         "strawberry-graphql~=0.125",

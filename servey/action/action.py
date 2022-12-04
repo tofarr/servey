@@ -29,8 +29,8 @@ def action(
 ):
     """
     Decorator for actions, which may be a function or a class with a designated method_name
-    to act as the action. This decorator doesn't really do anything special aside from
-    adding metadata to the object which may be interpreted when the action is mounted.
+    to act as the action_. This decorator doesn't really do anything special aside from
+    adding metadata to the object which may be interpreted when the action_ is mounted.
 
     When mounting, operations like security checks and validations are performed, as well as
     parameter injection for class based actions.
@@ -71,7 +71,7 @@ def get_schema_for_params(
     params = list(sig.parameters.values())
     for i, p in enumerate(params):
         if i == 0 and p.name in ("self", "cls"):
-            # The action annotation may be applied to a method instead of a function.
+            # The action_ annotation may be applied to a method instead of a function.
             # Unfortunately, this means that the type is unknown at this point - that's sort of ok because
             # a standard finder won't pick up this function anyway without a service annotation.
             continue

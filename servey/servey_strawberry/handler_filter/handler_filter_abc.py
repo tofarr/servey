@@ -25,7 +25,7 @@ class HandlerFilterABC(ABC):
         trigger: WebTrigger,
         schema_factory: "SchemaFactory",
     ) -> Tuple[Callable, ActionMeta, bool]:
-        """Filter the action given. The callable is a function"""
+        """Filter the action_ given. The callable is a function"""
 
 
 def create_handler_filters() -> Tuple[HandlerFilterABC]:

@@ -10,7 +10,7 @@ from servey.action.finder.found_action import FoundAction
 
 class ModuleActionFinder(ActionFinderABC):
     """
-    Default implementation of action finder which searches for actions in a particular module
+    Default implementation of action_ finder which searches for actions in a particular module
     """
 
     root_module_name: str = os.environ.get("SERVEY_ACTION_PATH") or "servey_actions"
