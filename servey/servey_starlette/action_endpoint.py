@@ -6,6 +6,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Route
 
+from servey.action.example import Example
 from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
 from servey.servey_starlette.response_render.response_render_abc import (
     ResponseRenderABC,
@@ -22,6 +23,7 @@ class ActionEndpoint:
     parser: RequestParserABC
     render: ResponseRenderABC
     description: Optional[str] = None
+    examples: Optional[Tuple[Example, ...]] = None
 
     def to_route(self) -> Route:
         return Route(
@@ -50,5 +52,5 @@ class ActionEndpoint:
             if self.description:
                 path_method["summary"] = self.description
             # Tags?
-            self.parser.to_openapi_schema(path_method, components)
-            self.render.to_openapi_schema(responses, components)
+            self.parser.to_openapi_schema(path_method, components, self.examples)
+            self.render.to_openapi_schema(responses, components, self.examples)

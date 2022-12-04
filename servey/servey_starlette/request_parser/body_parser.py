@@ -1,13 +1,15 @@
 import json
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Dict, Any, Optional, Tuple
 
 from marshy.marshaller.marshaller_abc import MarshallerABC
 from marshy.types import ExternalItemType
 from schemey import Schema
+from schemey.util import filter_none
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
+from servey.action.example import Example
 from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
 from servey.action.util import with_isolated_references
 
@@ -31,14 +33,20 @@ class BodyParser(RequestParserABC):
         return kwargs
 
     def to_openapi_schema(
-        self, path_method: ExternalItemType, components: ExternalItemType
+        self, path_method: ExternalItemType, components: ExternalItemType, examples: Optional[Tuple[Example, ...]]
     ):
         schema = with_isolated_references(
             self.schema.schema, self.schema.schema, components
         )
+        content = {"schema": schema}
         path_method["requestBody"] = {
-            "content": {"application/json": {"schema": schema}},
+            "content": {"application/json": content},
             "required": True,
         }
+        if examples:
+            content['examples'] = {
+                e.name: filter_none(dict(summary=e.description, value=e.result))
+                for e in examples if e.include_in_schema
+            }
         responses: ExternalItemType = path_method["responses"]
         responses["422"] = {"description": "Validation Error"}

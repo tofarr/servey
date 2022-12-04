@@ -57,6 +57,7 @@ class ActionRouteFactory(RouteFactoryABC):
             parser=parser,
             render=render,
             description=action.action_meta.description,
+            examples=action.action_meta.examples,
         )
         return endpoint
 

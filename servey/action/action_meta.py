@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Optional
 
 from schemey import Schema
 
+from servey.action.example import Example
 from servey.action.trigger.trigger_abc import TriggerABC
 from servey.security.access_control.action_access_control_abc import (
     ActionAccessControlABC,
@@ -18,3 +19,4 @@ class ActionMeta:
     access_control: ActionAccessControlABC
     triggers: Tuple[TriggerABC, ...]
     timeout: int = 15
+    examples: Optional[Tuple[Example, ...]] = None

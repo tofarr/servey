@@ -8,6 +8,7 @@ from marshy.marshaller_context import MarshallerContext
 from schemey import Schema, SchemaContext, get_default_schema_context
 
 from servey.action.action_meta import ActionMeta
+from servey.action.example import Example
 from servey.errors import ServeyError
 from servey.security.access_control.action_access_control_abc import (
     ActionAccessControlABC,
@@ -24,6 +25,7 @@ def action(
     access_control: ActionAccessControlABC = ALLOW_ALL,
     triggers: Tuple[TriggerABC, ...] = (WebTrigger(WebTriggerMethod.POST),),
     timeout: int = ActionMeta.timeout,
+    examples: Optional[Tuple[Example, ...]] = None
 ):
     """
     Decorator for actions, which may be a function or a class with a designated method_name
@@ -52,6 +54,7 @@ def action(
             access_control=access_control,
             triggers=triggers,
             timeout=timeout,
+            examples=examples,
         )
 
     return wrapper_ if fn is None else wrapper_(fn)

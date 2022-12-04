@@ -1,12 +1,14 @@
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Dict, Any, Optional, Tuple
 
 from marshy.marshaller.marshaller_abc import MarshallerABC
 from marshy.types import ExternalItemType
 from schemey import Schema
+from schemey.util import filter_none
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
+from servey.action.example import Example
 from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
 from servey.action.util import with_isolated_references
 
@@ -29,18 +31,22 @@ class QueryStringParser(RequestParserABC):
         return kwargs
 
     def to_openapi_schema(
-        self, path_method: ExternalItemType, components: ExternalItemType
+        self, path_method: ExternalItemType, components: ExternalItemType, examples: Optional[Tuple[Example, ...]]
     ):
         schema = self.schema
         properties = schema.schema["properties"]
         required = set(schema.schema.get("required") or [])
         path_method["parameters"] = [
-            {
+            filter_none({
                 "required": k in required,
                 "schema": with_isolated_references(schema.schema, v, components),
                 "name": k,
                 "in": "query",
-            }
+                "examples": {
+                    e.name: filter_none(dict(summary=e.description, value=e.result))
+                    for e in examples if e.include_in_schema
+                } if examples else None
+            })
             for k, v in properties.items()
         ]
         responses: ExternalItemType = path_method["responses"]

@@ -9,7 +9,7 @@ from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType
 from schemey import get_default_schema_context, SchemaContext
 
-from servey.action.action import get_marshaller_for_params
+from servey.action.action import get_marshaller_for_params, get_schema_for_params
 from servey.security.authorization import Authorization
 from servey.security.authorizer.authorizer_factory_abc import create_authorizer
 from servey.security.util import get_inject_at

@@ -1,9 +1,10 @@
 from dataclasses import dataclass
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 
 from marshy.types import ExternalItemType
 from starlette.requests import Request
 
+from servey.action.example import Example
 from servey.security.access_control.action_access_control_abc import (
     ActionAccessControlABC,
 )
@@ -42,7 +43,7 @@ class AuthorizingParser(RequestParserABC):
         return self.authorizer.authorize(token)
 
     def to_openapi_schema(
-        self, path_method: ExternalItemType, components: ExternalItemType
+        self, path_method: ExternalItemType, components: ExternalItemType, examples: Optional[Tuple[Example, ...]]
     ):
         responses: ExternalItemType = path_method["responses"]
         if not responses.get("403"):

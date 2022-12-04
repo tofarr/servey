@@ -1,9 +1,10 @@
 from dataclasses import dataclass
-from typing import Dict, Any, Callable
+from typing import Dict, Any, Callable, Optional, Tuple
 
 from marshy.types import ExternalItemType
 from starlette.requests import Request
 
+from servey.action.example import Example
 from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
 
 
@@ -20,7 +21,7 @@ class SelfParser(RequestParserABC):
         return kwargs
 
     def to_openapi_schema(
-        self, path_method: ExternalItemType, components: ExternalItemType
+        self, path_method: ExternalItemType, components: ExternalItemType, examples: Optional[Tuple[Example, ...]]
     ):
         # Simply delegate - self should not be visible externally!
-        return self.parser.to_openapi_schema(path_method, components)
+        return self.parser.to_openapi_schema(path_method, components, examples)
