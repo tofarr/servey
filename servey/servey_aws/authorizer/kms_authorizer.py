@@ -1,3 +1,4 @@
+import base64
 import json
 from base64 import urlsafe_b64encode
 from dataclasses import dataclass, field
@@ -9,8 +10,7 @@ import jwt
 from jwt import DecodeError
 from schemey.util import filter_none
 
-from servey.security.access_control.authorization import AuthorizationError
-from servey.security.authorization import Authorization
+from servey.security.authorization import Authorization, AuthorizationError
 from servey.security.authorizer.authorizer_abc import AuthorizerABC
 from servey.security.authorizer.jwt_authorizer import date_from_jwt
 
@@ -42,7 +42,7 @@ class KmsAuthorizer(AuthorizerABC):
 
     def encode(self, authorization: Authorization) -> str:
         header = urlsafe_b64encode(
-            json.dumps(dict(typ="JWT", alg="RS256", kid=self.key_id))
+            json.dumps(dict(typ="JWT", alg="RS256", kid=self.key_id)).encode()
         )
         payload = urlsafe_b64encode(
             json.dumps(
@@ -51,23 +51,28 @@ class KmsAuthorizer(AuthorizerABC):
                         iss=self.iss,
                         sub=authorization.subject_id,
                         aud=self.aud,
-                        exp=int(authorization.expire_at.timestamp()),
-                        nbf=int(authorization.not_before.timestamp()),
+                        exp=int(authorization.expire_at.timestamp())
+                        if authorization.expire_at
+                        else None,
+                        nbf=int(authorization.not_before.timestamp())
+                        if authorization.not_before
+                        else None,
                         iat=int(datetime.now().timestamp()),
                         scope=" ".join(authorization.scopes),
                     )
                 )
-            )
+            ).encode()
         )
         message = header + b"." + payload
         result = self.kms.sign(
             Message=message,
-            KeyID=self.key_id,
+            KeyId=self.key_id,
             SigningAlgorithm="RSASSA_PKCS1_V1_5_SHA_256",
             MessageType="RAW",
         )
-        signature = message + b"." + result["Signature"]
-        return signature.decode("UTF-8")
+        signature = urlsafe_b64encode(result["Signature"])
+        result = message + b"." + signature
+        return result.decode("UTF-8")
 
     @staticmethod
     def get_key_id(token: str) -> str:
@@ -79,7 +84,15 @@ class KmsAuthorizer(AuthorizerABC):
         public_key = self.public_keys.get(key_id)
         if not public_key:
             response = self.kms.get_public_key(KeyId=key_id)
-            public_key = self.public_keys[public_key] = response["PublicKey"]
+            public_key = response["PublicKey"]
+            public_key = base64.b64encode(public_key).decode()
+            public_key = (
+                "-----BEGIN PUBLIC KEY-----\n"
+                + public_key
+                + "\n-----END PUBLIC KEY-----"
+            ).encode()
+            self.public_keys[public_key] = public_key
+
         return public_key
 
     def authorize(self, token: str) -> Authorization:

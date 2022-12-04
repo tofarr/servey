@@ -10,10 +10,12 @@ provider:
   runtime: python3.9
   environment:
     LOG_LEVEL: INFO
+    KMS_KEY_ID: serveyKmsKey
 custom:
   pythonRequirements:
     useDownloadCache: false
     useStaticCache: false
+    dockerizePip: true
 plugins:
 - serverless-python-requirements
 - serverless-prune-plugin

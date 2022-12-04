@@ -21,9 +21,9 @@ class DataclassFactory(EntityFactoryABC):
         if type_:
             return type_
 
-        params = {'__annotations__': {}}
+        params = {"__annotations__": {}}
         for f in fields(annotation):
-            params['__annotations__'][f.name] = schema_factory.get_type(f.type)
+            params["__annotations__"][f.name] = schema_factory.get_type(f.type)
 
         """
         # noinspection PyDataclass
@@ -53,7 +53,7 @@ class DataclassFactory(EntityFactoryABC):
 
         # noinspection PyDataclass
         params = {
-            '__annotations__': {
+            "__annotations__": {
                 f.name: schema_factory.get_input(f.type) for f in fields(annotation)
             },
         }

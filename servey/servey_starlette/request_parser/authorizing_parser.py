@@ -11,7 +11,7 @@ from servey.security.access_control.allow_all import ALLOW_ALL
 from servey.security.authorization import AuthorizationError
 from servey.security.authorizer.authorizer_abc import AuthorizerABC
 from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
-from servey.servey_starlette.util import inject_value_at
+from servey.action.util import inject_value_at
 
 
 @dataclass

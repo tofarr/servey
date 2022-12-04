@@ -3,7 +3,7 @@ from copy import deepcopy
 from typing import Callable
 
 from marshy.types import ExternalItemType, ExternalType
-from schemey import Schema, schema_from_json
+from schemey import Schema
 
 
 def with_isolated_references(

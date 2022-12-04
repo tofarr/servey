@@ -10,7 +10,7 @@ from servey.security.access_control.allow_all import ALLOW_ALL
 from servey.security.authorization import AuthorizationError
 from servey.security.authorizer.authorizer_abc import AuthorizerABC
 from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
-from servey.servey_starlette.util import inject_value_at
+from servey.action.util import inject_value_at
 
 
 @dataclass

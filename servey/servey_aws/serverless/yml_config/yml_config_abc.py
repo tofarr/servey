@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
 from marshy.factory.impl_marshaller_factory import get_impls
 from ruamel.yaml import YAML
@@ -28,11 +28,15 @@ def ensure_ref_in_file(
     main_serverless_yml_file: str,
     insertion_point: List[str],
     referenced_serverless_yml_file: str,
+    referenced_path: Optional[str] = None,
 ):
     yaml = YAML()
     with open(main_serverless_yml_file, "r") as reader:
         root = yaml.load(reader)
-        reference = "${file(" + referenced_serverless_yml_file + ")}"
+        reference = "${file(" + referenced_serverless_yml_file + ")"
+        if referenced_path:
+            reference = reference + ":" + referenced_path + ", ''"
+        reference += "}"
         parent = _follow_path(root, insertion_point[:-1])
         references = parent.get(insertion_point[-1])
         if not references:

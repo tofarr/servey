@@ -13,11 +13,13 @@ extras_require = {
         "uvicorn~=0.18",
         "pygments~=2.13",
         "requests~=2.28",
-        "python-multipart~=0.0"
+        "python-multipart~=0.0",
     ],
     "scheduler": ["celery~=5.2"],
     "aws": [
         "boto3~=1.26",
+    ],
+    "serverless": [
         "pyyaml~=6.0",
         "ruamel.yaml~=0.17",
         "strawberry-graphql~=0.125",  # We need this to generate the graphql schema - or do we?

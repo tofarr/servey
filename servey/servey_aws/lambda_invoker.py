@@ -7,8 +7,12 @@ from typing import Dict
 from marshy.types import ExternalItemType, ExternalType
 
 from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
-from servey.servey_aws.event_parser.factory.event_parser_factory_abc import create_parser_factories
-from servey.servey_aws.result_render.factory.result_render_factory_abc import create_render_factories
+from servey.servey_aws.event_parser.factory.event_parser_factory_abc import (
+    create_parser_factories,
+)
+from servey.servey_aws.result_render.factory.result_render_factory_abc import (
+    create_render_factories,
+)
 from servey.servey_aws.result_render.result_render_abc import ResultRenderABC
 
 
@@ -36,8 +40,8 @@ def get_result_render(event: Dict, context, parser: EventParserABC) -> ResultRen
             return render
 
 
-_ACTION_MODULE = importlib.import_module(os.environ['SERVEY_ACTION_MODULE'])
-_ACTION_FUNCTION = getattr(_ACTION_MODULE, os.environ['SERVEY_ACTION_FUNCTION'])
+_ACTION_MODULE = importlib.import_module(os.environ["SERVEY_ACTION_MODULE"])
+_ACTION_FUNCTION = getattr(_ACTION_MODULE, os.environ["SERVEY_ACTION_FUNCTION"])
 _EVENT_PARSER_FACTORIES = create_parser_factories()
 _RESULT_RENDER_FACTORIES = create_render_factories()
 _LOGGER = logging.getLogger(__name__)

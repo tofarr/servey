@@ -18,6 +18,7 @@ class WebTrigger:
 
 
 WEB_GET = WebTrigger(WebTriggerMethod.GET)
+WEB_POST = WebTrigger(WebTriggerMethod.POST)
 BODY_METHODS = (
     WebTriggerMethod.PATCH,
     WebTriggerMethod.POST,

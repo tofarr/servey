@@ -1,4 +1,3 @@
-import json
 from dataclasses import dataclass
 from typing import Dict, Any
 
@@ -13,7 +12,7 @@ class AppsyncEventParser(EventParserABC):
     marshaller: MarshallerABC
 
     def parse(self, event: ExternalItemType, context) -> Dict[str, Any]:
-        variables = event['info']["variables"]
-        parsed = self.marshaller.load(variables)
-        #TODO: Pass in an authentication header here?
+        arguments = event["arguments"] or {}
+        parsed = self.marshaller.load(arguments)
+        # TODO: Pass in an authentication header here?
         return parsed

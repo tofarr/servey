@@ -46,7 +46,7 @@ class ActionFunctionConfig(YmlConfigABC):
                 timeout=action_meta.timeout,
                 environment=dict(
                     SERVEY_ACTION_MODULE=action.fn.__module__,
-                    SERVEY_ACTION_FUNCTION=action.fn.__name__
+                    SERVEY_ACTION_FUNCTION=action.fn.__name__,
                 ),
             )
             if action_meta.description:

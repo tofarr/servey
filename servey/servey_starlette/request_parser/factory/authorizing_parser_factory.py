@@ -1,15 +1,13 @@
-import inspect
-from dataclasses import dataclass, field, is_dataclass, fields
+from dataclasses import dataclass, field
 from typing import List, Optional
 
-from marshy.factory.optional_marshaller_factory import get_optional_type
 
 from servey.action.finder.found_action import FoundAction
 from servey.action.trigger.web_trigger import WebTrigger
 from servey.security.access_control.allow_all import ALLOW_ALL
-from servey.security.authorization import Authorization
 from servey.security.authorizer.authorizer_abc import AuthorizerABC
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
+from servey.security.util import get_inject_at
 from servey.servey_starlette.request_parser.authorizing_parser import AuthorizingParser
 from servey.servey_starlette.request_parser.factory.request_parser_factory_abc import (
     RequestParserFactoryABC,
@@ -34,7 +32,7 @@ class AuthorizingParserFactory(RequestParserFactoryABC):
     ) -> Optional[RequestParserABC]:
         if self.skip:
             return
-        inject_at = get_inject_at(action)
+        inject_at = get_inject_at(action.fn)
         if action.action_meta.access_control == ALLOW_ALL and not inject_at:
             return
         wrapped_action = action
@@ -55,16 +53,3 @@ class AuthorizingParserFactory(RequestParserFactoryABC):
                     )
         finally:
             self.skip = False
-
-
-def get_inject_at(action: FoundAction) -> Optional[str]:
-    sig = inspect.signature(action.fn)
-    for p in sig.parameters.values():
-        annotation = get_optional_type(p.annotation) or p.annotation
-        if annotation == Authorization:
-            return p.name
-        if is_dataclass(annotation):
-            for f in fields(annotation):
-                annotation = get_optional_type(f.type) or p.annotation
-                if annotation == Authorization:
-                    return f"{p.name}.{f.name}"

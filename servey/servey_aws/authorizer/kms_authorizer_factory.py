@@ -26,7 +26,8 @@ class KmsAuthorizerFactory(AuthorizerFactoryABC):
                 return
             from servey.servey_aws.authorizer.kms_authorizer import KmsAuthorizer
 
-            authorizer = KmsAuthorizer(kms_key_id)
+            authorizer = KmsAuthorizer("alias/" + kms_key_id)
             return authorizer
-        except ModuleNotFoundError:
+        except ModuleNotFoundError as e:
+            LOGGER.error("Unable to load Module")
             LOGGER.info("PyJWT is not available - skipping JwtAuthorizer")

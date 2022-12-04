@@ -44,18 +44,17 @@ class AppsyncConfig(YmlConfigABC):
             writer.write(GENERATED_HEADER.replace("\n", "\n# "))
             writer.write(f"\n# Updated at: {datetime.now().isoformat()}\n\n")
             schema = str(new_schema_for_actions())
-            schema = schema.replace('\n"""Date with time (isoformat)"""\nscalar DateTime\n', '')
-            schema = schema.replace('DateTime', 'AWSDateTime')
+            schema = schema.replace(
+                '\n"""Date with time (isoformat)"""\nscalar DateTime\n', ""
+            )
+            schema = schema.replace("DateTime", "AWSDateTime")
             writer.write(schema)
 
     def build_servey_action_functions_yml(self) -> ExternalItemType:
         appsync_definitions = {
             "name": os.environ.get("SERVICE_NAME") or "servey_app",
             "authenticationType": "API_KEY",
-            "defaultMappingTemplates": {
-                "request": False,
-                "response": False
-            },
+            "defaultMappingTemplates": {"request": False, "response": False},
             "mappingTemplates": [],
             "dataSources": [],
             "schema": self.servey_appsync_schema_file,

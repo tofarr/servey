@@ -10,7 +10,7 @@ from servey.servey_starlette.request_parser.factory.request_parser_factory_abc i
 )
 from servey.servey_starlette.request_parser.request_parser_abc import RequestParserABC
 from servey.servey_starlette.request_parser.self_parser import SelfParser
-from servey.servey_starlette.util import (
+from servey.action.util import (
     strip_injected_from_schema,
     wrap_fn_for_injection,
 )

@@ -27,15 +27,13 @@ def _find_actions_in_module(module) -> Iterator[FoundAction]:
         elif inspect.isclass(value):
             for f_name, f_value in value.__dict__.items():
                 if hasattr(f_value, "__servey_action_meta__"):
-                    yield FoundAction(
-                        f_value.__servey_action_meta__, f_value, value
-                    )
-    if not hasattr(module, '__path__'):
+                    yield FoundAction(f_value.__servey_action_meta__, f_value, value)
+    if not hasattr(module, "__path__"):
         return  # Module was not a package...
     paths = []
     paths.extend(module.__path__)
     module_infos = list(pkgutil.walk_packages(paths))
     for module_info in module_infos:
-        sub_module_name = module.__name__ + '.' + module_info.name
+        sub_module_name = module.__name__ + "." + module_info.name
         sub_module = importlib.import_module(sub_module_name)
         yield from _find_actions_in_module(sub_module)

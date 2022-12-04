@@ -1,4 +1,3 @@
-import inspect
 from datetime import datetime
 from typing import Type, Optional
 from uuid import UUID

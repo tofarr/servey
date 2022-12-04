@@ -10,5 +10,5 @@ class ToSecondDatetimeMarshaller(DatetimeMarshaller):
     """
 
     def dump(self, item: datetime) -> str:
-        dumped = item.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        dumped = item.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         return dumped

@@ -17,9 +17,7 @@ class ApiGatewayResultRender(ResultRenderABC):
         dumped = json.dumps(self.marshaller.dump(result))
         response = {
             "statusCode": 200,
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": dumped
+            "headers": {"Content-Type": "application/json"},
+            "body": dumped,
         }
         return response

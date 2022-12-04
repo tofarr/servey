@@ -6,7 +6,7 @@ from marshy.types import ExternalItemType
 from schemey import Schema
 from starlette.responses import JSONResponse, Response
 
-from servey.servey_starlette.util import with_isolated_references
+from servey.action.util import with_isolated_references
 from servey.servey_starlette.response_render.response_render_abc import (
     ResponseRenderABC,
 )
