@@ -18,10 +18,13 @@ Default implementation mostly meant to be as annoying as possible while still wo
 
 
 TODO:
-* Finish aws integration
-* Test Coverage
+* Callables. Remote actions vs local actions?  
 * Caching
 * Example / Mock interfaces - provide example inputs in action for documentation / mocking / unit test generation
+* Graphql Injection points. How to call an action with output from another action?
+* Test Coverage
+
+
 
 rate limiting needs persistence, but can be in access_control - maybe add to persisty goodies
 

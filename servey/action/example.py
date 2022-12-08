@@ -13,5 +13,4 @@ class Example:
     result: ExternalType = None
     description: Optional[str] = None
     include_in_tests: bool = True
-    include_in_mocks: bool = True
     include_in_schema: bool = True
