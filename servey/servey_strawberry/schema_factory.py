@@ -12,9 +12,9 @@ from strawberry.field import StrawberryField, UNRESOLVED
 from strawberry.type import StrawberryOptional, StrawberryContainer
 from strawberry.types.fields.resolver import StrawberryResolver
 
-from servey.action.finder.action_finder_abc import find_actions_with_trigger_type
-from servey.action.finder.found_action import FoundAction
-from servey.action.trigger.web_trigger import WebTrigger, UPDATE_METHODS
+from servey.action.action import Action
+from servey.finder.action_finder_abc import find_actions_with_trigger_type
+from servey.trigger.web_trigger import WebTrigger, UPDATE_METHODS
 from servey.servey_strawberry.entity_factory.entity_factory_abc import (
     EntityFactoryABC,
 )
@@ -57,18 +57,14 @@ class SchemaFactory:
                     self.types[annotation.__name__] = type_
                 return type_
 
-    def create_field_for_action(self, action: FoundAction, trigger: WebTrigger):
-        fn = action.fn
-        action_meta = action.action_meta
+    def create_field_for_action(self, action: Action, trigger: WebTrigger):
         for handler_filter in self.handler_filters:
-            fn, action_meta, continue_filtering = handler_filter.filter(
-                fn, action_meta, trigger, self
-            )
+            action, continue_filtering = handler_filter.filter(action, self)
             if not continue_filtering:
                 break
 
-        f = strawberry.field(resolver=fn)
-        f.name = action.action_meta.name
+        f = strawberry.field(resolver=action.fn)
+        f.name = action.name
         if trigger.method in UPDATE_METHODS:
             self.mutation[f.name] = f
         else:

@@ -9,8 +9,8 @@ import os
 from celery import Celery
 
 # Setup app and tasks...
-from servey.action.finder.action_finder_abc import find_actions_with_trigger_type
-from servey.action.trigger.fixed_rate_trigger import FixedRateTrigger
+from servey.finder.action_finder_abc import find_actions_with_trigger_type
+from servey.trigger.fixed_rate_trigger import FixedRateTrigger
 
 _CELERY_BROKER = os.environ.get("CELERY_BROKER")
 _LOGGER = logging.getLogger(__name__)

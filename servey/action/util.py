@@ -1,9 +1,74 @@
 import inspect
 from copy import deepcopy
-from typing import Callable
+from typing import Callable, Optional, Tuple, Set
 
+from marshy import get_default_context
+from marshy.marshaller.marshaller_abc import MarshallerABC
+from marshy.marshaller.obj_marshaller import ObjMarshaller, attr_config
+from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType, ExternalType
-from schemey import Schema
+from schemey import Schema, get_default_schema_context, SchemaContext
+
+from servey.errors import ServeyError
+
+
+def get_schema_for_params(
+    fn: Callable, skip_args: Set[str], schema_context: Optional[SchemaContext] = None
+) -> Schema:
+    if not schema_context:
+        schema_context = get_default_schema_context()
+    sig = inspect.signature(fn)
+    properties = {}
+    required = []
+    params = list(sig.parameters.values())
+    for i, p in enumerate(params):
+        if p.name in skip_args:
+            continue
+        if p.annotation is inspect.Parameter.empty:
+            raise ServeyError(f"missing_param_annotation:{fn.__name__}:{p.name}")
+        properties[p.name] = schema_context.schema_from_type(p.annotation).schema
+        if p.default == inspect.Parameter.empty:
+            required.append(p.name)
+    json_schema = {
+        "type": "object",
+        "properties": properties,
+        "additionalProperties": False,
+        "required": required,
+    }
+    schema = Schema(json_schema, dict)
+    return schema
+
+
+def get_schema_for_result(fn: Callable) -> Schema:
+    schema_context = get_default_schema_context()
+    sig = inspect.signature(fn)
+    type_ = sig.return_annotation
+    if type_ is inspect.Parameter.empty:
+        raise ServeyError(f"missing_return_annotation:{fn.__name__}")
+    schema = schema_context.schema_from_type(type_)
+    return schema
+
+
+def get_marshaller_for_params(
+    fn: Callable,
+    skip_args: Set[str],
+    marshaller_context: Optional[MarshallerContext] = None,
+) -> MarshallerABC:
+    if not marshaller_context:
+        marshaller_context = get_default_context()
+    sig = inspect.signature(fn)
+    attr_configs = []
+    params = list(sig.parameters.values())
+    for p in params:
+        if p.name in skip_args:
+            continue
+        if p.annotation is inspect.Parameter.empty:
+            raise TypeError(f"missing_param_annotation:{fn.__name__}({p.name}")
+        attr_configs.append(
+            attr_config(marshaller_context.get_marshaller(p.annotation), p.name)
+        )
+    marshaller = ObjMarshaller(dict, tuple(attr_configs))
+    return marshaller
 
 
 def with_isolated_references(
@@ -47,38 +112,3 @@ def inject_value_at(path: str, current, value):
         setattr(current, p, value)
     else:
         current[p] = value
-
-
-# noinspection PyTypeChecker
-def strip_injected_from_schema(schema: Schema, inject_at: str) -> Schema:
-    result = deepcopy(schema.schema)
-    current = result
-    path = inject_at.split(".")
-    for p in path[:-1]:
-        current = current["properties"][p]
-    del current["properties"][path[-1]]
-    if current["required"]:
-        current["required"] = [r for r in current["required"] if r != path[-1]]
-    result_schema = Schema(current, schema.python_type)
-    return result_schema
-
-
-# noinspection PyTypeChecker
-def wrap_fn_for_injection(
-    fn: Callable, inject_at: str, value_factory: Callable
-) -> Callable:
-    sig = inspect.signature(fn)
-    path = inject_at.split(".")
-    if len(path) == 1:
-        sig = sig.replace(
-            parameters=tuple(p for p in sig.parameters.values() if p.name != inject_at)
-        )
-
-    def wrapper(**kwargs):
-        value = value_factory()
-        inject_value_at(inject_at, kwargs, value)
-        result = fn(**kwargs)
-        return result
-
-    wrapper.__signature__ = sig
-    return wrapper

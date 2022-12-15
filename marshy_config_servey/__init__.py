@@ -3,14 +3,14 @@ import logging
 from marshy.factory.impl_marshaller_factory import register_impl
 from marshy.marshaller_context import MarshallerContext
 
-from servey.action.marshallers.to_second_datetime_marshaller import (
+from servey.util.to_second_datetime_marshaller import (
     ToSecondDatetimeMarshaller,
 )
 from servey.servey_aws.event_parser.factory.appsync_event_parser_factory import (
     AppsyncEventParserFactory,
 )
 
-priority = 100
+priority = 90
 LOGGER = logging.getLogger(__name__)
 
 
@@ -24,15 +24,15 @@ def configure(context: MarshallerContext):
     configure_action_finder(context)
     configure_auth(context)
     configure_starlette(context)
-    configure_aws(context)
-    configure_serverless(context)
+    # configure_aws(context)
+    # configure_serverless(context)
     configure_strawberry(context)
     configure_strawberry_starlette(context)
 
 
 def configure_action_finder(context: MarshallerContext):
-    from servey.action.finder.action_finder_abc import ActionFinderABC
-    from servey.action.finder.module_action_finder import ModuleActionFinder
+    from servey.finder.action_finder_abc import ActionFinderABC
+    from servey.finder.module_action_finder import ModuleActionFinder
 
     register_impl(ActionFinderABC, ModuleActionFinder, context)
 
@@ -46,42 +46,29 @@ def configure_auth(context: MarshallerContext):
 
 def configure_starlette(context: MarshallerContext):
     try:
-        configure_starlette_request_parser(context)
-        configure_starlette_response_render(context)
+        configure_starlette_action_endpoint_factory(context)
         configure_starlette_route_factory(context)
     except ModuleNotFoundError as e:
         LOGGER.error(e)
         LOGGER.info("Starlette not installed - Skipping")
 
 
-def configure_starlette_request_parser(context: MarshallerContext):
-    from servey.servey_starlette.request_parser.factory.authorizing_parser_factory import (
-        AuthorizingParserFactory,
+def configure_starlette_action_endpoint_factory(context: MarshallerContext):
+    from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory_abc import (
+        ActionEndpointFactoryABC,
     )
-    from servey.servey_starlette.request_parser.factory.body_parser_factory import (
-        BodyParserFactory,
+    from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory import (
+        ActionEndpointFactory,
     )
-    from servey.servey_starlette.request_parser.factory.query_string_parser_factory import (
-        QueryStringParserFactory,
+    from servey.servey_starlette.action_endpoint.factory.authorizing_action_endpoint_factory import (
+        AuthorizingActionEndpointFactory
     )
-    from servey.servey_starlette.request_parser.factory.request_parser_factory_abc import (
-        RequestParserFactoryABC,
+    from servey.servey_starlette.action_endpoint.factory.caching_action_endpoint_factory import (
+        CachingActionEndpointFactory
     )
-
-    register_impl(RequestParserFactoryABC, AuthorizingParserFactory, context)
-    register_impl(RequestParserFactoryABC, BodyParserFactory, context)
-    register_impl(RequestParserFactoryABC, QueryStringParserFactory, context)
-
-
-def configure_starlette_response_render(context: MarshallerContext):
-    from servey.servey_starlette.response_render.factory.body_render_factory import (
-        BodyRenderFactory,
-    )
-    from servey.servey_starlette.response_render.factory.response_render_factory_abc import (
-        ResponseRenderFactoryABC,
-    )
-
-    register_impl(ResponseRenderFactoryABC, BodyRenderFactory, context)
+    register_impl(ActionEndpointFactoryABC, ActionEndpointFactory, context)
+    register_impl(ActionEndpointFactoryABC, AuthorizingActionEndpointFactory, context)
+    register_impl(ActionEndpointFactoryABC, CachingActionEndpointFactory, context)
 
 
 def configure_starlette_route_factory(context: MarshallerContext):

@@ -1,8 +1,8 @@
+import dataclasses
 import inspect
-from typing import Callable, Tuple
+from typing import Tuple
 
-from servey.action.action_meta import ActionMeta
-from servey.action.trigger.web_trigger import WebTrigger
+from servey.action.action import Action
 from servey.servey_strawberry.handler_filter.handler_filter_abc import (
     HandlerFilterABC,
 )
@@ -20,11 +20,10 @@ class StrawberryTypeHandlerFilter(HandlerFilterABC):
 
     def filter(
         self,
-        fn: Callable,
-        action_meta: ActionMeta,
-        trigger: WebTrigger,
+        action: Action,
         schema_factory: SchemaFactory,
-    ) -> Tuple[Callable, ActionMeta, bool]:
+    ) -> Tuple[Action, bool]:
+        fn = action.fn
         sig = inspect.signature(fn)
         params = [
             p.replace(annotation=schema_factory.get_input(p.annotation))
@@ -42,4 +41,6 @@ class StrawberryTypeHandlerFilter(HandlerFilterABC):
             return result
 
         resolver.__signature__ = sig
-        return resolver, action_meta, True
+        wrapped_action = dataclasses.replace(action, fn=resolver)
+
+        return wrapped_action, True

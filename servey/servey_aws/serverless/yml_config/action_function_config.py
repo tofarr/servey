@@ -4,7 +4,7 @@ from marshy.factory.impl_marshaller_factory import get_impls
 from marshy.types import ExternalItemType
 from ruamel.yaml import YAML
 
-from servey.action.finder.action_finder_abc import find_actions
+from servey.finder.action_finder_abc import find_actions
 from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
     TriggerHandlerABC,
 )

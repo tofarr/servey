@@ -2,7 +2,7 @@ import time
 from threading import Thread
 from typing import Callable
 
-from servey.action.trigger.fixed_rate_trigger import FixedRateTrigger
+from servey.trigger.fixed_rate_trigger import FixedRateTrigger
 
 
 class FixedRateTriggerThread(Thread):

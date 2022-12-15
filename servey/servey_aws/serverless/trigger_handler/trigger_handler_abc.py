@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from marshy.types import ExternalItemType
 
 from servey.action.action_meta import ActionMeta
-from servey.action.trigger.trigger_abc import TriggerABC
+from servey.trigger import TriggerABC
 
 
 class TriggerHandlerABC(ABC):

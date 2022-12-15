@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 import jwt
-from jwt import DecodeError
+from jwt import InvalidTokenError
 from marshy.types import ExternalItemType
 from schemey.util import filter_none
 
@@ -58,7 +58,10 @@ class JwtAuthorizer(AuthorizerABC):
     def authorize(self, token: str) -> Authorization:
         try:
             decoded = jwt.decode(
-                jwt=token, key=self.private_key, algorithms=["HS256", "RS256"]
+                jwt=token,
+                key=self.private_key,
+                algorithms=["HS256", "RS256"],
+                audience=self.aud,
             )
             authorization = Authorization(
                 subject_id=decoded.get("sub"),
@@ -67,7 +70,7 @@ class JwtAuthorizer(AuthorizerABC):
                 scopes=frozenset(decoded.get("scope").split(" ")),
             )
             return authorization
-        except DecodeError as e:
+        except InvalidTokenError as e:
             raise AuthorizationError(e)
 
 

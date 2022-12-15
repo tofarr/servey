@@ -4,8 +4,8 @@ from datetime import datetime
 from marshy.types import ExternalItemType
 from ruamel.yaml import YAML
 
-from servey.action.finder.action_finder_abc import find_actions_with_trigger_type
-from servey.action.trigger.web_trigger import WebTrigger, WebTriggerMethod
+from servey.finder.action_finder_abc import find_actions_with_trigger_type
+from servey.trigger.web_trigger import WebTrigger, WebTriggerMethod
 from servey.servey_aws.serverless.yml_config.yml_config_abc import (
     YmlConfigABC,
     ensure_ref_in_file,

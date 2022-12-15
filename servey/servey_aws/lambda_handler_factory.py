@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Tuple, Iterator
 
-from servey.action.finder.action_finder_abc import find_actions
-from servey.action.finder.found_action import FoundAction
+from servey.finder.action_finder_abc import find_actions
+from servey.finder.found_action import FoundAction
 from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
 from servey.servey_aws.event_parser.factory.event_parser_factory_abc import (
     create_parser_factories,

@@ -8,8 +8,8 @@ from starlette.responses import Response, JSONResponse
 from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
 
-from servey.action.finder.action_finder_abc import find_actions_with_trigger_type
-from servey.action.trigger.web_trigger import WebTrigger
+from servey.finder.action_finder_abc import find_actions_with_trigger_type, find_actions
+from servey.trigger.web_trigger import WebTrigger
 from servey.servey_starlette.route_factory.action_route_factory import (
     ActionRouteFactory,
 )
@@ -54,9 +54,8 @@ class OpenapiRouteFactory(RouteFactoryABC):
         }
         if os.environ.get("SERVER_HOST"):
             schema["servers"] = [{"url": os.environ.get("SERVER_HOST")}]
-        for action, trigger in find_actions_with_trigger_type(WebTrigger):
-            action_endpoint = self.action_route_factory.create_action_endpoint(
-                action, trigger
-            )
-            action_endpoint.to_openapi_schema(schema)
+        for action in find_actions():
+            action_endpoint = self.action_route_factory.create_action_endpoint(action)
+            if action_endpoint:
+                action_endpoint.to_openapi_schema(schema)
         return JSONResponse(schema)

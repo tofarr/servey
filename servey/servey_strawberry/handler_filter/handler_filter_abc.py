@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Tuple, List, TYPE_CHECKING
+from typing import Tuple, List, TYPE_CHECKING
 
-from servey.action.action_meta import ActionMeta
-from servey.action.trigger.web_trigger import WebTrigger
+from servey.action.action import Action
 
 if TYPE_CHECKING:
     from servey.servey_strawberry.schema_factory import SchemaFactory
@@ -20,11 +19,9 @@ class HandlerFilterABC(ABC):
     @abstractmethod
     def filter(
         self,
-        fn: Callable,
-        action_meta: ActionMeta,
-        trigger: WebTrigger,
+        action: Action,
         schema_factory: "SchemaFactory",
-    ) -> Tuple[Callable, ActionMeta, bool]:
+    ) -> Tuple[Action, bool]:
         """Filter the action_ given. The callable is a function"""
 
 

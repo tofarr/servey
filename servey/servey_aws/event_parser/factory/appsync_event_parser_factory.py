@@ -6,10 +6,7 @@ from marshy import get_default_context
 from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType
 
-from servey.action.action import get_marshaller_for_params
-from servey.servey_aws.event_parser.api_gateway_event_parser import (
-    ApiGatewayEventParser,
-)
+from servey.action.util import get_marshaller_for_params
 from servey.servey_aws.event_parser.appsync_event_parser import AppsyncEventParser
 from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
 from servey.servey_aws.event_parser.factory.event_parser_factory_abc import (

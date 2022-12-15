@@ -1,6 +1,9 @@
+import inspect
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, Set, FrozenSet
+from typing import Optional, Set, FrozenSet, Callable
+
+from marshy.factory.optional_marshaller_factory import get_optional_type
 
 
 class AuthorizationError(Exception):
@@ -59,3 +62,29 @@ class Authorization:
 
 # A default ROOT scope - rules may be adjusted to remove root access
 ROOT = Authorization(None, frozenset(("root",)), None, None)
+PUBLIC = Authorization(None, frozenset(), None, None)
+
+
+def get_inject_at(fn: Callable) -> Optional[str]:
+    sig = inspect.signature(fn)
+    for p in sig.parameters.values():
+        annotation = get_optional_type(p.annotation) or p.annotation
+        if annotation == Authorization:
+            return p.name
+
+
+def create_authorizing_wrapper_factory(fn: Callable, auth_kwarg_name: str):
+    sig = inspect.signature(fn)
+    parameters = [p for p in sig.parameters.values() if p.name != auth_kwarg_name]
+    sig = sig.replace(parameters=parameters)
+
+    def factory(authorization: Optional[Authorization]):
+        def wrapper(**kwargs):
+            kwargs = {**kwargs, auth_kwarg_name: authorization}
+            result = fn(**kwargs)
+            return result
+
+        wrapper.__signature__ = sig
+        return wrapper
+
+    return factory

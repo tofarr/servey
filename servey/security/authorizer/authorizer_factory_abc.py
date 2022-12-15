@@ -1,11 +1,8 @@
-import inspect
 from abc import abstractmethod, ABC
-from typing import Optional, Callable
+from typing import Optional
 
 from marshy.factory.impl_marshaller_factory import get_impls
-from marshy.factory.optional_marshaller_factory import get_optional_type
 
-from servey.security.authorization import Authorization
 from servey.security.authorizer.authorizer_abc import AuthorizerABC
 
 

@@ -1,31 +1,41 @@
-import inspect
+from dataclasses import dataclass
 from typing import Optional, Callable, Tuple
 
-from marshy import get_default_context
-from marshy.marshaller.marshaller_abc import MarshallerABC
-from marshy.marshaller.obj_marshaller import attr_config, ObjMarshaller
-from marshy.marshaller_context import MarshallerContext
-from schemey import Schema, SchemaContext, get_default_schema_context
 
-from servey.action.action_meta import ActionMeta
-from servey.action.example import Example
-from servey.errors import ServeyError
+from servey.example.example import Example
+from servey.cache_control.cache_control_abc import CacheControlABC
 from servey.security.access_control.action_access_control_abc import (
     ActionAccessControlABC,
 )
 from servey.security.access_control.allow_all import ALLOW_ALL
-from servey.action.trigger.trigger_abc import TriggerABC
-from servey.action.trigger.web_trigger import WebTrigger, WebTriggerMethod
+from servey.trigger.trigger_abc import TriggerABC
+
+
+@dataclass(frozen=True)
+class Action:
+    """
+    Actions provide additional meta about a function and how it should be invoked from an external context such as REST,
+    GraphQL, Tests, Mocks, or a scheduler. The intent is that everything required to document and invoke the function
+    should be present here
+    """
+
+    fn: Callable
+    name: str
+    description: Optional[str] = None
+    access_control: ActionAccessControlABC = ALLOW_ALL
+    triggers: Tuple[TriggerABC, ...] = tuple()
+    timeout: int = 15
+    examples: Optional[Tuple[Example, ...]] = None
+    cache_control: Optional[CacheControlABC] = None
 
 
 def action(
     fn: Optional[Callable] = None,
-    params_schema: Optional[Schema] = None,
-    result_schema: Optional[Schema] = None,
-    access_control: ActionAccessControlABC = ALLOW_ALL,
-    triggers: Tuple[TriggerABC, ...] = (WebTrigger(WebTriggerMethod.POST),),
-    timeout: int = ActionMeta.timeout,
-    examples: Optional[Tuple[Example, ...]] = None
+    access_control: ActionAccessControlABC = Action.access_control,
+    triggers: Tuple[TriggerABC, ...] = Action.triggers,
+    timeout: int = Action.timeout,
+    examples: Optional[Tuple[Example, ...]] = None,
+    cache_control: Optional[CacheControlABC] = None,
 ):
     """
     Decorator for actions, which may be a function or a class with a designated method_name
@@ -37,82 +47,23 @@ def action(
     """
 
     def wrapper_(fn_: Callable):
-        fn_.__servey_action_meta__ = get_meta_for_fn(fn_.__name__, fn_)
+        fn_.__servey_action__ = get_action_for_fn(fn_)
         return fn_
 
-    def get_meta_for_fn(name_: str, fn_: Callable):
-        nonlocal params_schema, result_schema
-        if not params_schema:
-            params_schema = get_schema_for_params(fn_)
-        if not result_schema:
-            result_schema = get_schema_for_result(fn_)
-        return ActionMeta(
-            name=name_,
-            description=fn_.__doc__,
-            params_schema=params_schema,
-            result_schema=result_schema,
+    def get_action_for_fn(fn_: Callable):
+        return Action(
+            fn=fn_,
+            name=fn_.__name__,
+            description=fn_.__doc__.strip() if fn_.__doc__ else None,
             access_control=access_control,
             triggers=triggers,
             timeout=timeout,
             examples=examples,
+            cache_control=cache_control,
         )
 
     return wrapper_ if fn is None else wrapper_(fn)
 
 
-def get_schema_for_params(
-    fn: Callable, schema_context: Optional[SchemaContext] = None
-) -> Schema:
-    if not schema_context:
-        schema_context = get_default_schema_context()
-    sig = inspect.signature(fn)
-    properties = {}
-    required = []
-    params = list(sig.parameters.values())
-    for i, p in enumerate(params):
-        if i == 0 and p.name in ("self", "cls"):
-            # The action_ annotation may be applied to a method instead of a function.
-            # Unfortunately, this means that the type is unknown at this point - that's sort of ok because
-            # a standard finder won't pick up this function anyway without a service annotation.
-            continue
-        if p.annotation is inspect.Parameter.empty:
-            raise ServeyError(f"missing_param_annotation:{fn.__name__}:{p.name}")
-        properties[p.name] = schema_context.schema_from_type(p.annotation).schema
-        if p.default == inspect.Parameter.empty:
-            required.append(p.name)
-    json_schema = {
-        "type": "object",
-        "properties": properties,
-        "additionalProperties": False,
-        "required": required,
-    }
-    schema = Schema(json_schema, dict)
-    return schema
-
-
-def get_schema_for_result(fn: Callable) -> Schema:
-    schema_context = get_default_schema_context()
-    sig = inspect.signature(fn)
-    type_ = sig.return_annotation
-    if type_ is inspect.Parameter.empty:
-        raise ServeyError(f"missing_return_annotation:{fn.__name__}")
-    schema = schema_context.schema_from_type(type_)
-    return schema
-
-
-def get_marshaller_for_params(
-    fn: Callable, marshaller_context: Optional[MarshallerContext] = None
-) -> MarshallerABC:
-    if not marshaller_context:
-        marshaller_context = get_default_context()
-    sig = inspect.signature(fn)
-    attr_configs = []
-    params = list(sig.parameters.values())
-    for p in params:
-        if p.annotation is inspect.Parameter.empty:
-            raise TypeError(f"missing_param_annotation:{fn.__name__}({p.name}")
-        attr_configs.append(
-            attr_config(marshaller_context.get_marshaller(p.annotation), p.name)
-        )
-    marshaller = ObjMarshaller(dict, tuple(attr_configs))
-    return marshaller
+def get_action(fn: Callable) -> Optional[Action]:
+    return getattr(fn, "__servey_action__", None)

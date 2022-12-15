@@ -5,6 +5,8 @@ from typing import Optional, Iterator
 
 from schemey.util import filter_none
 
+from servey.util import secure_hash
+
 
 @dataclass(frozen=True)
 class CacheHeader:
