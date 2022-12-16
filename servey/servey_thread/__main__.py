@@ -19,4 +19,5 @@ _LOGGER.info("Starting threads for actions...")
 for action, trigger in find_actions_with_trigger_type(FixedRateTrigger):
     _LOGGER.info(f"Starting: {action.name}")
     t = FixedRateTriggerThread(action.fn, trigger, DAEMON)
+    _THREADS.append(t)
     t.start()
