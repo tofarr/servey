@@ -27,9 +27,7 @@ class DataclassFactory(EntityFactoryABC):
             return type_
         # noinspection PyTypeChecker
         schema_factory.types[annotation.__name__] = SchemaFactoryLazyType(
-            type_name=annotation.__name__,
-            module='',
-            schema_factory=schema_factory
+            type_name=annotation.__name__, module="", schema_factory=schema_factory
         )
 
         annotations = {}
@@ -62,7 +60,9 @@ class DataclassFactory(EntityFactoryABC):
         if input_:
             return input_
         # noinspection PyTypeChecker
-        schema_factory.inputs[name] = SchemaFactoryLazyInput(type_name=name, module='', schema_factory=schema_factory)
+        schema_factory.inputs[name] = SchemaFactoryLazyInput(
+            type_name=name, module="", schema_factory=schema_factory
+        )
 
         # noinspection PyDataclass
         params = {
@@ -79,12 +79,17 @@ class DataclassFactory(EntityFactoryABC):
         return input_
 
 
-def build_resolvable_field(resolvable: Resolvable, schema_factory: SchemaFactory, key: str, params: Dict[str, Any]):
+def build_resolvable_field(
+    resolvable: Resolvable,
+    schema_factory: SchemaFactory,
+    key: str,
+    params: Dict[str, Any],
+):
     action = Action(
         name=key,
         fn=resolvable.fn,
         access_control=resolvable.access_control,
-        cache_control=resolvable.cache_control
+        cache_control=resolvable.cache_control,
     )
 
     for handler_filter in schema_factory.handler_filters:
@@ -94,5 +99,5 @@ def build_resolvable_field(resolvable: Resolvable, schema_factory: SchemaFactory
 
     sig = inspect.signature(resolvable.fn)
     return_type = schema_factory.get_type(sig.return_annotation)
-    params['__annotations__'][key] = return_type
+    params["__annotations__"][key] = return_type
     params[key] = strawberry.field(resolver=resolvable.fn)

@@ -62,7 +62,7 @@ class JwtAuthorizer(AuthorizerABC):
                 key=self.private_key,
                 algorithms=["HS256", "RS256"],
                 audience=self.aud,
-                issuer=self.iss
+                issuer=self.iss,
             )
             authorization = Authorization(
                 subject_id=decoded.get("sub"),

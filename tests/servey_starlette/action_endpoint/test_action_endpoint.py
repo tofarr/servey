@@ -7,43 +7,50 @@ from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
 from servey.action.action import action
-from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory import ActionEndpointFactory
+from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory import (
+    ActionEndpointFactory,
+)
 from servey.trigger.web_trigger import WEB_GET, WEB_POST
 
 
 class TestActionEndpoint(TestCase):
-
     def test_valid_input_get(self):
         @action(triggers=(WEB_GET,))
         def echo_get(val: str) -> str:
             return val
 
-        action_endpoint = ActionEndpointFactory().create(echo_get.__servey_action__, set(), [])
-        request = build_request(query_string='val=bar')
+        action_endpoint = ActionEndpointFactory().create(
+            echo_get.__servey_action__, set(), []
+        )
+        request = build_request(query_string="val=bar")
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(action_endpoint.execute(request))
         self.assertEqual(200, response.status_code)
-        self.assertEqual('bar', json.loads(response.body))
+        self.assertEqual("bar", json.loads(response.body))
 
     def test_valid_input_post(self):
         @action(triggers=(WEB_POST,))
         def echo_get(val: str) -> str:
             return val
 
-        action_endpoint = ActionEndpointFactory().create(echo_get.__servey_action__, set(), [])
-        request = build_request(method='POST', body=json.dumps(dict(val='bar')))
+        action_endpoint = ActionEndpointFactory().create(
+            echo_get.__servey_action__, set(), []
+        )
+        request = build_request(method="POST", body=json.dumps(dict(val="bar")))
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(action_endpoint.execute(request))
         self.assertEqual(200, response.status_code)
-        self.assertEqual('bar', json.loads(response.body))
+        self.assertEqual("bar", json.loads(response.body))
 
     def test_invalid_input(self):
         @action(triggers=(WEB_GET,))
         def echo_get(val: int) -> int:
             return val
 
-        action_endpoint = ActionEndpointFactory().create(echo_get.__servey_action__, set(), [])
-        request = build_request(query_string='val=bar')
+        action_endpoint = ActionEndpointFactory().create(
+            echo_get.__servey_action__, set(), []
+        )
+        request = build_request(query_string="val=bar")
         loop = asyncio.get_event_loop()
         with self.assertRaises(HTTPException):
             loop.run_until_complete(action_endpoint.execute(request))
@@ -53,7 +60,9 @@ class TestActionEndpoint(TestCase):
         def echo_get() -> int:
             return "foobar"
 
-        action_endpoint = ActionEndpointFactory().create(echo_get.__servey_action__, set(), [])
+        action_endpoint = ActionEndpointFactory().create(
+            echo_get.__servey_action__, set(), []
+        )
         request = build_request()
         loop = asyncio.get_event_loop()
         with self.assertRaises(HTTPException):
@@ -82,10 +91,11 @@ def build_request(
             "scheme": "https",
             "client": ("127.0.0.1", 8080),
             "server": (server, 443),
-            "query_string": query_string
+            "query_string": query_string,
         }
     )
     if body:
+
         async def request_body():
             return body
 

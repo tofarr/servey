@@ -35,10 +35,7 @@ class AuthorizingActionEndpoint(ActionEndpointABC):
     def get_route(self) -> Route:
         route = self.action_endpoint.get_route()
         return Route(
-            route.path,
-            name=route.name,
-            endpoint=self.execute,
-            methods=route.methods
+            route.path, name=route.name, endpoint=self.execute, methods=route.methods
         )
 
     async def execute_with_context(
@@ -79,7 +76,9 @@ class AuthorizingActionEndpoint(ActionEndpointABC):
             responses["403"] = {
                 "description": "unauthorized",
                 "content": {
-                    "application/json": {"schema": {"$ref": f"#components/ErrorResponse"}}
+                    "application/json": {
+                        "schema": {"$ref": f"#components/ErrorResponse"}
+                    }
                 },
             }
 

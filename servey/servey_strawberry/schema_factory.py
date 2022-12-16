@@ -25,6 +25,10 @@ from servey.servey_strawberry.handler_filter.handler_filter_abc import (
 
 @dataclass
 class SchemaFactory:
+    """
+    This class is tasked with converting standard python types into types usable by strawberry and therefore graphql.
+    """
+
     types: Dict[str, Type] = field(default_factory=dict)
     inputs: Dict[str, Type] = field(default_factory=dict)
     enums: Dict[str, Type] = field(default_factory=dict)

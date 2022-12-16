@@ -4,6 +4,10 @@ Philosophy: Get the most from AWS but allow local testing / not be completely de
 
 Actions Mounts, Handlers and Apps
 
+
+Direct actions
+Drawing a line for testing
+
 Due to graphql, actions cannot be defined to return Nothing!
 
 Authorization should be explicit! That is why we inject it - one of the bits of magic

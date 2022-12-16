@@ -32,7 +32,8 @@ def start_scheduler():
     if CELERY_BROKER:
         import servey.servey_celery.celery_app
     else:
-        import servey.servey_thread.threaded_app
+        os.environ["SERVEY_DAEMON"] = "1"
+        import servey.servey_thread.__main__
 
 
 def generate_serverless_scaffold():
@@ -56,11 +57,14 @@ def generate_serverless_scaffold():
 
 def main():
     parser = argparse.ArgumentParser(description="Servey")
-    parser.add_argument("--sls-generate", nargs="?", default=False, const=True)
+    parser.add_argument("--run", default="server")
     args = parser.parse_args()
-    if args.sls_generate:
+    if args.run == "sls":
         generate_serverless_scaffold()
+    elif args.run == "action":
+        import servey.servey_direct.__main__
     else:
+        start_scheduler()
         start_http_server()
 
 

@@ -19,5 +19,6 @@ async def fixed_rate_task(action_: Action, trigger_: FixedRateTrigger):
         loop.call_soon(action_.fn)
         action_.fn()
 
+
 for action, trigger in find_actions_with_trigger_type(FixedRateTrigger):
     asyncio.create_task(fixed_rate_task(action, trigger))

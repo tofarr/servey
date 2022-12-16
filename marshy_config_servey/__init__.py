@@ -61,11 +61,12 @@ def configure_starlette_action_endpoint_factory(context: MarshallerContext):
         ActionEndpointFactory,
     )
     from servey.servey_starlette.action_endpoint.factory.authorizing_action_endpoint_factory import (
-        AuthorizingActionEndpointFactory
+        AuthorizingActionEndpointFactory,
     )
     from servey.servey_starlette.action_endpoint.factory.caching_action_endpoint_factory import (
-        CachingActionEndpointFactory
+        CachingActionEndpointFactory,
     )
+
     register_impl(ActionEndpointFactoryABC, ActionEndpointFactory, context)
     register_impl(ActionEndpointFactoryABC, AuthorizingActionEndpointFactory, context)
     register_impl(ActionEndpointFactoryABC, CachingActionEndpointFactory, context)

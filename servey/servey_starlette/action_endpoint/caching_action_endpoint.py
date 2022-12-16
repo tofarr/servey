@@ -19,6 +19,7 @@ class CachingActionEndpoint(ActionEndpointABC):
     """
     Wrapper for an endpoint adding http caching
     """
+
     action_endpoint: ActionEndpointABC
 
     def get_action(self) -> Action:
@@ -27,10 +28,7 @@ class CachingActionEndpoint(ActionEndpointABC):
     def get_route(self) -> Route:
         route = self.action_endpoint.get_route()
         return Route(
-            route.path,
-            name=route.name,
-            endpoint=self.execute,
-            methods=route.methods
+            route.path, name=route.name, endpoint=self.execute, methods=route.methods
         )
 
     async def execute_with_context(
@@ -39,7 +37,9 @@ class CachingActionEndpoint(ActionEndpointABC):
         response = await self.action_endpoint.execute_with_context(request, context)
         if response.status_code != 200:
             return response
-        cache_header = self.get_action().cache_control.get_cache_header_from_content(response.body)
+        cache_header = self.get_action().cache_control.get_cache_header_from_content(
+            response.body
+        )
         if_match = request.headers.get("If-Match")
         if_modified_since = request.headers.get("If-Modified-Since")
         if if_match and cache_header.etag:

@@ -29,7 +29,8 @@ class ActionRouteFactory(RouteFactoryABC):
     def create_routes(self) -> Iterator[Route]:
         for action in find_actions():
             route = self.create_route(action)
-            yield route
+            if route:
+                yield route
 
     def create_route(self, action: Action) -> Route:
         action_endpoint = self.create_action_endpoint(action)
@@ -39,6 +40,8 @@ class ActionRouteFactory(RouteFactoryABC):
 
     def create_action_endpoint(self, action: Action) -> ActionEndpointABC:
         for factory in self.action_endpoint_factories:
-            action_endpoint = factory.create(action, set(), self.action_endpoint_factories)
+            action_endpoint = factory.create(
+                action, set(), self.action_endpoint_factories
+            )
             if action_endpoint:
                 return action_endpoint

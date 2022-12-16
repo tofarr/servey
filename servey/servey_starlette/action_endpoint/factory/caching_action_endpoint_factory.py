@@ -5,7 +5,9 @@ from servey.action.action import Action
 from servey.servey_starlette.action_endpoint.action_endpoint_abc import (
     ActionEndpointABC,
 )
-from servey.servey_starlette.action_endpoint.caching_action_endpoint import CachingActionEndpoint
+from servey.servey_starlette.action_endpoint.caching_action_endpoint import (
+    CachingActionEndpoint,
+)
 from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory_abc import (
     ActionEndpointFactoryABC,
 )

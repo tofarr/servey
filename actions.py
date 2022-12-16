@@ -9,6 +9,7 @@ from servey.cache_control.ttl_cache_control import TtlCacheControl
 from servey.action.example import Example
 from servey.security.authorization import Authorization, ROOT
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
+from servey.trigger.fixed_rate_trigger import FixedRateTrigger
 from servey.trigger.web_trigger import WEB_GET, WEB_POST
 
 
@@ -31,7 +32,9 @@ def current_time() -> datetime:
         Example(name="usage", result=dict(scope=["root"]), include_in_tests=False),
     ),
 )
-def current_user_info(authorization: Optional[Authorization]) -> Optional[Authorization]:
+def current_user_info(
+    authorization: Optional[Authorization],
+) -> Optional[Authorization]:
     """
     By default, authorization is derived from signed http headers - this just serves as a way
     of returning this info
@@ -61,10 +64,7 @@ def say_hello(name: str) -> str:
     return f"Hello {name}!"
 
 
-@action(
-    triggers=(WEB_GET,),
-    cache_control=TtlCacheControl(30)
-)
+@action(triggers=(WEB_GET,), cache_control=TtlCacheControl(30))
 def slow_get_with_ttl() -> datetime:
     """
     This function demonstrates http caching with a slow function. The function will take 3 seconds to return, but
@@ -91,6 +91,13 @@ class NumberStats:
         return result
 
 
-@action(triggers=(WEB_GET,),)
+@action(
+    triggers=(WEB_GET,),
+)
 def number_stats(value: int) -> NumberStats:
     return NumberStats(value)
+
+
+@action(triggers=(FixedRateTrigger(10),))
+def ping():
+    print("============== Ping! ==============")

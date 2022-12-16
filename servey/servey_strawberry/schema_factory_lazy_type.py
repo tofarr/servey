@@ -11,6 +11,7 @@ class SchemaFactoryLazyType(LazyType):
     """
     This is a bit of a hack - pretend to be a standard LazyType to get strawberry to resolve the type
     """
+
     schema_factory: SchemaFactory = field(repr=False, hash=False, default=None)
 
     def resolve_type(self) -> Type:

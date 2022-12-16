@@ -71,7 +71,7 @@ class ActionEndpoint(ActionEndpointABC):
                 params = self.params_marshaller.dump(kwargs)
                 self.params_schema.validate(params)
             except:
-                raise HTTPException(422, 'invalid_input')
+                raise HTTPException(422, "invalid_input")
         return kwargs
 
     def render_response(self, result: Any):
@@ -143,8 +143,11 @@ class ActionEndpoint(ActionEndpointABC):
                     "name": k,
                     "in": "query",
                     "examples": {
-                        e.name: filter_none(dict(summary=e.description, value=e.params[k]))
-                        for e in self.action.examples if k in e.params
+                        e.name: filter_none(
+                            dict(summary=e.description, value=e.params[k])
+                        )
+                        for e in self.action.examples
+                        if k in e.params
                         if e.include_in_schema
                     }
                     if self.action.examples

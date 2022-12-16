@@ -48,7 +48,9 @@ class AuthorizationHandlerFilter(HandlerFilterABC):
         if authorization_kwarg_name:
             parameters.append(
                 Parameter(
-                    name=self.info_kwarg_name, kind=Parameter.KEYWORD_ONLY, annotation=Info
+                    name=self.info_kwarg_name,
+                    kind=Parameter.KEYWORD_ONLY,
+                    annotation=Info,
                 )
             )
 
