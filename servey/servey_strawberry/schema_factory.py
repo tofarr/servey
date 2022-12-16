@@ -146,7 +146,7 @@ class SchemaFactory:
         return schema
 
 
-def new_schema_for_actions():
+def create_schema_factory() -> SchemaFactory:
     entity_factories = [f() for f in get_impls(EntityFactoryABC)]
     entity_factories.sort(key=lambda f: f.priority, reverse=True)
     handler_filters = [f() for f in get_impls(HandlerFilterABC)]
@@ -154,6 +154,11 @@ def new_schema_for_actions():
     schema_factory = SchemaFactory(
         entity_factories=entity_factories, handler_filters=handler_filters
     )
+    return schema_factory
+
+
+def new_schema_for_actions():
+    schema_factory = create_schema_factory()
     for action, trigger in find_actions_with_trigger_type(WebTrigger):
         schema_factory.create_field_for_action(action, trigger)
     schema = schema_factory.create_schema()

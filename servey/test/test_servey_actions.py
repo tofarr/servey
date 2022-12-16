@@ -7,7 +7,7 @@ from unittest import TestCase
 from marshy import dump
 
 from servey.action.action import get_marshaller_for_params
-from servey.example.example import Example
+from servey.action.example import Example
 from servey.finder.action_finder_abc import find_actions
 from servey.finder.found_action import FoundAction
 

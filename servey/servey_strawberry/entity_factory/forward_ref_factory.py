@@ -1,8 +1,5 @@
-import inspect
-from enum import Enum
 from typing import Type, Optional
 
-import strawberry
 import typing_inspect
 from marshy.utils import resolve_forward_refs
 
@@ -27,4 +24,4 @@ class ForwardRefFactory(EntityFactoryABC):
     ) -> Optional[Type]:
         if typing_inspect.is_forward_ref(annotation):
             annotation = resolve_forward_refs(annotation)
-            return schema_factory.get_type(annotation)
+            return schema_factory.get_input(annotation)

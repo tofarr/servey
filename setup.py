@@ -9,7 +9,7 @@ extras_require = {
     "dev": ["black", "pytest"],
     "server": [
         "starlette~=0.19",
-        "strawberry-graphql~=0.125",
+        "strawberry-graphql~=0.151",
         "uvicorn~=0.18",
         "pygments~=2.13",
         "requests~=2.28",

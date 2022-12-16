@@ -22,7 +22,6 @@ class TestActionEndpoint(TestCase):
         request = build_request(query_string='val=bar')
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(action_endpoint.execute(request))
-        loop.close()
         self.assertEqual(200, response.status_code)
         self.assertEqual('bar', json.loads(response.body))
 
@@ -35,7 +34,6 @@ class TestActionEndpoint(TestCase):
         request = build_request(method='POST', body=json.dumps(dict(val='bar')))
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(action_endpoint.execute(request))
-        loop.close()
         self.assertEqual(200, response.status_code)
         self.assertEqual('bar', json.loads(response.body))
 
@@ -49,7 +47,6 @@ class TestActionEndpoint(TestCase):
         loop = asyncio.get_event_loop()
         with self.assertRaises(HTTPException):
             loop.run_until_complete(action_endpoint.execute(request))
-        loop.close()
 
     def test_invalid_output(self):
         @action(triggers=(WEB_GET,))
@@ -63,7 +60,6 @@ class TestActionEndpoint(TestCase):
             loop.run_until_complete(action_endpoint.execute(request))
         action_endpoint.result_schema = None
         loop.run_until_complete(action_endpoint.execute(request))
-        loop.close()
 
 
 def build_request(

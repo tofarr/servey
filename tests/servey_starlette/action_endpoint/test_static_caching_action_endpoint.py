@@ -28,6 +28,6 @@ class TestCachingActionEndpoint(TestCase):
         self.assertEqual('bar', json.loads(response.body))
         self.assertEqual('TCk/8BCnMPCXJ2EzHRtWeEeNQlwtxc79FtjyAFnkl/M=', response.headers['etag'])
         self.assertEqual('private,max-age=29', response.headers['cache-control'])
-        expected_expires = datetime.now().timestamp() + 30
-        expires = datetime(*(parsedate(response.headers['expires'])[:6]), tzinfo=timezone.utc).timestamp()
+        expected_expires = int(datetime.now().timestamp()) + 30
+        expires = int(datetime(*(parsedate(response.headers['expires'])[:6]), tzinfo=timezone.utc).timestamp())
         self.assertAlmostEqual(expected_expires, expires, 1)

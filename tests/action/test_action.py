@@ -4,9 +4,9 @@ from servey.action.action import action, get_action, Action
 from servey.trigger.fixed_rate_trigger import FixedRateTrigger
 from servey.trigger.web_trigger import WEB_GET
 from servey.cache_control.ttl_cache_control import TtlCacheControl
-from servey.example.example import Example
+from servey.action.example import Example
 from servey.security.access_control.allow_all import ALLOW_ALL
-from servey.security.access_control.scope_access_control import PermissionAccessControl
+from servey.security.access_control.scope_access_control import ScopeAccessControl
 
 
 class TestAction(TestCase):
@@ -30,7 +30,7 @@ class TestAction(TestCase):
 
     def test_decorator_args(self):
         @action(
-            access_control=PermissionAccessControl("view", "execute"),
+            access_control=ScopeAccessControl("view", "execute"),
             triggers=(WEB_GET, FixedRateTrigger(3600)),
             timeout=30,
             examples=(Example(name="ten", params=dict(value=10), result="That's 10"),),
@@ -44,7 +44,7 @@ class TestAction(TestCase):
             fn=noop,
             name="noop",
             description="Noop",
-            access_control=PermissionAccessControl("view", "execute"),
+            access_control=ScopeAccessControl("view", "execute"),
             triggers=(WEB_GET, FixedRateTrigger(3600)),
             timeout=30,
             examples=(Example(name="ten", params=dict(value=10), result="That's 10"),),

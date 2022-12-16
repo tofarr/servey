@@ -59,12 +59,19 @@ class ActionEndpoint(ActionEndpointABC):
         if method in BODY_METHODS:
             body = await request.body()
             params: ExternalItemType = json.loads(body) if body else {}
+            error = next(self.params_schema.iter_errors(params), None)
+            if error:
+                raise HTTPException(422, str(error))
+            kwargs = self.params_marshaller.load(params)
         else:
-            params = dict(request.query_params)
-        error = next(self.params_schema.iter_errors(params), None)
-        if error:
-            raise HTTPException(422, str(error))
-        kwargs = self.params_marshaller.load(params)
+            # All params are strings here, and marshy allows this but schemey does not. so we load before validating,
+            # and dump to perform validation
+            try:
+                kwargs = self.params_marshaller.load(request.query_params)
+                params = self.params_marshaller.dump(kwargs)
+                self.params_schema.validate(params)
+            except:
+                raise HTTPException(422, 'invalid_input')
         return kwargs
 
     def render_response(self, result: Any):

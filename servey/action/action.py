@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, Callable, Tuple
 
 
-from servey.example.example import Example
+from servey.action.example import Example
 from servey.cache_control.cache_control_abc import CacheControlABC
 from servey.security.access_control.action_access_control_abc import (
     ActionAccessControlABC,

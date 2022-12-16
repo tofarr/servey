@@ -1,10 +1,12 @@
+from dataclasses import dataclass
 from datetime import datetime
 from time import sleep
 from typing import Optional
 
 from servey.action.action import action
+from servey.action.resolvable import resolvable
 from servey.cache_control.ttl_cache_control import TtlCacheControl
-from servey.example.example import Example
+from servey.action.example import Example
 from servey.security.authorization import Authorization, ROOT
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
 from servey.trigger.web_trigger import WEB_GET, WEB_POST
@@ -70,3 +72,25 @@ def slow_get_with_ttl() -> datetime:
     """
     sleep(3)
     return datetime.now()
+
+
+@dataclass
+class NumberStats:
+    value: int
+
+    @resolvable
+    async def factorial(self) -> int:
+        """
+        This demonstrates a resolvable field, lazily resolved (Usually by graphql)
+        """
+        result = 1
+        index = self.value
+        while index > 1:
+            result *= index
+            index -= 1
+        return result
+
+
+@action(triggers=(WEB_GET,),)
+def number_stats(value: int) -> NumberStats:
+    return NumberStats(value)
