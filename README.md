@@ -2,8 +2,9 @@
 
 This project specifying metadata for python functions (In a manner similar to FastAPI) which is then used to
 build REST, GraphQL, and Scheduled services. These are locally runnable / runnable in a hosted environment using
-Starlette, Strawberry and Celery. They may also be run on AWS infrastructure using Serverless and Lambda. Tests and
-examples may also be specified for **actions**. General design goals are:
+[Starlette](https://www.starlette.io/), [Strawberry](https://strawberry.rocks/) and [Celery](https://docs.celeryq.dev/).
+They may also be run on AWS infrastructure using Serverless and Lambda. Tests and examples may also be specified for
+**actions**. General design goals are:
 
 * We want to cover the basic utility that almost any application will require as simply as possible.
 * Convention over configuration
@@ -36,22 +37,29 @@ def say_hello(name: str) -> str:
 
 * The [action](servey/action/action.py) decorator indicates that the *say_hello* function will be special!
 * The *actions* module (and any submodules of it) is the default location in which Servey will look for actions, though
-this may be overridden by specifying a different value in the *SERVEY_ACTION_PATH* environment variable
+  this may be overridden by specifying a different value in the *SERVEY_ACTION_PATH* environment variable
 * We specify a trigger for this action - *WEB_GET*. Different triggers may be specified for your action.
 * Marshalling of arbitrary python objects is handled using [marshy](https://github.com/tofarr/marshy)
 * Json Schema validation for arbitrary python objects is handled using [schemey](https://github.com/tofarr/schemey)
 
-### Run
+### Run an action from the terminal
 
-Start the starlette server using:
+Actions should have unique names, which taken from the function name by default, but can also be overridden in the
+decorator. This name can be used to run an action explicitly from the command line (or cron):
+
+`python -m servey --run=action --action=say_hello "--event={\"name\": \"World\"}"`
+
+### Run Server
+
+Start the [Starlette](https://www.starlette.io/) server using:
 
 `python -m servey`
 
 You should see console output regarding keys and temporary passwords (More on this in the Authorization section), as
-well as information indicating that Uvicorn is running on port 8000 (This can be overriden with the *SERVER_PORT*
-environment variable). 
+well as information indicating that [Uvicorn](https://www.uvicorn.org/) is running on port 8000. (You override this
+using the *SERVER_PORT* environment variable)
 
-The following endpoints are set up by default:
+The following endpoints deployed by default:
 
 * http://localhost:8000/docs : OpenAPI Docs for your project
 * http://localhost:8000/graphiql/ : GraphQL debugger for your project
@@ -187,18 +195,91 @@ def only_for_root() -> str:
 * **echo_authorization** gets the authorization from the http headers, decodes and confirms it and echos it. By default,
   we look for parameters with type Authorization and inject them from the context rather than directly from input parameters.
 * **only_for_root** can only be executed by users with the root scope
+* GraphQL endpoints use the same access_controllers, reading tokens from the Authorization http header. (Graphiql lets
+  you specify this)
 
 ## Scheduler
 
-TODO: Document
+So far we have demonstrated usage of [WebTrigger](servey/trigger/web_trigger.py), however triggers are pluggable so you
+could create your own and handlers for them. One additional type included is the 
+[FixedRateTrigger](servey/trigger/fixed_rate_trigger.py) This allows you to specify that a function should run at
+regular intervals.
 
-## Resolvers
+* In a single server / development environment, [Background Threads](servey/servey_thread/fixed_rate_trigger_thread.py)
+  are used.
+* If the environment specifies a *CELERY_BROKER*, Servey uses Celery to run background tasks in a distributed fashion
+* In a Serverless / AWS lambda environment, servey implements scheduling by deploying triggers for the generated lambdas
 
-TODO: Document
+[Here is a celery deployment example.](servey/servey_celery/celery_app.py)
+
+## Resolvables
+
+You may have noticed that actions are a flat construct, while GraphQL allows lazily resolving related data. This is the
+purpose of [Resolvables](servey/action/resolvable.py). Currently these are ignored in the REST api (Though we may
+introduce a standard for allowing selection here.) Consider the following actions.py:
+
+```
+from dataclasses import dataclass
+
+from servey.action.resolvable import resolvable
+from servey.servey_asyncio_schedule_app import action
+from servey.trigger.web_trigger import WEB_GET
+
+
+@dataclass
+class NumberStats:
+    value: int
+
+    @resolvable
+    async def factorial(self) -> int:
+        """
+        This demonstrates a resolvable field, lazily resolved (Usually by graphql)
+        """
+        result = 1
+        index = self.value
+        while index > 1:
+            result *= index
+            index -= 1
+        return result
+
+
+@action(
+    triggers=(WEB_GET,),
+)
+def number_stats(value: int) -> NumberStats:
+    return NumberStats(value)
+
+```
+
+* We define a return type NumberStats that is simply a python dataclass
+* The field *factorial* is only resolved if requested in the graphql request
+* Like Actions, Resolvers may specify caching and access controls
 
 ## AWS
 
-TODO: Document
+Up until this point, we have mostly discussed development environments / deploying to a container. Servey also allows
+your code to be deployed to AWS using Serverless. Servey will generate serverless definitions in yaml files in order to
+facilitate this. It is assumed that you already have an aws account with appropriate access, and that you are set up
+with serverless (You probably have a $HOME/.aws/credentials file set up). First, you'll need some extras to get this
+working:
+
+`pip install servey[serverless]`
+
+Then you can regenerate your serverless.yml definitions using:
+
+`python -m servey --run=sls`
+
+* This will generate a *serverless.yml* file for you if one is not found. (override environment variable
+  *MAIN_SERVERLESS_YML_FILE* to choose a different name)
+* Servey uses file includes to try and modify the main serverless yaml file as little as possible.
+* Actions get implemented as Lambdas - one per action.
+* GraphQL is implemented using Appsync
+* REST is implemented using API Gateway
+* Authorizers are implemented using KMS
+* The generated lambdas as designed to allow direct invocation where the event contains unmarshalled parameters, or
+  access by Appsync or API Gateway.
+* Once you deploy your serverless project, you should be able to test from the Appsync, Api Gateway, and Lambda consoles
+  respectively.
 
 ## Deploying new versions of this Servey to Pypi
 
