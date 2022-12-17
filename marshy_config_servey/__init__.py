@@ -24,8 +24,8 @@ def configure(context: MarshallerContext):
     configure_action_finder(context)
     configure_auth(context)
     configure_starlette(context)
-    # configure_aws(context)
-    # configure_serverless(context)
+    configure_aws(context)
+    configure_serverless(context)
     configure_strawberry(context)
     configure_strawberry_starlette(context)
 

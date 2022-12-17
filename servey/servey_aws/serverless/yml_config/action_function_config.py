@@ -40,7 +40,7 @@ class ActionFunctionConfig(YmlConfigABC):
         trigger_handlers = [h() for h in get_impls(TriggerHandlerABC)]
         for action in find_actions():
             # noinspection PyUnresolvedReferences
-            lambda_definition = lambda_definitions[action_meta.name] = dict(
+            lambda_definition = lambda_definitions[action.name] = dict(
                 handler=f"servey.servey_aws.lambda_invoker.invoke",
                 timeout=action.timeout,
                 environment=dict(

@@ -22,7 +22,7 @@ class FixedRateTriggerHandler(TriggerHandlerABC):
         events = lambda_definition.get("events")
         if not events:
             events = lambda_definition["events"] = []
-        for unit, seconds in UNITS:
+        for unit, seconds in UNITS.items():
             if not trigger.interval % seconds:
                 # noinspection PyTypeChecker
                 events["schedule"] = dict(
