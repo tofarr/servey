@@ -30,9 +30,11 @@ def start_http_server():
 
 def start_scheduler():
     if CELERY_BROKER:
+        # noinspection PyUnresolvedReferences
         import servey.servey_celery.celery_app
     else:
         os.environ["SERVEY_DAEMON"] = "1"
+        # noinspection PyUnresolvedReferences
         import servey.servey_thread.__main__
 
 
@@ -62,6 +64,7 @@ def main():
     if args.run == "sls":
         generate_serverless_scaffold()
     elif args.run == "action":
+        # noinspection PyUnresolvedReferences
         import servey.servey_direct.__main__
     else:
         start_scheduler()

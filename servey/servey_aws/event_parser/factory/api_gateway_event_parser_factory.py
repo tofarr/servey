@@ -7,8 +7,7 @@ from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType
 from schemey import SchemaContext, get_default_schema_context
 
-from servey.action.action import get_marshaller_for_params
-from servey.security.authorization import Authorization
+from servey.action.util import get_marshaller_for_params
 from servey.security.authorizer.authorizer_factory_abc import create_authorizer
 from servey.servey_aws.event_parser.api_gateway_event_parser import (
     ApiGatewayEventParser,
@@ -37,5 +36,5 @@ class ApiGatewayEventParserFactory(EventParserFactoryABC):
         authorizer = None
         if auth_kwarg_name:
             authorizer = create_authorizer()
-        marshaller = get_marshaller_for_params(fn, self.marshaller_context)
+        marshaller = get_marshaller_for_params(fn, set(), self.marshaller_context)
         return ApiGatewayEventParser(marshaller, auth_kwarg_name, authorizer)

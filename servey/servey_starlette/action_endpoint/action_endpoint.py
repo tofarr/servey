@@ -70,7 +70,7 @@ class ActionEndpoint(ActionEndpointABC):
                 kwargs = self.params_marshaller.load(request.query_params)
                 params = self.params_marshaller.dump(kwargs)
                 self.params_schema.validate(params)
-            except:
+            except Exception:
                 raise HTTPException(422, "invalid_input")
         return kwargs
 

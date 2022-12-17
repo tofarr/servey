@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import abstractmethod, ABC
-from typing import Callable, Awaitable, Dict, Any
+from typing import Dict, Any
 from urllib.request import Request
 
 from marshy.types import ExternalItemType

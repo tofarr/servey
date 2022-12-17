@@ -22,7 +22,7 @@ class AuthenticatorRouteFactory(RouteFactoryABC):
 
     def create_routes(self) -> Iterator[Route]:
         # Create an authenticator object based on username and password
-        if os.environ.get('SERVEY_DEBUG_AUTHENTICATOR') == '0':
+        if os.environ.get("SERVEY_DEBUG_AUTHENTICATOR") == "0":
             return
         authenticator = RootPasswordAuthenticator()
         yield Route(path="/login", methods=["post"], endpoint=authenticator.login)

@@ -58,6 +58,7 @@ class TestActionEndpoint(TestCase):
     def test_invalid_output(self):
         @action(triggers=(WEB_GET,))
         def echo_get() -> int:
+            # noinspection PyTypeChecker
             return "foobar"
 
         action_endpoint = ActionEndpointFactory().create(

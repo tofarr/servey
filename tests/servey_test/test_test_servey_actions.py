@@ -12,6 +12,7 @@ class TestTestServeyActions(TestCase):
             "servey.servey_test.test_servey_actions.find_actions",
             return_value=[get_action(say_hello)],
         ):
+            # noinspection PyPep8Naming
             TestClass = define_test_class()
             self.assertEqual("TestServeyActions", TestClass.__name__)
             self.assertTrue(issubclass(TestClass, TestCase))

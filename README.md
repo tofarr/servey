@@ -36,11 +36,11 @@ def say_hello(name: str) -> str:
 ### Note 
 
 * The [action](servey/action/action.py) decorator indicates that the *say_hello* function will be special!
-* The *actions* module (and any submodules of it) is the default location in which Servey will look for actions, though
-  this may be overridden by specifying a different value in the *SERVEY_ACTION_PATH* environment variable
-* We specify a trigger for this action - *WEB_GET*. Different triggers may be specified for your action.
-* Marshalling of arbitrary python objects is handled using [marshy](https://github.com/tofarr/marshy)
-* Json Schema validation for arbitrary python objects is handled using [schemey](https://github.com/tofarr/schemey)
+* The *actions* module (and any submodules of it) is the default location in which Servey will look for actions.
+  This may be overridden by specifying a different value in the *SERVEY_ACTION_PATH* environment variable
+* We specify a trigger for this action - *WEB_GET*
+* Servey uses [marshy](https://github.com/tofarr/marshy) to marshall arbitrary python objects.
+* Servey uses [schemey](https://github.com/tofarr/schemey) for schema generation / validation.
 
 ### Run an action from the terminal
 
@@ -66,14 +66,14 @@ The following endpoints deployed by default:
 * http://localhost:8000/openapi.json : OpenAPI Schema for your project
 * http://localhost:8000/graphql : GraphQL endpoint for your project
 
-Note that the OpenAPI Docs are populated using the annotations on your function,
+Servey populates the OpenAPI Schema using the annotations on your function,
 the action decorator, and any documentation you provided.
 
 ## Specifying Example Usage for Actions
 
-Examples for usage may be specified in the [action](servey/action/action.py)
-decorator, and will be available in the OpenAPI schema as well as potentially
-being used to generate unit tests. Update your actions.py with the following:
+You can specify action usage examples using the [action](servey/action/action.py) decorator.
+These will be available in the OpenAPI schema as well as potentially being used to generate unit tests. Update your
+actions.py with the following:
 
 ```
 from servey.action.action import action
@@ -98,8 +98,7 @@ def say_hello(name: str) -> str:
 
 ```
 
-Restart the server, and your OpenAPI schema will have been updated
-with the example you provided!
+Restart the server, to update your OpenAPI schema.
 
 Run `pip install pytest`, add an empty `tests/__init__.py` and then
 specify the following `tests/test_actions.py`:
@@ -111,16 +110,14 @@ TestActions = define_test_class()
 ```
 
 * Run tests with `python -m unittest discover -s tests`
-* TestActions will include tests of all your examples from your
-  actions where *include_in_tests* is True
-* Nothing prevents you from creating your own unit tests
-  for actions - they're just functions with an addtional
+* TestActions will include tests of all your examples from your actions where *include_in_tests* is True
+* Nothing prevents you from creating your own unit tests for actions - they're just functions with an additional
   *__servey_action__* attribute!
 
 ## Caching
 
-Actions should be able to provide hints to clients about what sort of caching strategy is recommended. (The clients
-can ignore this of course!) Http caching available for REST endpoints, but not GraphQL - though technologies like
+Actions should be able to provide recommended caching strategies to clients. (The clients can ignore this of course!) 
+Http caching available for REST endpoints, but not GraphQL - though technologies like
 React Query could be used to add it. Consider the following *actions.py*:
 
 ```
@@ -144,7 +141,7 @@ def slow_get_with_ttl() -> datetime:
 ```
 
 Notice that when you restart the server and run this from the OpenAPI test page, the first time it runs it should
-take ~3 seconds. Subsequent runs are instant as the disk cache to holds the result for 30 seconds.
+take ~3 seconds. Subsequent runs are instant as the disk cache retains the result for 30 seconds.
 
 ## Authorization
 
@@ -195,13 +192,13 @@ def only_for_root() -> str:
 * **echo_authorization** gets the authorization from the http headers, decodes and confirms it and echos it. By default,
   we look for parameters with type Authorization and inject them from the context rather than directly from input parameters.
 * **only_for_root** can only be executed by users with the root scope
-* GraphQL endpoints use the same access_controllers, reading tokens from the Authorization http header. (Graphiql lets
+* GraphQL uses the same access_controllers, reading tokens from the Authorization http header. (Graphiql lets
   you specify this)
 
 ## Scheduler
 
-So far we have demonstrated usage of [WebTrigger](servey/trigger/web_trigger.py), however triggers are pluggable so you
-could create your own and handlers for them. One additional type included is the 
+So far we have demonstrated usage of [WebTrigger](servey/trigger/web_trigger.py), but triggers are pluggable and other
+implementations are possible. One additional type included is the 
 [FixedRateTrigger](servey/trigger/fixed_rate_trigger.py) This allows you to specify that a function should run at
 regular intervals.
 
@@ -215,7 +212,7 @@ regular intervals.
 ## Resolvables
 
 You may have noticed that actions are a flat construct, while GraphQL allows lazily resolving related data. This is the
-purpose of [Resolvables](servey/action/resolvable.py). Currently these are ignored in the REST api (Though we may
+purpose of [Resolvables](servey/action/resolvable.py). These are ignored in the REST api (Though we may
 introduce a standard for allowing selection here.) Consider the following actions.py:
 
 ```
@@ -259,7 +256,7 @@ def number_stats(value: int) -> NumberStats:
 
 Up until this point, we have mostly discussed development environments / deploying to a container. Servey also allows
 your code to be deployed to AWS using Serverless. Servey will generate serverless definitions in yaml files in order to
-facilitate this. It is assumed that you already have an aws account with appropriate access, and that you are set up
+facilitate this. We assume that you already have an aws account with appropriate access, and that you are set up
 with serverless (You probably have a $HOME/.aws/credentials file set up). First, you'll need some extras to get this
 working:
 
@@ -269,13 +266,13 @@ Then you can regenerate your serverless.yml definitions using:
 
 `python -m servey --run=sls`
 
-* This will generate a *serverless.yml* file for you if one is not found. (override environment variable
+* This will generate a new *serverless.yml* file for you if it is missing. (override environment variable
   *MAIN_SERVERLESS_YML_FILE* to choose a different name)
-* Servey uses file includes to try and modify the main serverless yaml file as little as possible.
+* Servey uses file includes to attempt to make the modifications to the main serverless yaml minimal.
 * Actions get implemented as Lambdas - one per action.
-* GraphQL is implemented using Appsync
-* REST is implemented using API Gateway
-* Authorizers are implemented using KMS
+* We implemented GraphQL using Appsync
+* We implemented REST using API Gateway
+* We implemented Authorizers using KMS
 * The generated lambdas as designed to allow direct invocation where the event contains unmarshalled parameters, or
   access by Appsync or API Gateway.
 * Once you deploy your serverless project, you should be able to test from the Appsync, Api Gateway, and Lambda consoles

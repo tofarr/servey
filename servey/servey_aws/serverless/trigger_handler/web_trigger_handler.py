@@ -1,7 +1,7 @@
 from marshy.types import ExternalItemType
 
-from servey.action.action_meta import ActionMeta
-from servey.trigger import TriggerABC
+from servey.action.action import Action
+from servey.trigger.trigger_abc import TriggerABC
 from servey.trigger.web_trigger import WebTrigger
 from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
     TriggerHandlerABC,
@@ -11,7 +11,7 @@ from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
 class WebTriggerHandler(TriggerHandlerABC):
     def handle_trigger(
         self,
-        action_meta: ActionMeta,
+        action: Action,
         trigger: TriggerABC,
         lambda_definition: ExternalItemType,
     ):
@@ -21,7 +21,5 @@ class WebTriggerHandler(TriggerHandlerABC):
         if not events:
             events = lambda_definition["events"] = []
         events.append(
-            dict(
-                http=dict(path=action_meta.name, method=trigger.method.value, cors=True)
-            )
+            dict(http=dict(path=action.name, method=trigger.method.value, cors=True))
         )

@@ -1,4 +1,4 @@
-from typing import Optional, List, Set, Type
+from typing import Optional, List, Type
 
 import typing_inspect
 

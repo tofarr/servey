@@ -37,6 +37,7 @@ class CachingActionEndpoint(ActionEndpointABC):
         response = await self.action_endpoint.execute_with_context(request, context)
         if response.status_code != 200:
             return response
+        # noinspection PyUnresolvedReferences
         cache_header = self.get_action().cache_control.get_cache_header_from_content(
             response.body
         )

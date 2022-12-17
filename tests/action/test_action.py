@@ -11,6 +11,7 @@ from servey.security.access_control.scope_access_control import ScopeAccessContr
 
 class TestAction(TestCase):
     def test_decorator_no_args(self):
+        # noinspection PyUnusedLocal
         @action
         def noop(value: int) -> str:
             """Noop"""
@@ -29,6 +30,7 @@ class TestAction(TestCase):
         self.assertEqual(expected, action_)
 
     def test_decorator_args(self):
+        # noinspection PyUnusedLocal
         @action(
             access_control=ScopeAccessControl("view", "execute"),
             triggers=(WEB_GET, FixedRateTrigger(3600)),

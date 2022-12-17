@@ -8,8 +8,7 @@ from starlette.responses import Response, JSONResponse
 from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
 
-from servey.finder.action_finder_abc import find_actions_with_trigger_type, find_actions
-from servey.trigger.web_trigger import WebTrigger
+from servey.finder.action_finder_abc import find_actions
 from servey.servey_starlette.route_factory.action_route_factory import (
     ActionRouteFactory,
 )
@@ -39,6 +38,7 @@ class OpenapiRouteFactory(RouteFactoryABC):
             name="docs",
         )
 
+    # noinspection PyUnusedLocal
     def openapi_schema(self, request: Request) -> Response:
         schema = {
             "openapi": "3.0.2",

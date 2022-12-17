@@ -1,5 +1,4 @@
 import importlib
-import inspect
 import pkgutil
 import os
 from dataclasses import dataclass, field
@@ -21,6 +20,7 @@ class ModuleActionFinder(ActionFinderABC):
 
     def find_actions(self) -> Iterator[Action]:
         module = importlib.import_module(self.root_module_name)
+        # noinspection PyTypeChecker
         yield from _find_actions_in_module(module)
 
 

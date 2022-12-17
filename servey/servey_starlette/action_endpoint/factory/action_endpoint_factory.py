@@ -8,6 +8,7 @@ from schemey import get_default_schema_context, SchemaContext
 
 from servey.action.action import Action
 from servey.action.util import get_marshaller_for_params, get_schema_for_params
+from servey.errors import ServeyError
 from servey.servey_starlette.action_endpoint.action_endpoint import ActionEndpoint
 from servey.servey_starlette.action_endpoint.action_endpoint_abc import (
     ActionEndpointABC,
@@ -33,12 +34,21 @@ class ActionEndpointFactory(ActionEndpointFactoryABC):
         factories: List[ActionEndpointFactoryABC],
     ) -> Optional[ActionEndpointABC]:
         methods = {t.method for t in action.triggers if isinstance(t, WebTrigger)}
+        paths = {t.path for t in action.triggers if isinstance(t, WebTrigger) if t.path}
         if not methods:
             return
+        if len(paths) == 1:
+            path = next(iter(paths))
+        elif len(paths) > 1:
+            raise ServeyError(
+                f"multi_paths_not_supported:{action.name}:{','.join(paths)}"
+            )
+        else:
+            path = self.path_pattern.format(action_name=action.name)
         result_type = inspect.signature(action.fn).return_annotation
         endpoint = ActionEndpoint(
             action=action,
-            path=self.path_pattern.format(action_name=action.name),
+            path=path,
             methods=tuple(methods),
             params_marshaller=get_marshaller_for_params(
                 action.fn, skip_args, self.marshaller_context

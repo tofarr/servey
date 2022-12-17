@@ -26,5 +26,5 @@ class AppsyncEventParserFactory(EventParserFactoryABC):
         variables = info.get("variables")
         if variables is None:
             return
-        marshaller = get_marshaller_for_params(fn, self.marshaller_context)
+        marshaller = get_marshaller_for_params(fn, set(), self.marshaller_context)
         return AppsyncEventParser(marshaller)

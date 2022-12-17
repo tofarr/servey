@@ -44,6 +44,7 @@ class AppsyncConfig(YmlConfigABC):
             writer.write(GENERATED_HEADER.replace("\n", "\n# "))
             writer.write(f"\n# Updated at: {datetime.now().isoformat()}\n\n")
             schema = str(new_schema_for_actions())
+            # noinspection SpellCheckingInspection
             schema = schema.replace(
                 '\n"""Date with time (isoformat)"""\nscalar DateTime\n', ""
             )
@@ -60,10 +61,9 @@ class AppsyncConfig(YmlConfigABC):
             "schema": self.servey_appsync_schema_file,
         }
         for action, trigger in find_actions_with_trigger_type(WebTrigger):
-            action_meta = action.action_meta
-            field = action_meta.name.title().replace("_", "")
+            field = action.name.title().replace("_", "")
             mapping_template = {
-                "dataSource": action_meta.name,
+                "dataSource": action.name,
                 "type": "Query"
                 if trigger.method == WebTriggerMethod.GET
                 else "Mutation",
@@ -72,14 +72,14 @@ class AppsyncConfig(YmlConfigABC):
             }
             appsync_definitions["mappingTemplates"].append(mapping_template)
             data_source = {
-                "name": action_meta.name,
+                "name": action.name,
                 "type": "AWS_LAMBDA",
                 "config": {
-                    "functionName": action_meta.name,
+                    "functionName": action.name,
                 },
             }
-            if action_meta.description:
-                data_source["description"] = action_meta.description.strip()
+            if action.description:
+                data_source["description"] = action.description.strip()
             appsync_definitions["dataSources"].append(data_source)
 
         return appsync_definitions

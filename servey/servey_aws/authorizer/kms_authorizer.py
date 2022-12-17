@@ -64,6 +64,7 @@ class KmsAuthorizer(AuthorizerABC):
             ).encode()
         )
         message = header + b"." + payload
+        # noinspection SpellCheckingInspection
         result = self.kms.sign(
             Message=message,
             KeyId=self.key_id,
@@ -91,6 +92,7 @@ class KmsAuthorizer(AuthorizerABC):
                 + public_key
                 + "\n-----END PUBLIC KEY-----"
             ).encode()
+            # noinspection PyTypeChecker
             self.public_keys[public_key] = public_key
 
         return public_key

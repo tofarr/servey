@@ -9,10 +9,9 @@ from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType
 from schemey import get_default_schema_context, SchemaContext
 
-from servey.action.action import get_marshaller_for_params, get_schema_for_params
-from servey.security.authorization import Authorization
+from servey.action.util import get_marshaller_for_params
+from servey.security.authorization import Authorization, get_inject_at
 from servey.security.authorizer.authorizer_factory_abc import create_authorizer
-from servey.security.util import get_inject_at
 from servey.servey_aws.event_parser.event_parser import EventParser
 from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
 from servey.servey_aws.event_parser.factory.event_parser_factory_abc import (
@@ -38,7 +37,7 @@ class EventParserFactory(EventParserFactoryABC):
             authorizer = create_authorizer()
             if self.allow_unsigned_auth:
                 auth_marshaller = self.marshaller_context.get_marshaller(Authorization)
-        marshaller = get_marshaller_for_params(fn, self.marshaller_context)
+        marshaller = get_marshaller_for_params(fn, set(), self.marshaller_context)
         # noinspection PyUnresolvedReferences
         schema = (
             get_schema_for_params(fn, self.schema_context) if self.validate else None
@@ -53,7 +52,7 @@ def separate_auth_kwarg(fn: Callable) -> Tuple[Callable, Optional[str]]:
     if not attr_name:
         return fn, attr_name
 
-    def noop(**kwargs):
+    def noop(**_):
         # This function exists to transfer signature data. it is never called
         raise ValueError()
 

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 
 class WebTriggerMethod(Enum):
@@ -15,6 +16,7 @@ class WebTriggerMethod(Enum):
 @dataclass(frozen=True)
 class WebTrigger:
     method: WebTriggerMethod = WebTriggerMethod.POST
+    path: Optional[str] = None
 
 
 WEB_GET = WebTrigger(WebTriggerMethod.GET)

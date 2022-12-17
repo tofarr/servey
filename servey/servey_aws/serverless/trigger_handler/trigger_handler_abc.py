@@ -2,15 +2,15 @@ from abc import ABC, abstractmethod
 
 from marshy.types import ExternalItemType
 
-from servey.action.action_meta import ActionMeta
-from servey.trigger import TriggerABC
+from servey.action.action import Action
+from servey.trigger.trigger_abc import TriggerABC
 
 
 class TriggerHandlerABC(ABC):
     @abstractmethod
     def handle_trigger(
         self,
-        action_meta: ActionMeta,
+        action: Action,
         trigger: TriggerABC,
         lambda_definition: ExternalItemType,
     ):

@@ -1,7 +1,6 @@
 import os
 from logging import getLogger
 from typing import Optional
-from uuid import uuid4
 
 from servey.security.authorizer.authorizer_abc import AuthorizerABC
 from servey.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
@@ -28,6 +27,6 @@ class KmsAuthorizerFactory(AuthorizerFactoryABC):
 
             authorizer = KmsAuthorizer("alias/" + kms_key_id)
             return authorizer
-        except ModuleNotFoundError as e:
+        except ModuleNotFoundError:
             LOGGER.error("Unable to load Module")
             LOGGER.info("PyJWT is not available - skipping JwtAuthorizer")

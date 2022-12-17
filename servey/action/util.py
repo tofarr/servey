@@ -1,6 +1,5 @@
 import inspect
-from copy import deepcopy
-from typing import Callable, Optional, Tuple, Set
+from typing import Callable, Optional, Set
 
 from marshy import get_default_context
 from marshy.marshaller.marshaller_abc import MarshallerABC

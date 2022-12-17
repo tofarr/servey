@@ -1,9 +1,6 @@
 from datetime import datetime, timezone
 from unittest import TestCase
 
-from marshy import dump, load
-
-from servey.util.singleton_abc import SingletonABC
 from servey.util.to_second_datetime_marshaller import ToSecondDatetimeMarshaller
 
 

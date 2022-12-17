@@ -31,6 +31,7 @@ class TestCachingActionEndpoint(TestCase):
         loop.close()
         self.assertEqual(200, response.status_code)
         self.assertEqual("bar", json.loads(response.body))
+        # noinspection SpellCheckingInspection
         self.assertEqual(
             "TCk/8BCnMPCXJ2EzHRtWeEeNQlwtxc79FtjyAFnkl/M=", response.headers["etag"]
         )
