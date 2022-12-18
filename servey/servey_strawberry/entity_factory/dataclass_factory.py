@@ -22,9 +22,6 @@ class DataclassFactory(EntityFactoryABC):
     ) -> Optional[Type]:
         if not is_dataclass(annotation):
             return
-        type_ = schema_factory.types.get(annotation.__name__)
-        if type_:
-            return type_
         # noinspection PyTypeChecker
         schema_factory.types[annotation.__name__] = SchemaFactoryLazyType(
             type_name=annotation.__name__, module="", schema_factory=schema_factory
@@ -100,4 +97,4 @@ def build_resolvable_field(
     sig = inspect.signature(resolvable.fn)
     return_type = schema_factory.get_type(sig.return_annotation)
     params["__annotations__"][key] = return_type
-    params[key] = strawberry.field(resolver=resolvable.fn)
+    params[key] = strawberry.field(resolver=action.fn)

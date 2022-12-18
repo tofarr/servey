@@ -13,6 +13,10 @@ They may also be run on AWS infrastructure using Serverless and Lambda. Tests an
   done to external services
 * We want the utility offered by things like AWS while being as minimally tied to them as possible.
 
+## TODO:
+
+* AWS Appsync needs to support resolvables
+
 ## Example
 
 Install servey in your project using:
