@@ -50,6 +50,7 @@ query{
             "getNode": {"name": "child_a", "childNodes": [{"name": "grandchild_a"}]}
         }
         self.assertEqual(expected_result, result.data)
+        self.assertIsNone(get_node('foo"'))
 
 
 @dataclass
@@ -74,12 +75,7 @@ def get_node(path: str = "") -> Optional[Node]:
     return node
 
 
+# noinspection PyUnusedLocal
 @action(triggers=(WEB_POST,))
 def put_node(path: str, node: Node) -> bool:
-    parent = _ROOT
-    path = path.split("/")
-    for p in path[:-1]:
-        parent = next((n for n in parent.child_nodes if n.name == p), None)
-    parent.child_nodes = [n for n in parent.child_nodes if n.name != path[-1]]
-    parent.child_nodes.append(node)
-    return True
+    """Not actually invoked, so do noop"""

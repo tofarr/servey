@@ -1,7 +1,14 @@
 from datetime import datetime
 from unittest import TestCase
 
-from servey.security.authorization import Authorization, AuthorizationError
+from dateutil.relativedelta import relativedelta
+
+from servey.security.authorization import (
+    Authorization,
+    AuthorizationError,
+    ROOT,
+    get_inject_at,
+)
 
 
 class TestAuthorization(TestCase):
@@ -64,6 +71,22 @@ class TestAuthorization(TestCase):
             )
         )
 
+    def test_is_valid_for_timestamp_no_timestamp(self):
+        authorization = Authorization(None, frozenset("root"), None, None)
+        self.assertTrue(
+            authorization.is_valid_for_timestamp(datetime.fromisoformat("2022-02-01"))
+        )
+
+    def test_is_valid_for_timestamp_now(self):
+        a_day = relativedelta(days=1)
+        authorization = Authorization(
+            None,
+            frozenset("root"),
+            datetime.now() - a_day,
+            datetime.now() + a_day,
+        )
+        self.assertTrue(authorization.is_valid_for_timestamp())
+
     def test_has_scope(self):
         authorization = Authorization(None, frozenset(["foo", "bar"]), None, None)
         self.assertTrue(authorization.has_scope("foo"))
@@ -120,3 +143,10 @@ class TestAuthorization(TestCase):
         authorization.check_all_scopes({"foo", "bar"})
         with self.assertRaises(AuthorizationError):
             authorization.check_all_scopes({"foo", "zap"})
+
+    def test_get_inject_at(self):
+        def foo(bar: str, auth: Authorization) -> str:
+            return f"foo:{foo}, auth:{auth}"
+
+        foo("bar", ROOT)  # Nonsense
+        self.assertEqual("auth", get_inject_at(foo))

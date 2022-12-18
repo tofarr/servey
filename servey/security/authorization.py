@@ -71,20 +71,3 @@ def get_inject_at(fn: Callable) -> Optional[str]:
         annotation = get_optional_type(p.annotation) or p.annotation
         if annotation == Authorization:
             return p.name
-
-
-def create_authorizing_wrapper_factory(fn: Callable, auth_kwarg_name: str):
-    sig = inspect.signature(fn)
-    parameters = [p for p in sig.parameters.values() if p.name != auth_kwarg_name]
-    sig = sig.replace(parameters=parameters)
-
-    def factory(authorization: Optional[Authorization]):
-        def wrapper(**kwargs):
-            kwargs = {**kwargs, auth_kwarg_name: authorization}
-            result = fn(**kwargs)
-            return result
-
-        wrapper.__signature__ = sig
-        return wrapper
-
-    return factory

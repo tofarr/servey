@@ -43,9 +43,10 @@ class TestActionEndpoint(TestCase):
         self.assertEqual("bar", json.loads(response.body))
 
     def test_invalid_input(self):
+        # noinspection PyUnusedLocal
         @action(triggers=(WEB_GET,))
         def echo_get(val: int) -> int:
-            return val
+            """This is never invoked"""
 
         action_endpoint = ActionEndpointFactory().create(
             echo_get.__servey_action__, set(), []

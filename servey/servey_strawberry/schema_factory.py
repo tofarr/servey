@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass, field, fields, is_dataclass
 from typing import Type, Dict, List, Set
 
@@ -13,6 +14,7 @@ from strawberry.type import StrawberryOptional, StrawberryContainer
 from strawberry.types.fields.resolver import StrawberryResolver
 
 from servey.action.action import Action
+from servey.errors import ServeyError
 from servey.finder.action_finder_abc import find_actions_with_trigger_type
 from servey.trigger.web_trigger import WebTrigger, UPDATE_METHODS
 from servey.servey_strawberry.entity_factory.entity_factory_abc import (
@@ -21,6 +23,8 @@ from servey.servey_strawberry.entity_factory.entity_factory_abc import (
 from servey.servey_strawberry.handler_filter.handler_filter_abc import (
     HandlerFilterABC,
 )
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -146,6 +150,9 @@ class SchemaFactory:
             else None
         )
 
+        if not queries:
+            LOGGER.warning("No graphql queries found - skipping schema generation")
+            return None  # strawberry requires an API has at least 1 query!
         schema = strawberry.Schema(queries, mutations)
         return schema
 

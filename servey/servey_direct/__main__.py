@@ -16,6 +16,7 @@ from servey.action.util import get_marshaller_for_params
 from servey.finder.action_finder_abc import find_actions
 
 parser = argparse.ArgumentParser(description="Invoke an action directly")
+parser.add_argument("--run", default="action")
 parser.add_argument("--action")
 parser.add_argument("--event", default="{}")
 args = parser.parse_args()

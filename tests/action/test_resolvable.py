@@ -13,4 +13,4 @@ class TestResolvable(TestCase):
 
 @resolvable
 def _dummy():
-    pass
+    """never invoked"""

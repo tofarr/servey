@@ -219,7 +219,7 @@ introduce a standard for allowing selection here.) Consider the following action
 from dataclasses import dataclass
 
 from servey.action.resolvable import resolvable
-from servey.servey_asyncio_schedule_app import action
+from servey.action.action import action
 from servey.trigger.web_trigger import WEB_GET
 
 

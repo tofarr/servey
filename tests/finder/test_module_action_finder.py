@@ -16,7 +16,7 @@ class TestModuleActionFinder(TestCase):
         os.environ.pop("SERVEY_ACTION_PATH")
 
     def test_find_actions(self):
-        finder = ModuleActionFinder("tests.finder")
+        finder = ModuleActionFinder("tests.finder.test_module_action_finder")
         actions = list(finder.find_actions())
         expected = [
             replace(foo.__servey_action__, fn=actions[0].fn),

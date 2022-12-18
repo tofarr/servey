@@ -1,5 +1,5 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from logging import getLogger
 from typing import Iterator
 
@@ -17,8 +17,12 @@ LOGGER = getLogger(__name__)
 class StrawberryStarletteRouteFactory(RouteFactoryABC):
     """Route factory which adds graphql"""
 
-    graphql_path: str = os.environ.get("SERVEY_GRAPHQL_PATH") or "/graphql"
-    debug: bool = int(os.environ.get("SERVER_DEBUG", "1")) == 1
+    graphql_path: str = field(
+        default_factory=lambda: os.environ.get("SERVEY_GRAPHQL_PATH") or "/graphql"
+    )
+    debug: bool = field(
+        default_factory=lambda: int(os.environ.get("SERVER_DEBUG", "1")) == 1
+    )
 
     def create_routes(self) -> Iterator[Route]:
         # Create an authenticator object based on username and password
@@ -29,6 +33,8 @@ class StrawberryStarletteRouteFactory(RouteFactoryABC):
             from strawberry.asgi import GraphQL
 
             schema = new_schema_for_actions()
+            if not schema:
+                return
             graphql_app = GraphQL(schema, debug=self.debug)
             yield Route(path=self.graphql_path, methods=["post"], endpoint=graphql_app)
             yield WebSocketRoute(path=self.graphql_path, endpoint=graphql_app)
