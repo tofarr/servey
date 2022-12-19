@@ -97,6 +97,10 @@ query{
         }
         self.assertEqual(expected_result, result.data)
 
+    def test_tree_size(self):
+        self.assertEqual(4, _ROOT.tree_size())
+
+
 @dataclass
 class Node:
     name: str

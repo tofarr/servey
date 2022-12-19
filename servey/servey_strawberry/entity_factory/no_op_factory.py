@@ -16,8 +16,6 @@ class NoOpFactory(EntityFactoryABC):
     ) -> Optional[Type]:
         if annotation in (bool, datetime, float, int, str, UUID):
             return annotation
-        if annotation.__module__.startswith("strawberry."):
-            return annotation
 
     def create_input(
         self, annotation: Type, schema_factory: SchemaFactory

@@ -24,11 +24,10 @@ class GenericFactory(EntityFactoryABC):
         origin = typing_inspect.get_origin(annotation)
         if origin:
             origin = _TYPES_BY_ORIGIN.get(origin) or origin
-            if not origin:
-                return
             args = tuple(
                 schema_factory.get_type(a) for a in typing_inspect.get_args(annotation)
             )
+            # noinspection PyTypeChecker
             return origin[args]
 
     def create_input(
@@ -37,9 +36,8 @@ class GenericFactory(EntityFactoryABC):
         origin = typing_inspect.get_origin(annotation)
         if origin:
             origin = _TYPES_BY_ORIGIN.get(origin) or origin
-            if not origin:
-                return
             args = tuple(
                 schema_factory.get_input(a) for a in typing_inspect.get_args(annotation)
             )
+            # noinspection PyTypeChecker
             return origin[args]
