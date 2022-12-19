@@ -183,7 +183,7 @@ query{
         schema_factory = create_schema_factory()
 
         def another_now() -> UNRESOLVED:
-            return datetime.now()
+            """ Dummy """
 
         @strawberry.type
         class Times:
@@ -191,7 +191,7 @@ query{
 
             @strawberry.field
             def now(self) -> datetime:
-                return datetime.now()
+                """ Dummy """
 
         # noinspection PyTypeChecker
         resolved_type = schema_factory._resolve_type_futures(Times, set())

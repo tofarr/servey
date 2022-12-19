@@ -40,6 +40,18 @@ class TestStrawberryStarletteRouteFactory(TestCase):
             routes = list(factory.create_routes())
             self.assertEqual([], routes)
 
+    def test_create_routes_no_module(self):
+        def raise_module_not_found():
+            raise ModuleNotFoundError()
+
+        factory = StrawberryStarletteRouteFactory()
+        with patch(
+                'servey.servey_strawberry.schema_factory.new_schema_for_actions',
+                raise_module_not_found
+        ):
+            routes = list(factory.create_routes())
+            self.assertEqual([], routes)
+
 
 @action(triggers=(WEB_GET,))
 def get_the_time() -> datetime:
