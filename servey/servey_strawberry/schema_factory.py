@@ -14,7 +14,6 @@ from strawberry.type import StrawberryOptional, StrawberryContainer
 from strawberry.types.fields.resolver import StrawberryResolver
 
 from servey.action.action import Action
-from servey.errors import ServeyError
 from servey.finder.action_finder_abc import find_actions_with_trigger_type
 from servey.trigger.web_trigger import WebTrigger, UPDATE_METHODS
 from servey.servey_strawberry.entity_factory.entity_factory_abc import (

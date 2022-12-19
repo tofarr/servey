@@ -1,7 +1,13 @@
 import dataclasses
 from dataclasses import dataclass, field
-from typing import List, ForwardRef, Optional, Tuple
+from datetime import datetime
+from typing import List, ForwardRef, Optional, Tuple, Set
 from unittest import TestCase
+
+import strawberry
+from strawberry.annotation import StrawberryAnnotation
+from strawberry.field import StrawberryField, UNRESOLVED
+from strawberry.type import StrawberryOptional
 
 from servey.action.action import action, get_action, Action
 from servey.action.resolvable import resolvable
@@ -99,6 +105,97 @@ query{
 
     def test_tree_size(self):
         self.assertEqual(4, _ROOT.tree_size())
+
+    def test_create_field_for_action(self):
+        class DummyHandlerFilter(HandlerFilterABC):
+            def filter(
+                    self,
+                    action: Action,
+                    schema_factory: SchemaFactory
+            ) -> Tuple[Action, bool]:
+                return action, False
+
+        @strawberry.type
+        class Cat:
+            name: str
+
+        @strawberry.type
+        class Dog:
+            name: str
+
+        @strawberry.type
+        class Owner:
+            name: str
+            pet: strawberry.union("Pet", types=(Cat, Dog))
+
+        @action(triggers=(WEB_GET,))
+        def dummy() -> Owner:
+            """ Dummy """
+
+        schema_factory = create_schema_factory()
+        schema_factory.handler_filters.append(DummyHandlerFilter())
+        schema_factory.create_field_for_action(get_action(dummy), WEB_GET)
+        schema = schema_factory.create_schema()
+
+    def test_resolve_type_futures_str(self):
+        schema_factory = create_schema_factory()
+        # noinspection PyTypeChecker
+        schema_factory.types['Foo'] = 'bar'
+        self.assertEqual('bar', schema_factory._resolve_type_futures('Foo', set()))
+
+    def test_resolve_type_futures_strawberry_annotation(self):
+        schema_factory = create_schema_factory()
+        # noinspection PyTypeChecker
+        schema_factory.types['str'] = 'bar'
+        # noinspection PyTypeChecker
+        annotation = StrawberryAnnotation("str")
+        resolved_type = schema_factory._resolve_type_futures(annotation, set())
+        self.assertEqual(annotation, resolved_type)
+
+    def test_resolve_type_futures_forward_ref(self):
+        schema_factory = create_schema_factory()
+        # noinspection PyTypeChecker
+        schema_factory.types['int'] = 'bar'
+        # noinspection PyTypeChecker
+        annotation = ForwardRef("int")
+        resolved_type = schema_factory._resolve_type_futures(annotation, set())
+        self.assertEqual('bar', resolved_type)
+
+    def test_resolve_type_futures_strawberry_optional(self):
+        schema_factory = create_schema_factory()
+        # noinspection PyTypeChecker
+        schema_factory.types['str'] = 'bar'
+        # noinspection PyTypeChecker
+        annotation = StrawberryOptional(Optional[int])
+        resolved_type = schema_factory._resolve_type_futures(annotation, set())
+        self.assertEqual(annotation, resolved_type)
+
+    def test_resolve_type_futures_strawberry_set(self):
+        schema_factory = create_schema_factory()
+        # noinspection PyTypeChecker
+        schema_factory.types['str'] = 'bar'
+        # noinspection PyTypeChecker
+        annotation = Set[int]
+        resolved_type = schema_factory._resolve_type_futures(annotation, set())
+        self.assertEqual(set[int], resolved_type)
+
+    def test_resolve_type_futures_dataclass(self):
+        schema_factory = create_schema_factory()
+
+        def another_now() -> UNRESOLVED:
+            return datetime.now()
+
+        @strawberry.type
+        class Times:
+            also_now = strawberry.field(resolver=another_now)
+
+            @strawberry.field
+            def now(self) -> datetime:
+                return datetime.now()
+
+        # noinspection PyTypeChecker
+        resolved_type = schema_factory._resolve_type_futures(Times, set())
+        self.assertEqual(Times, resolved_type)
 
 
 @dataclass
