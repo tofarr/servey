@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from time import sleep
-from typing import Optional
+from typing import Optional, List, ForwardRef
 
 from servey.action.action import action
 from servey.action.resolvable import resolvable
@@ -101,3 +101,52 @@ def number_stats(value: int) -> NumberStats:
 @action(triggers=(FixedRateTrigger(10),))
 def ping():
     print("============== Ping! ==============")
+
+
+@dataclass
+class Node:
+    """ Demonstration of nested data structure """
+    name: str
+    child_nodes: List[ForwardRef(f"{__name__}.Node")] = field(default_factory=list)
+
+    @resolvable
+    def tree_size(self) -> int:
+        result = 1 + sum(n.tree_size() for n in self.child_nodes)
+        return result
+
+    def get_node_by_name(self, name: str) -> Optional["Node"]:
+        if name == self.name:
+            return self
+        for c in self.child_nodes:
+            node = c.get_node_by_name(name)
+            if node:
+                return node
+
+
+_ROOT = Node("root", [Node("child_a", [Node("grandchild_a")]), Node("child_b")])
+
+
+@action(triggers=(WEB_GET,))
+def get_node(path: str = "") -> Optional[Node]:
+    node = _ROOT
+    if path:
+        path = path.split("/")
+        for p in path:
+            if p:
+                node = next((n for n in node.child_nodes if n.name == p), None)
+                if not node:
+                    return None
+    return node
+
+
+@action(triggers=(WEB_GET,))
+def get_node_by_name(name: str = "") -> Optional[Node]:
+    node = _ROOT.get_node_by_name(name)
+    return node
+
+
+# noinspection PyUnusedLocal
+@action(triggers=(WEB_POST,))
+def put_root(node: Node) -> bool:
+    _ROOT = node
+    return True

@@ -48,7 +48,7 @@ setuptools.setup(
     include_package_data=True,
     install_requires=[
         "marshy~=3.0",
-        "schemey~=5.4",
+        "schemey~=5.5",
         "pyjwt~=2.4",
         "cryptography~=37.0",
     ],

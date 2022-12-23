@@ -25,7 +25,8 @@ def get_schema_for_params(
             continue
         if p.annotation is inspect.Parameter.empty:
             raise ServeyError(f"missing_param_annotation:{fn.__name__}:{p.name}")
-        properties[p.name] = schema_context.schema_from_type(p.annotation).schema
+        schema = schema_context.schema_from_type(p.annotation).schema
+        properties[p.name] = _remap_references(f"#/properties/{p.name}", schema)
         if p.default == inspect.Parameter.empty:
             required.append(p.name)
     json_schema = {
@@ -70,32 +71,57 @@ def get_marshaller_for_params(
     return marshaller
 
 
-def with_isolated_references(
-    root: ExternalItemType, schema: ExternalType, components: ExternalItemType
-):
+def _remap_references(to_path: str, schema: ExternalType) -> ExternalType:
     if isinstance(schema, dict):
-        ref = schema.get("$ref")
-        if ref is not None:
-            ref = ref.split("/")
-            referenced_schema = root
-            for r in ref:
-                referenced_schema = referenced_schema[r]
-            name = referenced_schema.get("name")
-            if name not in components:
-                components[name] = schema  # Prevent infinite loop
-                components[name] = with_isolated_references(
-                    root, referenced_schema, components
-                )
-            return {"$ref": f"components/{name}"}
+        ref = schema.get('$ref')
+        if ref and ref.startswith('#'):
+            return {'$ref': to_path + ref[1:]}
         schema = {
-            k: with_isolated_references(root, v, components) for k, v in schema.items()
+            k: _remap_references(to_path, v)
+            for k, v in schema.items()
         }
         return schema
     elif isinstance(schema, list):
-        schema = [with_isolated_references(root, v, components) for v in schema]
+        schema = [_remap_references(to_path, i) for i in schema]
         return schema
     else:
         return schema
+
+
+def move_ref_items_to_components(root: ExternalItemType, current: ExternalType, components: ExternalItemType) -> ExternalType:
+    if isinstance(current, dict):
+        name = current.get('name')
+        if name and isinstance(name, str):
+            schema = components.get(name)
+            if not schema:
+                components[name] = 'PENDING'  # Prevent infinite recursion
+                components[name] = {
+                    k: move_ref_items_to_components(root, v, components)
+                    for k, v in current.items()
+                }
+            return {'$ref': f'#/components/{name}'}
+        ref = current.get('$ref')
+        if ref and ref.startswith('#/'):
+            referenced = root
+            if ref != '#/':
+                ref = ref[2:].split('/')
+                for r in ref:
+                    if isinstance(referenced, list):
+                        # noinspection PyTypeChecker
+                        referenced = referenced[int(r)]
+                    else:
+                        referenced = referenced[r]
+            name = referenced['name']
+            return {'$ref': f'#/components/{name}'}
+        schema = {
+            k: move_ref_items_to_components(root, v, components)
+            for k, v in current.items()
+        }
+        return schema
+    elif isinstance(current, list):
+        schema = [move_ref_items_to_components(root, i, components) for i in current]
+        return schema
+    return current
 
 
 def inject_value_at(path: str, current, value):

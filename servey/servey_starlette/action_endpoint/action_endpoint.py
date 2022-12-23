@@ -13,7 +13,8 @@ from starlette.responses import Response, JSONResponse
 from starlette.routing import Route
 
 from servey.action.action import Action
-from servey.action.util import with_isolated_references
+from servey.action.util import move_ref_items_to_components
+from servey.errors import ServeyError
 from servey.servey_starlette.action_endpoint.action_endpoint_abc import (
     ActionEndpointABC,
 )
@@ -107,13 +108,15 @@ class ActionEndpoint(ActionEndpointABC):
         if method in BODY_METHODS:
             self.body_request_to_openapi_schema(path_method, components)
         else:
-            self.query_string_request_to_openapi_schema(path_method, components)
+            self.query_string_request_to_openapi_schema(path_method)
 
     def body_request_to_openapi_schema(
         self, path_method: ExternalItemType, components: ExternalItemType
     ):
-        schema = with_isolated_references(
-            self.params_schema.schema, self.params_schema.schema, components
+        schema = move_ref_items_to_components(
+            self.params_schema.schema,
+            self.params_schema.schema,
+            components
         )
         content = {"schema": schema}
         path_method["requestBody"] = {
@@ -129,17 +132,16 @@ class ActionEndpoint(ActionEndpointABC):
         responses: ExternalItemType = path_method["responses"]
         responses["422"] = {"description": "Validation Error"}
 
-    def query_string_request_to_openapi_schema(
-        self, path_method: ExternalItemType, components: ExternalItemType
-    ):
+    def query_string_request_to_openapi_schema(self, path_method: ExternalItemType):
         schema = self.params_schema
         properties = schema.schema["properties"]
         required = set(schema.schema.get("required") or [])
-        path_method["parameters"] = [
+        params_components = {}
+        params = [
             filter_none(
                 {
                     "required": k in required,
-                    "schema": with_isolated_references(schema.schema, v, components),
+                    "schema": move_ref_items_to_components(schema.schema, v, params_components),
                     "name": k,
                     "in": "query",
                     "examples": {
@@ -156,15 +158,18 @@ class ActionEndpoint(ActionEndpointABC):
             )
             for k, v in properties.items()
         ]
+        if params_components:
+            # Not supported for now
+            raise ServeyError(f'nested_params_in_url_not_supported:{self.action.name}')
+        path_method["parameters"] = params
         responses: ExternalItemType = path_method["responses"]
         responses["422"] = {"description": "Validation Error"}
 
     def response_to_openapi_schema(
         self, responses: ExternalItemType, components: ExternalItemType
     ):
-        schema = with_isolated_references(
-            self.result_schema.schema, self.result_schema.schema, components
-        )
+        schema = self.result_schema.schema
+        schema = move_ref_items_to_components(schema, schema, components)
         content = {"schema": schema}
         if self.action.examples:
             content["examples"] = {

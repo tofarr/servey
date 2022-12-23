@@ -35,8 +35,6 @@ class ActionEndpointFactory(ActionEndpointFactoryABC):
     ) -> Optional[ActionEndpointABC]:
         methods = {t.method for t in action.triggers if isinstance(t, WebTrigger)}
         paths = {t.path for t in action.triggers if isinstance(t, WebTrigger) if t.path}
-        if not methods:
-            return
         if len(paths) == 1:
             path = next(iter(paths))
         elif len(paths) > 1:
