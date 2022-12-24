@@ -114,9 +114,7 @@ class ActionEndpoint(ActionEndpointABC):
         self, path_method: ExternalItemType, components: ExternalItemType
     ):
         schema = move_ref_items_to_components(
-            self.params_schema.schema,
-            self.params_schema.schema,
-            components
+            self.params_schema.schema, self.params_schema.schema, components
         )
         content = {"schema": schema}
         path_method["requestBody"] = {
@@ -141,7 +139,9 @@ class ActionEndpoint(ActionEndpointABC):
             filter_none(
                 {
                     "required": k in required,
-                    "schema": move_ref_items_to_components(schema.schema, v, params_components),
+                    "schema": move_ref_items_to_components(
+                        schema.schema, v, params_components
+                    ),
                     "name": k,
                     "in": "query",
                     "examples": {
@@ -159,8 +159,8 @@ class ActionEndpoint(ActionEndpointABC):
             for k, v in properties.items()
         ]
         if params_components:
-            # Not supported for now
-            raise ServeyError(f'nested_params_in_url_not_supported:{self.action.name}')
+            # We don't support get methods with components for now.
+            raise ServeyError(f"nested_params_in_url_not_supported:{self.action.name}")
         path_method["parameters"] = params
         responses: ExternalItemType = path_method["responses"]
         responses["422"] = {"description": "Validation Error"}

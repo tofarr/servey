@@ -105,7 +105,8 @@ def ping():
 
 @dataclass
 class Node:
-    """ Demonstration of nested data structure """
+    """Demonstration of nested data structure"""
+
     name: str
     child_nodes: List[ForwardRef(f"{__name__}.Node")] = field(default_factory=list)
 

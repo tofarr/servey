@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, Any
+from email.utils import parsedate_to_datetime
 
 from marshy.types import ExternalItemType
 from schemey import schema_from_type
@@ -47,7 +48,8 @@ class CachingActionEndpoint(ActionEndpointABC):
             if cache_header.etag == if_match:
                 response = Response(None, 304)
         elif if_modified_since and cache_header.updated_at:
-            if if_modified_since >= cache_header.updated_at:
+            if_modified_since_date = parsedate_to_datetime(if_modified_since)
+            if if_modified_since_date >= cache_header.updated_at:
                 response = Response(None, 304)
         response.headers.update(cache_header.get_http_headers())
         return response

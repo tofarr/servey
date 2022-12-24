@@ -9,13 +9,7 @@ from servey.security.authorization import Authorization
 
 @dataclass(frozen=True)
 class ScopeAccessControl(ActionAccessControlABC):
-    view_scope: Optional[str]
     execute_scope: Optional[str]
-
-    def is_viewable(self, authorization: Optional[Authorization]) -> bool:
-        return bool(authorization and self.view_scope) and authorization.has_scope(
-            self.view_scope
-        )
 
     def is_executable(self, authorization: Optional[Authorization]) -> bool:
         return bool(authorization and self.execute_scope) and authorization.has_scope(

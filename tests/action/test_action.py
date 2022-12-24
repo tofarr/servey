@@ -32,7 +32,7 @@ class TestAction(TestCase):
     def test_decorator_args(self):
         # noinspection PyUnusedLocal
         @action(
-            access_control=ScopeAccessControl("view", "execute"),
+            access_control=ScopeAccessControl("execute"),
             triggers=(WEB_GET, FixedRateTrigger(3600)),
             timeout=30,
             examples=(Example(name="ten", params=dict(value=10), result="That's 10"),),
@@ -46,7 +46,7 @@ class TestAction(TestCase):
             fn=noop,
             name="noop",
             description="Noop",
-            access_control=ScopeAccessControl("view", "execute"),
+            access_control=ScopeAccessControl("execute"),
             triggers=(WEB_GET, FixedRateTrigger(3600)),
             timeout=30,
             examples=(Example(name="ten", params=dict(value=10), result="That's 10"),),

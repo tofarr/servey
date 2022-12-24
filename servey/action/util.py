@@ -73,13 +73,10 @@ def get_marshaller_for_params(
 
 def _remap_references(to_path: str, schema: ExternalType) -> ExternalType:
     if isinstance(schema, dict):
-        ref = schema.get('$ref')
-        if ref and ref.startswith('#'):
-            return {'$ref': to_path + ref[1:]}
-        schema = {
-            k: _remap_references(to_path, v)
-            for k, v in schema.items()
-        }
+        ref = schema.get("$ref")
+        if ref and ref.startswith("#"):
+            return {"$ref": to_path + ref[1:]}
+        schema = {k: _remap_references(to_path, v) for k, v in schema.items()}
         return schema
     elif isinstance(schema, list):
         schema = [_remap_references(to_path, i) for i in schema]
@@ -88,31 +85,33 @@ def _remap_references(to_path: str, schema: ExternalType) -> ExternalType:
         return schema
 
 
-def move_ref_items_to_components(root: ExternalItemType, current: ExternalType, components: ExternalItemType) -> ExternalType:
+def move_ref_items_to_components(
+    root: ExternalItemType, current: ExternalType, components: ExternalItemType
+) -> ExternalType:
     if isinstance(current, dict):
-        name = current.get('name')
+        name = current.get("name")
         if name and isinstance(name, str):
             schema = components.get(name)
             if not schema:
-                components[name] = 'PENDING'  # Prevent infinite recursion
+                components[name] = "PENDING"  # Prevent infinite recursion
                 components[name] = {
                     k: move_ref_items_to_components(root, v, components)
                     for k, v in current.items()
                 }
-            return {'$ref': f'#/components/{name}'}
-        ref = current.get('$ref')
-        if ref and ref.startswith('#/'):
+            return {"$ref": f"#/components/{name}"}
+        ref = current.get("$ref")
+        if ref and ref.startswith("#/"):
             referenced = root
-            if ref != '#/':
-                ref = ref[2:].split('/')
+            if ref != "#/":
+                ref = ref[2:].split("/")
                 for r in ref:
                     if isinstance(referenced, list):
                         # noinspection PyTypeChecker
                         referenced = referenced[int(r)]
                     else:
                         referenced = referenced[r]
-            name = referenced['name']
-            return {'$ref': f'#/components/{name}'}
+            name = referenced["name"]
+            return {"$ref": f"#/components/{name}"}
         schema = {
             k: move_ref_items_to_components(root, v, components)
             for k, v in current.items()

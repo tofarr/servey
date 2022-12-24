@@ -63,22 +63,23 @@ query{
         }
         self.assertEqual(expected_result, result.data)
         self.assertIsNone(get_node('foo"'))
-        self.assertIsNone(get_node_by_name('foo'))
+        self.assertIsNone(get_node_by_name("foo"))
         self.assertEqual(
-            Node(name='child_a', child_nodes=[
-                Node(name='grandchild_a', child_nodes=[])
-            ]),
-            get_node_by_name('child_a')
+            Node(
+                name="child_a", child_nodes=[Node(name="grandchild_a", child_nodes=[])]
+            ),
+            get_node_by_name("child_a"),
         )
         self.assertIs(schema_factory.get_type(Node), schema_factory.get_type(Node))
 
     def test_handler_filter_stopper(self):
-
         def static_tree_size():
             return 10
 
         class StopHandlerFilter(HandlerFilterABC):
-            def filter(self, action_: Action, schema_factory_: SchemaFactory) -> Tuple[Action, bool]:
+            def filter(
+                self, action_: Action, schema_factory_: SchemaFactory
+            ) -> Tuple[Action, bool]:
                 if action_.name == "tree_size":
                     action_ = dataclasses.replace(action_, fn=static_tree_size)
                     return action_, False
@@ -90,17 +91,17 @@ query{
         schema_factory.create_field_for_action(get_action(get_node_by_name), WEB_GET)
         schema_factory.create_field_for_action(get_action(put_node), WEB_POST)
         schema = schema_factory.create_schema()
-        result = schema.execute_sync("""
+        result = schema.execute_sync(
+            """
             query{
                 getNodeByName(name: "grandchild_a") {
                     name
                     treeSize
                 }
             }
-        """)
-        expected_result = {
-            "getNodeByName": {"name": "grandchild_a", "treeSize": 10}
-        }
+        """
+        )
+        expected_result = {"getNodeByName": {"name": "grandchild_a", "treeSize": 10}}
         self.assertEqual(expected_result, result.data)
 
     def test_tree_size(self):
@@ -109,9 +110,7 @@ query{
     def test_create_field_for_action(self):
         class DummyHandlerFilter(HandlerFilterABC):
             def filter(
-                    self,
-                    action: Action,
-                    schema_factory: SchemaFactory
+                self, action: Action, schema_factory: SchemaFactory
             ) -> Tuple[Action, bool]:
                 return action, False
 
@@ -130,7 +129,7 @@ query{
 
         @action(triggers=(WEB_GET,))
         def dummy() -> Owner:
-            """ Dummy """
+            """Dummy"""
 
         schema_factory = create_schema_factory()
         schema_factory.handler_filters.append(DummyHandlerFilter())
@@ -140,13 +139,13 @@ query{
     def test_resolve_type_futures_str(self):
         schema_factory = create_schema_factory()
         # noinspection PyTypeChecker
-        schema_factory.types['Foo'] = 'bar'
-        self.assertEqual('bar', schema_factory._resolve_type_futures('Foo', set()))
+        schema_factory.types["Foo"] = "bar"
+        self.assertEqual("bar", schema_factory._resolve_type_futures("Foo", set()))
 
     def test_resolve_type_futures_strawberry_annotation(self):
         schema_factory = create_schema_factory()
         # noinspection PyTypeChecker
-        schema_factory.types['str'] = 'bar'
+        schema_factory.types["str"] = "bar"
         # noinspection PyTypeChecker
         annotation = StrawberryAnnotation("str")
         resolved_type = schema_factory._resolve_type_futures(annotation, set())
@@ -155,16 +154,16 @@ query{
     def test_resolve_type_futures_forward_ref(self):
         schema_factory = create_schema_factory()
         # noinspection PyTypeChecker
-        schema_factory.types['int'] = 'bar'
+        schema_factory.types["int"] = "bar"
         # noinspection PyTypeChecker
         annotation = ForwardRef("int")
         resolved_type = schema_factory._resolve_type_futures(annotation, set())
-        self.assertEqual('bar', resolved_type)
+        self.assertEqual("bar", resolved_type)
 
     def test_resolve_type_futures_strawberry_optional(self):
         schema_factory = create_schema_factory()
         # noinspection PyTypeChecker
-        schema_factory.types['str'] = 'bar'
+        schema_factory.types["str"] = "bar"
         # noinspection PyTypeChecker
         annotation = StrawberryOptional(Optional[int])
         resolved_type = schema_factory._resolve_type_futures(annotation, set())
@@ -173,7 +172,7 @@ query{
     def test_resolve_type_futures_strawberry_set(self):
         schema_factory = create_schema_factory()
         # noinspection PyTypeChecker
-        schema_factory.types['str'] = 'bar'
+        schema_factory.types["str"] = "bar"
         # noinspection PyTypeChecker
         annotation = Set[int]
         resolved_type = schema_factory._resolve_type_futures(annotation, set())
@@ -183,7 +182,7 @@ query{
         schema_factory = create_schema_factory()
 
         def another_now() -> UNRESOLVED:
-            """ Dummy """
+            """Dummy"""
 
         @strawberry.type
         class Times:
@@ -191,7 +190,7 @@ query{
 
             @strawberry.field
             def now(self) -> datetime:
-                """ Dummy """
+                """Dummy"""
 
         # noinspection PyTypeChecker
         resolved_type = schema_factory._resolve_type_futures(Times, set())
@@ -215,6 +214,7 @@ class Node:
             node = c.get_node_by_name(name)
             if node:
                 return node
+
 
 _ROOT = Node("root", [Node("child_a", [Node("grandchild_a")]), Node("child_b")])
 

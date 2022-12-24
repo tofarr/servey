@@ -46,8 +46,8 @@ class TestStrawberryStarletteRouteFactory(TestCase):
 
         factory = StrawberryStarletteRouteFactory()
         with patch(
-                'servey.servey_strawberry.schema_factory.new_schema_for_actions',
-                raise_module_not_found
+            "servey.servey_strawberry.schema_factory.new_schema_for_actions",
+            raise_module_not_found,
         ):
             routes = list(factory.create_routes())
             self.assertEqual([], routes)

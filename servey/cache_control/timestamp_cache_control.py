@@ -16,7 +16,7 @@ class TimestampCacheControl(CacheControlABC):
     cache_control: CacheControlABC = SecureHashCacheControl()
     updated_at_attr: str = "updated_at"
     timestamp_marshaller: MarshallerABC[datetime] = field(
-        default_factory=lambda: get_default_context().get_marshaller_for_type(datetime)
+        default_factory=lambda: get_default_context().get_marshaller(datetime)
     )
 
     def get_cache_header(self, item: ExternalItemType):

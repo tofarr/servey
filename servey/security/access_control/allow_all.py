@@ -6,9 +6,6 @@ from servey.util.singleton_abc import SingletonABC
 
 
 class AllowAll(SingletonABC, ActionAccessControlABC):
-    def is_viewable(self, authorization: Authorization) -> bool:
-        return True
-
     def is_executable(self, authorization: Authorization) -> bool:
         return True
 
