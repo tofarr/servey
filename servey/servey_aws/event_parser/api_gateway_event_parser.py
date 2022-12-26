@@ -22,6 +22,9 @@ class ApiGatewayEventParser(EventParserABC):
         else:
             params = event.get("queryStringParameters") or {}
         parsed = self.marshaller.load(params)
+        # INTEGRATE AUTH HERE!!!!
+        # ALSO INTEGRATE RESOLVERS
+        # ALSO INTEGRATE CACHING
         if self.auth_kwarg_name:
             parsed[self.auth_kwarg_name] = self.get_authorization(event)
         return parsed

@@ -9,7 +9,7 @@ from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType
 from schemey import get_default_schema_context, SchemaContext
 
-from servey.action.util import get_marshaller_for_params
+from servey.action.util import get_marshaller_for_params, get_schema_for_params
 from servey.security.authorization import Authorization, get_inject_at
 from servey.security.authorizer.authorizer_factory_abc import create_authorizer
 from servey.servey_aws.event_parser.event_parser import EventParser
@@ -38,9 +38,8 @@ class EventParserFactory(EventParserFactoryABC):
             if self.allow_unsigned_auth:
                 auth_marshaller = self.marshaller_context.get_marshaller(Authorization)
         marshaller = get_marshaller_for_params(fn, set(), self.marshaller_context)
-        # noinspection PyUnresolvedReferences
         schema = (
-            get_schema_for_params(fn, self.schema_context) if self.validate else None
+            get_schema_for_params(fn, set(), self.schema_context) if self.validate else None
         )
         return EventParser(
             marshaller, schema, auth_kwarg_name, authorizer, auth_marshaller

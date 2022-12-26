@@ -8,8 +8,6 @@ from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType, ExternalType
 from schemey import Schema, get_default_schema_context, SchemaContext
 
-from servey.errors import ServeyError
-
 
 def get_schema_for_params(
     fn: Callable, skip_args: Set[str], schema_context: Optional[SchemaContext] = None
@@ -24,7 +22,7 @@ def get_schema_for_params(
         if p.name in skip_args:
             continue
         if p.annotation is inspect.Parameter.empty:
-            raise ServeyError(f"missing_param_annotation:{fn.__name__}:{p.name}")
+            raise TypeError(f"missing_param_annotation:{fn.__name__}:{p.name}")
         schema = schema_context.schema_from_type(p.annotation).schema
         properties[p.name] = _remap_references(f"#/properties/{p.name}", schema)
         if p.default == inspect.Parameter.empty:
@@ -36,16 +34,6 @@ def get_schema_for_params(
         "required": required,
     }
     schema = Schema(json_schema, dict)
-    return schema
-
-
-def get_schema_for_result(fn: Callable) -> Schema:
-    schema_context = get_default_schema_context()
-    sig = inspect.signature(fn)
-    type_ = sig.return_annotation
-    if type_ is inspect.Parameter.empty:
-        raise ServeyError(f"missing_return_annotation:{fn.__name__}")
-    schema = schema_context.schema_from_type(type_)
     return schema
 
 
