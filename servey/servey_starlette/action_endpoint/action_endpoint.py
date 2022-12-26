@@ -1,8 +1,10 @@
 from __future__ import annotations
 import json
+import logging
 from dataclasses import dataclass
-from typing import Tuple, Any, Optional, Dict
+from typing import Tuple, Any, Optional, Dict, List, Iterator
 
+from json_urley import query_str_to_json_obj
 from marshy.marshaller.marshaller_abc import MarshallerABC
 from marshy.types import ExternalItemType
 from schemey import Schema
@@ -13,12 +15,14 @@ from starlette.responses import Response, JSONResponse
 from starlette.routing import Route
 
 from servey.action.action import Action
+from servey.action.example import Example
 from servey.action.util import move_ref_items_to_components
-from servey.errors import ServeyError
 from servey.servey_starlette.action_endpoint.action_endpoint_abc import (
     ActionEndpointABC,
 )
 from servey.trigger.web_trigger import WebTriggerMethod, BODY_METHODS
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -65,13 +69,16 @@ class ActionEndpoint(ActionEndpointABC):
                 raise HTTPException(422, str(error))
             kwargs = self.params_marshaller.load(params)
         else:
-            # All params are strings here, and marshy allows this but schemey does not. so we load before validating,
-            # and dump to perform validation
             try:
-                kwargs = self.params_marshaller.load(request.query_params)
+                query_str = request.scope["query_string"] or b""
+                if isinstance(query_str, bytes):
+                    query_str = query_str.decode("latin-1")
+                json_obj = query_str_to_json_obj(query_str)
+                kwargs = self.params_marshaller.load(json_obj)
                 params = self.params_marshaller.dump(kwargs)
                 self.params_schema.validate(params)
             except Exception:
+                LOGGER.exception("invalid_input")
                 raise HTTPException(422, "invalid_input")
         return kwargs
 
@@ -131,36 +138,14 @@ class ActionEndpoint(ActionEndpointABC):
         responses["422"] = {"description": "Validation Error"}
 
     def query_string_request_to_openapi_schema(self, path_method: ExternalItemType):
-        schema = self.params_schema
-        properties = schema.schema["properties"]
-        required = set(schema.schema.get("required") or [])
-        params_components = {}
-        params = [
-            filter_none(
-                {
-                    "required": k in required,
-                    "schema": move_ref_items_to_components(
-                        schema.schema, v, params_components
-                    ),
-                    "name": k,
-                    "in": "query",
-                    "examples": {
-                        e.name: filter_none(
-                            dict(summary=e.description, value=e.params[k])
-                        )
-                        for e in self.action.examples
-                        if k in e.params
-                        if e.include_in_schema
-                    }
-                    if self.action.examples
-                    else None,
-                }
+        # Schema to openapi
+        params = list(
+            _object_schema_to_json_urley_parameters(
+                object_schema=self.params_schema.schema,
+                examples=self.action.examples or tuple(),
+                path=[],
             )
-            for k, v in properties.items()
-        ]
-        if params_components:
-            # We don't support get methods with components for now.
-            raise ServeyError(f"nested_params_in_url_not_supported:{self.action.name}")
+        )
         path_method["parameters"] = params
         responses: ExternalItemType = path_method["responses"]
         responses["422"] = {"description": "Validation Error"}
@@ -181,3 +166,82 @@ class ActionEndpoint(ActionEndpointABC):
             "description": "Successful Response",
             "content": {"application/json": content},
         }
+
+
+def _object_schema_to_json_urley_parameters(
+    object_schema: ExternalItemType, examples: Tuple[Example], path: List[str]
+) -> Iterator[ExternalItemType]:
+    """
+    This is not full support for json urley - parameters with references / urls are ignored and just do not appear
+    in the schema.
+    """
+    properties: ExternalItemType = object_schema.get("properties")
+    required_properties = set(object_schema.get("required") or [])
+    for key, property_schema in properties.items():
+        valid_schema = _get_valid_openapi_param_schema(property_schema)
+        if not valid_schema:
+            continue
+        path.append(key.replace("~", "~~").replace(".", "~."))
+        if valid_schema.get("type") == "object":
+            yield from _object_schema_to_json_urley_parameters(
+                valid_schema, examples, path
+            )
+        else:
+            example_schemas = {}
+            for example in examples:
+                example_value = example.params
+                for p in path:
+                    example_value = example_value.get(p, None)
+                    if example_value is None:
+                        break
+                if example_value is not None:
+                    example_schema = dict(value=example_value)
+                    if example.description:
+                        example_schema["summary"] = example.description
+                    example_schemas[example.name] = example_schema
+
+            result = {
+                "required": key in required_properties,
+                "schema": property_schema,
+                "name": ".".join(path),
+                "in": "query",
+            }
+            if example_schemas:
+                result["examples"] = example_schemas
+            yield result
+        path.pop()
+
+
+def _get_valid_openapi_param_schema(schema: ExternalItemType):
+    nullable_schema = _get_nullable_schema(schema)
+    if nullable_schema:
+        sub_schema = _get_valid_openapi_param_schema(nullable_schema)
+        return schema if sub_schema else None
+    type_ = schema.get("type")
+    if not type_:
+        return
+    type_ = type_.lower()
+    if type_ == "array":
+        sub_schema: ExternalItemType = schema.get("items")
+        if not sub_schema:
+            return
+        sub_schema = _get_nullable_schema(sub_schema)
+        if not sub_schema:
+            return
+        type_ = sub_schema.get("type")
+        if type_ in ("boolean", "number", "integer", "string"):
+            # We currently don't support nested arrays of objects / arrays in an openapi schema
+            return schema
+    elif type_ in ("boolean", "number", "integer", "object", "string"):
+        return schema
+
+
+def _get_nullable_schema(schema: ExternalItemType):
+    any_of = schema.get("anyOf")
+    if any_of:
+        if not isinstance(any_of, list):
+            return
+        non_nulls = [s for s in any_of if s.get("type") != "null"]
+        if len(non_nulls) != 1:
+            return
+        return non_nulls[0]

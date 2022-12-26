@@ -39,7 +39,9 @@ class EventParserFactory(EventParserFactoryABC):
                 auth_marshaller = self.marshaller_context.get_marshaller(Authorization)
         marshaller = get_marshaller_for_params(fn, set(), self.marshaller_context)
         schema = (
-            get_schema_for_params(fn, set(), self.schema_context) if self.validate else None
+            get_schema_for_params(fn, set(), self.schema_context)
+            if self.validate
+            else None
         )
         return EventParser(
             marshaller, schema, auth_kwarg_name, authorizer, auth_marshaller

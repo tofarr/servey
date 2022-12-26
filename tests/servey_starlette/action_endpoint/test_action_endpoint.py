@@ -26,7 +26,7 @@ class TestActionEndpoint(TestCase):
         action_endpoint = ActionEndpointFactory().create(
             get_action(echo_get), set(), []
         )
-        request = build_request(query_string="val=bar")
+        request = build_request(query_string=b"val=bar")
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(action_endpoint.execute(request))
         self.assertEqual(200, response.status_code)
@@ -325,8 +325,36 @@ class TestActionEndpoint(TestCase):
         action_ = get_action(dummy)
         action_endpoint = ActionEndpointFactory().create(action_, set(), [])
         schema = dict(paths={}, components={})
-        with self.assertRaises(ServeyError):
-            action_endpoint.to_openapi_schema(schema)
+        action_endpoint.to_openapi_schema(schema)
+        expected_schema = {
+            "paths": {
+                "/actions/dummy": {
+                    "get": {
+                        "responses": {
+                            "422": {"description": "Validation Error"},
+                            "200": {
+                                "description": "Successful Response",
+                                "content": {
+                                    "application/json": {"schema": {"type": "string"}}
+                                },
+                            },
+                        },
+                        "operationId": "dummy",
+                        "summary": "dummy route",
+                        "parameters": [
+                            {
+                                "required": True,
+                                "schema": {"type": "string"},
+                                "name": "node.name",
+                                "in": "query",
+                            }
+                        ],
+                    }
+                }
+            },
+            "components": {},
+        }
+        self.assertEqual(expected_schema, schema)
 
 
 def build_request(

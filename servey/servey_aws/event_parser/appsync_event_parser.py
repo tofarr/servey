@@ -16,6 +16,6 @@ class AppsyncEventParser(EventParserABC):
 
     def parse(self, event: ExternalItemType, context) -> Dict[str, Any]:
         info: Dict = event["info"]
-        variables = info['variables']
+        variables = info["variables"]
         parsed = self.marshaller.load(variables)
         return parsed

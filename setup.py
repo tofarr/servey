@@ -49,6 +49,7 @@ setuptools.setup(
     install_requires=[
         "marshy~=3.0",
         "schemey~=5.5",
+        "json-urley~=1.0",
         "pyjwt~=2.4",
         "cryptography~=37.0",
     ],

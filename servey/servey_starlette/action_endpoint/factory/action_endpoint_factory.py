@@ -33,30 +33,32 @@ class ActionEndpointFactory(ActionEndpointFactoryABC):
         skip_args: Set[str],
         factories: List[ActionEndpointFactoryABC],
     ) -> Optional[ActionEndpointABC]:
-        methods = {t.method for t in action.triggers if isinstance(t, WebTrigger)}
-        paths = {t.path for t in action.triggers if isinstance(t, WebTrigger) if t.path}
-        if len(paths) == 1:
-            path = next(iter(paths))
-        elif len(paths) > 1:
-            raise ServeyError(
-                f"multi_paths_not_supported:{action.name}:{','.join(paths)}"
+        web_triggers = [t for t in action.triggers if isinstance(t, WebTrigger)]
+        if web_triggers:
+            methods = {t.method for t in web_triggers}
+            paths = {t.path for t in web_triggers if t.path}
+            if len(paths) == 1:
+                path = next(iter(paths))
+            elif len(paths) > 1:
+                raise ServeyError(
+                    f"multi_paths_not_supported:{action.name}:{','.join(paths)}"
+                )
+            else:
+                path = self.path_pattern.format(action_name=action.name)
+            result_type = inspect.signature(action.fn).return_annotation
+            endpoint = ActionEndpoint(
+                action=action,
+                path=path,
+                methods=tuple(methods),
+                params_marshaller=get_marshaller_for_params(
+                    action.fn, skip_args, self.marshaller_context
+                ),
+                params_schema=get_schema_for_params(
+                    action.fn, skip_args, self.schema_context
+                ),
+                result_marshaller=self.marshaller_context.get_marshaller(result_type),
+                result_schema=self.schema_context.schema_from_type(result_type)
+                if self.validate_output
+                else None,
             )
-        else:
-            path = self.path_pattern.format(action_name=action.name)
-        result_type = inspect.signature(action.fn).return_annotation
-        endpoint = ActionEndpoint(
-            action=action,
-            path=path,
-            methods=tuple(methods),
-            params_marshaller=get_marshaller_for_params(
-                action.fn, skip_args, self.marshaller_context
-            ),
-            params_schema=get_schema_for_params(
-                action.fn, skip_args, self.schema_context
-            ),
-            result_marshaller=self.marshaller_context.get_marshaller(result_type),
-            result_schema=self.schema_context.schema_from_type(result_type)
-            if self.validate_output
-            else None,
-        )
-        return endpoint
+            return endpoint
