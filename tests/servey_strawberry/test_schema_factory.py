@@ -224,6 +224,7 @@ query{
         """)
         loop = asyncio.get_event_loop()
         result = loop.run_until_complete(future)
+        self.assertEqual(40320, loop.run_until_complete(NumberStats(8).factorial()))
         expected_result = {
             "getStatsForNumbers": [
                 {"value": 2, "factorial": 2},
