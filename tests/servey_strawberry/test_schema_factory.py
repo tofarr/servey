@@ -1,3 +1,4 @@
+import asyncio
 import dataclasses
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -6,7 +7,7 @@ from unittest import TestCase
 
 import strawberry
 from strawberry.annotation import StrawberryAnnotation
-from strawberry.field import StrawberryField, UNRESOLVED
+from strawberry.field import UNRESOLVED
 from strawberry.type import StrawberryOptional
 
 from servey.action.action import action, get_action, Action
@@ -110,9 +111,9 @@ query{
     def test_create_field_for_action(self):
         class DummyHandlerFilter(HandlerFilterABC):
             def filter(
-                self, action: Action, schema_factory: SchemaFactory
+                self, action_: Action, schema_factory_: SchemaFactory
             ) -> Tuple[Action, bool]:
-                return action, False
+                return action_, False
 
         @strawberry.type
         class Cat:
@@ -134,7 +135,7 @@ query{
         schema_factory = create_schema_factory()
         schema_factory.handler_filters.append(DummyHandlerFilter())
         schema_factory.create_field_for_action(get_action(dummy), WEB_GET)
-        schema = schema_factory.create_schema()
+        schema_factory.create_schema()
 
     def test_resolve_type_futures_str(self):
         schema_factory = create_schema_factory()
@@ -197,6 +198,43 @@ query{
         self.assertEqual(Times, resolved_type)
 
 
+    def test_batch_resolvable(self):
+        schema_factory = create_schema_factory()
+        schema_factory.create_field_for_action(get_action(get_stats_for_numbers), WEB_GET)
+        schema = schema_factory.create_schema()
+        str_schema = str(schema).strip()
+        expected_schema = """
+type NumberStats {
+  value: Int!
+  factorial: Int!
+}
+
+type Query {
+  getStatsForNumbers(numbers: [Int!]!): [NumberStats!]!
+}
+        """.strip()
+        self.assertEqual(expected_schema, str_schema)
+        future = schema.execute("""
+query{
+  getStatsForNumbers(numbers: [2, 4, 6, 8]) {
+    value
+    factorial
+  }
+}
+        """)
+        loop = asyncio.get_event_loop()
+        result = loop.run_until_complete(future)
+        expected_result = {
+            "getStatsForNumbers": [
+                {"value": 2, "factorial": 2},
+                {"value": 4, "factorial": 24},
+                {"value": 6, "factorial": 720},
+                {"value": 8, "factorial": 40320}
+            ]
+        }
+        self.assertEqual(expected_result, result.data)
+
+
 @dataclass
 class Node:
     name: str
@@ -242,3 +280,30 @@ def get_node_by_name(name: str = "") -> Optional[Node]:
 @action(triggers=(WEB_POST,))
 def put_node(path: str, node: Node) -> bool:
     """Not actually invoked, so do noop"""
+
+
+def factorial_result(value: int) -> int:
+    for n in range(1, value):
+        value *= n
+    return value
+
+
+async def batch_factorial(values: List[int]) -> List[int]:
+    results = [factorial_result(v) for v in values]
+    return results
+
+
+@dataclass
+class NumberStats:
+    """ Demonstrating batch resolvers """
+    value: int
+
+    @resolvable(batch_fn=batch_factorial, key_arg="value")
+    async def factorial(self) -> int:
+        return factorial_result(self.value)
+
+
+@action(triggers=(WEB_GET,))
+def get_stats_for_numbers(numbers: List[int]) -> List[NumberStats]:
+    result = [NumberStats(n) for n in numbers]
+    return result

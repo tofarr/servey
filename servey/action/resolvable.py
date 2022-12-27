@@ -18,17 +18,23 @@ class Resolvable:
     fn: Callable
     access_control: ActionAccessControlABC = (ALLOW_ALL,)
     cache_control: Optional[CacheControlABC] = (None,)
+    batch_fn: Optional[Callable] = None  # A coroutine which accepts a list of items and returns a list of results
+    max_batch_size: int = 100
+    key_arg: Optional[str] = None
 
 
 def resolvable(
-    fn: Optional[Callable],
+    fn: Optional[Callable] = None,
     access_control: ActionAccessControlABC = ALLOW_ALL,
     cache_control: Optional[CacheControlABC] = None,
+    batch_fn: Optional[Callable] = None,
+    max_batch_size: int = 100,
+    key_arg: Optional[str] = None,
 ):
     """Decorator for resolvable fields"""
 
     def wrapper_(fn_: Callable):
-        fn_.__servey_resolvable__ = Resolvable(fn_, access_control, cache_control)
+        fn_.__servey_resolvable__ = Resolvable(fn_, access_control, cache_control, batch_fn, max_batch_size, key_arg)
         return fn_
 
     return wrapper_ if fn is None else wrapper_(fn)

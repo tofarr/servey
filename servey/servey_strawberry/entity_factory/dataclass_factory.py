@@ -3,6 +3,7 @@ from dataclasses import is_dataclass, fields, dataclass
 from typing import Type, Optional, Dict, Any
 
 import strawberry
+from strawberry.dataloader import DataLoader
 
 from servey.action.action import Action
 from servey.action.resolvable import Resolvable, get_resolvable
@@ -82,9 +83,14 @@ def build_resolvable_field(
     key: str,
     params: Dict[str, Any],
 ):
+    if resolvable.batch_fn:
+        fn = _wrap_fn_in_data_loader(resolvable)
+    else:
+        fn = resolvable.fn
+
     action = Action(
         name=key,
-        fn=resolvable.fn,
+        fn=fn,
         access_control=resolvable.access_control,
         cache_control=resolvable.cache_control,
     )
@@ -94,7 +100,20 @@ def build_resolvable_field(
         if not continue_filtering:
             break
 
-    sig = inspect.signature(resolvable.fn)
+    sig = inspect.signature(fn)
     return_type = schema_factory.get_type(sig.return_annotation)
     params["__annotations__"][key] = return_type
     params[key] = strawberry.field(resolver=action.fn)
+
+
+def _wrap_fn_in_data_loader(resolvable: Resolvable):
+    data_loader = DataLoader(load_fn=resolvable.batch_fn, max_batch_size=resolvable.max_batch_size)
+
+    sig = inspect.signature(resolvable.fn)
+
+    async def wrapper(self) -> sig.return_annotation:
+        key = getattr(self, resolvable.key_arg)
+        result = await data_loader.load(key)
+        return result
+
+    return wrapper

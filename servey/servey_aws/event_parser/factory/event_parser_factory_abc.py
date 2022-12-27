@@ -4,6 +4,7 @@ from typing import Tuple, Optional, Callable
 
 from marshy.types import ExternalItemType
 
+from servey.action.action import Action
 from servey.servey_aws.event_parser.event_parser_abc import EventParserABC
 
 
@@ -12,7 +13,7 @@ class EventParserFactoryABC(ABC):
 
     @abstractmethod
     def create(
-        self, fn: Callable, event: ExternalItemType, context
+        self, action: Action, event: ExternalItemType, context
     ) -> Optional[EventParserABC]:
         """Create an event parser"""
 

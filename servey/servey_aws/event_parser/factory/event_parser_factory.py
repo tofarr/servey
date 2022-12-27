@@ -9,7 +9,9 @@ from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType
 from schemey import get_default_schema_context, SchemaContext
 
+from servey.action.action import Action
 from servey.action.util import get_marshaller_for_params, get_schema_for_params
+from servey.security.access_control.allow_all import ALLOW_ALL
 from servey.security.authorization import Authorization, get_inject_at
 from servey.security.authorizer.authorizer_factory_abc import create_authorizer
 from servey.servey_aws.event_parser.event_parser import EventParser
@@ -28,12 +30,12 @@ class EventParserFactory(EventParserFactoryABC):
     priority: int = 50
 
     def create(
-        self, fn: Callable, event: ExternalItemType, context
+        self, action: Action, event: ExternalItemType, context
     ) -> Optional[EventParserABC]:
-        fn, auth_kwarg_name = separate_auth_kwarg(fn)
+        fn, auth_kwarg_name = separate_auth_kwarg(action.fn)
         authorizer = None
         auth_marshaller = None
-        if auth_kwarg_name:
+        if auth_kwarg_name or action.access_control != ALLOW_ALL:
             authorizer = create_authorizer()
             if self.allow_unsigned_auth:
                 auth_marshaller = self.marshaller_context.get_marshaller(Authorization)

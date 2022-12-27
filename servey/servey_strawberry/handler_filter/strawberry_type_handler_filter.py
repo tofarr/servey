@@ -34,9 +34,9 @@ class StrawberryTypeHandlerFilter(HandlerFilterABC):
             return_annotation=schema_factory.get_type(sig.return_annotation),
         )
 
-        def resolver(**kwargs):
+        def resolver(*args, **kwargs):
             # Should we unwrap strawberry inputs here?
-            result = fn(**kwargs)
+            result = fn(*args, **kwargs)
             # Should we wrap the result type here?
             return result
 
