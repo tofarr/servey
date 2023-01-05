@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from servey.trigger.trigger_abc import TriggerABC
+
 
 class WebTriggerMethod(Enum):
     DELETE = "delete"
@@ -14,7 +16,7 @@ class WebTriggerMethod(Enum):
 
 
 @dataclass(frozen=True)
-class WebTrigger:
+class WebTrigger(TriggerABC):
     method: WebTriggerMethod = WebTriggerMethod.POST
     path: Optional[str] = None
 
