@@ -3,11 +3,11 @@ import logging
 from marshy.factory.impl_marshaller_factory import register_impl
 from marshy.marshaller_context import MarshallerContext
 
+from servey.finder.module_subscription_finder import ModuleSubscriptionFinder
+from servey.finder.subscription_finder_abc import SubscriptionFinderABC
+from servey.subscription.subscription_service import SubscriptionServiceFactoryABC
 from servey.util.to_second_datetime_marshaller import (
     ToSecondDatetimeMarshaller,
-)
-from servey.servey_aws.event_parser.factory.appsync_event_parser_factory import (
-    AppsyncEventParserFactory,
 )
 
 priority = 90
@@ -21,20 +21,33 @@ def configure(context: MarshallerContext):
         DataclassMarshallerFactory(priority=101, exclude_dumped_values=tuple())
     )
     context.register_marshaller(ToSecondDatetimeMarshaller())
-    configure_action_finder(context)
+    configure_finders(context)
+    configure_asyncio_subscriptions(context)
     configure_auth(context)
     configure_starlette(context)
     configure_aws(context)
     configure_serverless(context)
     configure_strawberry(context)
     configure_strawberry_starlette(context)
+    configure_celery(context)
 
 
-def configure_action_finder(context: MarshallerContext):
+def configure_finders(context: MarshallerContext):
     from servey.finder.action_finder_abc import ActionFinderABC
     from servey.finder.module_action_finder import ModuleActionFinder
 
     register_impl(ActionFinderABC, ModuleActionFinder, context)
+    register_impl(SubscriptionFinderABC, ModuleSubscriptionFinder, context)
+
+
+def configure_asyncio_subscriptions(context: MarshallerContext):
+    from servey.servey_thread.asyncio_subscription_service import (
+        AsyncioSubscriptionServiceFactory,
+    )
+
+    register_impl(
+        SubscriptionServiceFactoryABC, AsyncioSubscriptionServiceFactory, context
+    )
 
 
 def configure_auth(context: MarshallerContext):
@@ -66,10 +79,14 @@ def configure_starlette_action_endpoint_factory(context: MarshallerContext):
     from servey.servey_starlette.action_endpoint.factory.caching_action_endpoint_factory import (
         CachingActionEndpointFactory,
     )
+    from servey.servey_starlette.action_endpoint.factory.self_action_endpoint_factory import (
+        SelfActionEndpointFactory,
+    )
 
     register_impl(ActionEndpointFactoryABC, ActionEndpointFactory, context)
     register_impl(ActionEndpointFactoryABC, AuthorizingActionEndpointFactory, context)
     register_impl(ActionEndpointFactoryABC, CachingActionEndpointFactory, context)
+    register_impl(ActionEndpointFactoryABC, SelfActionEndpointFactory, context)
 
 
 def configure_starlette_route_factory(context: MarshallerContext):
@@ -83,10 +100,19 @@ def configure_starlette_route_factory(context: MarshallerContext):
         OpenapiRouteFactory,
     )
     from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
+    from servey.servey_starlette.route_factory.subscription_route_factory import (
+        SubscriptionRouteFactory,
+    )
+    from servey.servey_starlette.route_factory.asyncapi_route_factory import (
+        AsyncapiRouteFactory,
+    )
 
     register_impl(RouteFactoryABC, ActionRouteFactory, context)
     register_impl(RouteFactoryABC, AuthenticatorRouteFactory, context)
     register_impl(RouteFactoryABC, OpenapiRouteFactory, context)
+    register_impl(RouteFactoryABC, SubscriptionRouteFactory, context)
+    register_impl(SubscriptionServiceFactoryABC, SubscriptionRouteFactory, context)
+    register_impl(RouteFactoryABC, AsyncapiRouteFactory, context)
 
 
 def configure_strawberry(context: MarshallerContext):
@@ -163,32 +189,44 @@ def configure_aws(context: MarshallerContext):
 
         register_impl(AuthorizerFactoryABC, KmsAuthorizerFactory, context)
 
-        from servey.servey_aws.event_parser.factory.event_parser_factory import (
-            EventParserFactory,
+        from servey.servey_aws.event_handler.event_handler_abc import (
+            EventHandlerFactoryABC,
         )
-        from servey.servey_aws.event_parser.factory.event_parser_factory_abc import (
-            EventParserFactoryABC,
+        from servey.servey_aws.event_handler.event_handler import EventHandlerFactory
+        from servey.servey_aws.event_handler.api_gateway_event_handler import (
+            ApiGatewayEventHandlerFactory,
         )
-        from servey.servey_aws.event_parser.factory.api_gateway_event_parser_factory import (
-            ApiGatewayEventParserFactory,
+        from servey.servey_aws.event_handler.appsync_event_handler import (
+            AppsyncEventHandlerFactory,
         )
-
-        register_impl(EventParserFactoryABC, EventParserFactory, context)
-        register_impl(EventParserFactoryABC, ApiGatewayEventParserFactory, context)
-        register_impl(EventParserFactoryABC, AppsyncEventParserFactory, context)
-
-        from servey.servey_aws.result_render.factory.result_render_factory import (
-            ResultRenderFactory,
-        )
-        from servey.servey_aws.result_render.factory.result_render_factory_abc import (
-            ResultRenderFactoryABC,
-        )
-        from servey.servey_aws.result_render.factory.api_gateway_result_render_factory import (
-            ApiGatewayResultRenderFactory,
+        from servey.servey_aws.event_handler.sqs_event_handler import (
+            SqsEventHandlerFactory,
         )
 
-        register_impl(ResultRenderFactoryABC, ResultRenderFactory, context)
-        register_impl(ResultRenderFactoryABC, ApiGatewayResultRenderFactory, context)
+        register_impl(EventHandlerFactoryABC, EventHandlerFactory, context)
+        register_impl(EventHandlerFactoryABC, AppsyncEventHandlerFactory, context)
+        register_impl(EventHandlerFactoryABC, ApiGatewayEventHandlerFactory, context)
+        register_impl(EventHandlerFactoryABC, SqsEventHandlerFactory, context)
+
+        from servey.servey_aws.websocket_subscription_service import (
+            AWSWebsocketSubscriptionServiceFactory,
+        )
+
+        register_impl(
+            SubscriptionServiceFactoryABC,
+            AWSWebsocketSubscriptionServiceFactory,
+            context,
+        )
+
+        from servey.servey_aws.sqs_subscription_service import (
+            SqsSubscriptionServiceFactory,
+        )
+
+        register_impl(
+            SubscriptionServiceFactoryABC,
+            SqsSubscriptionServiceFactory,
+            context,
+        )
 
     except ModuleNotFoundError as e:
         LOGGER.error(e)
@@ -203,10 +241,14 @@ def configure_serverless(context: MarshallerContext):
         )
         from servey.servey_aws.serverless.yml_config.appsync_config import AppsyncConfig
         from servey.servey_aws.serverless.yml_config.kms_key_config import KmsKeyConfig
+        from servey.servey_aws.serverless.yml_config.subscription_function_config import (
+            SubscriptionFunctionConfig,
+        )
 
         register_impl(YmlConfigABC, ActionFunctionConfig, context)
         register_impl(YmlConfigABC, AppsyncConfig, context)
         register_impl(YmlConfigABC, KmsKeyConfig, context)
+        register_impl(YmlConfigABC, SubscriptionFunctionConfig, context)
 
         from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
             TriggerHandlerABC,
@@ -221,6 +263,20 @@ def configure_serverless(context: MarshallerContext):
         register_impl(TriggerHandlerABC, WebTriggerHandler, context)
         register_impl(TriggerHandlerABC, FixedRateTriggerHandler, context)
 
+    except ModuleNotFoundError as e:
+        LOGGER.error(e)
+        LOGGER.info("Serverless module not found: skipping")
+
+
+def configure_celery(context: MarshallerContext):
+    try:
+        from servey.servey_celery.celery_subscription_service import (
+            CelerySubscriptionServiceFactory,
+        )
+
+        register_impl(
+            SubscriptionServiceFactoryABC, CelerySubscriptionServiceFactory, context
+        )
     except ModuleNotFoundError as e:
         LOGGER.error(e)
         LOGGER.info("Serverless module not found: skipping")

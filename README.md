@@ -13,10 +13,6 @@ They may also be run on AWS infrastructure using Serverless and Lambda. Tests an
   done to external services
 * We want the utility offered by things like AWS while being as minimally tied to them as possible.
 
-## TODO:
-
-* AWS Appsync needs to support resolvables
-
 ## Example
 
 Install servey in your project using:
@@ -213,16 +209,14 @@ regular intervals.
 
 [Here is a celery deployment example.](servey/servey_celery/celery_app.py)
 
-## Resolvables
+## Nested Actions
 
-You may have noticed that actions are a flat construct, while GraphQL allows lazily resolving related data. This is the
-purpose of [Resolvables](servey/action/resolvable.py). These are ignored in the REST api (Though we may
-introduce a standard for allowing selection here.) Consider the following actions.py:
+Out of the box, actions may be defined on a function of a returned type, allowing for nested actions to be 
+defined and resolved lazily in graphql. (Nested actions may have a WebTrigger too if required):
 
 ```
 from dataclasses import dataclass
 
-from servey.action.resolvable import resolvable
 from servey.action.action import action
 from servey.trigger.web_trigger import WEB_GET
 
@@ -231,7 +225,7 @@ from servey.trigger.web_trigger import WEB_GET
 class NumberStats:
     value: int
 
-    @resolvable
+    @action
     async def factorial(self) -> int:
         """
         This demonstrates a resolvable field, lazily resolved (Usually by graphql)
@@ -254,7 +248,72 @@ def number_stats(value: int) -> NumberStats:
 
 * We define a return type NumberStats that is simply a python dataclass
 * The field *factorial* is only resolved if requested in the graphql request
-* Like Actions, Resolvers may specify caching and access controls
+* Nested Actions may specify caching and access controls
+
+## Subscriptions
+
+Subscriptions model 2 particular use cases:
+
+* Send updates to users browser when some event occurs
+* Run some action when a particular event occurs
+ 
+Servey finds [Subscriptions](servey/subscription/subscription.py) in the `subscriptions` module in a 
+manner similar to how it finds actions. Subscriptions have a unique name used to identify them, and the 
+`is_subscribable` flag determines whether the subscriptions allow external users to subscribe (Typically Via websocket).
+Subscriptions may also be linked to a number of actions, and depending on the environment this may be a direct 
+invocation, or via an event queue like celery or SQS. Servey also generates an
+[asyncapi](https://www.asyncapi.com/docs) schema for your subscriptions at /asyncapi.json
+
+When connecting, typically a subscriber provides a unique id to identify their connection. Events may be published to
+a single subscriber (using their connection_id) or to all subscribed users (If no connection_id is supplied when 
+publishing)
+
+Create a `subscriptions.py` file with the following content:
+
+```
+from servey.subscription.subscription import subscription
+
+messager = subscription(str, "messager")
+```
+
+Open your `actions.py` and add the following:
+
+```
+from servey.action.action import action
+from subscriptions import messager
+
+# noinspection PyUnusedLocal
+@action(triggers=(WEB_POST,))
+def broadcast_message(message: str, connection_id: Optional[str] = None) -> bool:
+    """ Send a message to all connected users or to a single subscriber. """
+    messager.publish(message, connection_id)
+    return True
+```
+
+Restart the server, to go to https://localhost:8000/asyncapi.json
+
+Unfortunately there is no studio where you can try it out with asyncapi like there is with OpenApi right now.
+I have been using the "Browser WebSocket Client" chrome extension to test subscriptions Using the url:
+ws://localhost:8000/subscription/messager/some_unique_subscriber_id) and the openapi docs to send messages.
+
+You might have noticed that we use the terms `subscription` but do not actually implement graphql subscriptions. The
+reason for this is we wanted to provide a unified interface for subscriptions across all platforms, and the way appsync
+implements Graphql subscriptions is quite frankly, weird. (Each subscription is triggered by a mutation, there is no 
+admin interface, you trigger the subscription by invoking the graphql mutation. Even if you can secure these, you
+end up with mutations which are not useful to most users. And don't get me started on event filtering
+
+type TriggerMessageEvent {
+  subscriber_id: string
+  event: Message
+}
+
+Mutation {
+  triggerMessage(subscriber_id: string, event: Message): TriggerMessageEvent
+}
+
+Subscription {
+  message(subscriber_id: string): TriggerMessageEvent
+}
 
 ## AWS
 
@@ -277,10 +336,21 @@ Then you can regenerate your serverless.yml definitions using:
 * We implemented GraphQL using Appsync
 * We implemented REST using API Gateway
 * We implemented Authorizers using KMS
+* We implements subscriptions to actions using SQS
 * The generated lambdas as designed to allow direct invocation where the event contains unmarshalled parameters, or
   access by Appsync or API Gateway.
 * Once you deploy your serverless project, you should be able to test from the Appsync, Api Gateway, and Lambda consoles
   respectively.
+
+## Command line tools
+
+Produce an openapi schema in `openapi.json`:
+
+`python -m servey --run=openapi`
+
+Produce a graphql schema in `servey_schema.graphql`:
+
+`python -m servey --run=graphql-schema`
 
 ## Deploying new versions of this Servey to Pypi
 

@@ -41,4 +41,4 @@ class TestAuthenticatorRouteFactory(TestCase):
         )
         with self.assertRaises(HTTPException):
             loop = asyncio.get_event_loop()
-            response = loop.run_until_complete(authenticator.login(request))
+            loop.run_until_complete(authenticator.login(request))

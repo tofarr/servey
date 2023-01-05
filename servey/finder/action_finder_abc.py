@@ -13,7 +13,7 @@ class ActionFinderABC(ABC):
 
     @abstractmethod
     def find_actions(self) -> Iterator[Action]:
-        """Create a new action_ context"""
+        """Find all available actions"""
 
 
 def find_actions() -> Iterator[Action]:

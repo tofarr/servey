@@ -7,19 +7,18 @@ from unittest import TestCase
 from email.utils import parsedate
 
 from starlette.requests import Request
-from starlette.responses import Response, JSONResponse
+from starlette.responses import Response
 
 from servey.action.action import action, Action, get_action
 from servey.cache_control.timestamp_cache_control import TimestampCacheControl
 from servey.cache_control.ttl_cache_control import TtlCacheControl
-from servey.servey_starlette.action_endpoint.action_endpoint import ActionEndpoint
 from servey.servey_starlette.action_endpoint.caching_action_endpoint import (
     CachingActionEndpoint,
 )
 from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory import (
     ActionEndpointFactory,
 )
-from servey.trigger.web_trigger import WEB_GET, WebTriggerMethod
+from servey.trigger.web_trigger import WEB_GET
 from tests.servey_starlette.action_endpoint.test_action_endpoint import build_request
 
 
@@ -51,6 +50,7 @@ class TestCachingActionEndpoint(TestCase):
         )
         self.assertAlmostEqual(expected_expires, expires, 1)
 
+        # noinspection SpellCheckingInspection
         request = build_request(
             query_string="val=bar",
             headers={"If-Match": "TCk/8BCnMPCXJ2EzHRtWeEeNQlwtxc79FtjyAFnkl/M="},
@@ -90,6 +90,7 @@ class TestCachingActionEndpoint(TestCase):
         self.assertEqual(b"", response.body)
 
     def test_to_openapi_schema(self):
+        # noinspection PyUnusedLocal
         @action(triggers=(WEB_GET,))
         def dummy_lookup(id: str) -> str:
             """No action required"""
@@ -119,7 +120,7 @@ class TestCachingActionEndpoint(TestCase):
                 }
             },
             "paths": {
-                "/actions/dummy_lookup": {
+                "/actions/dummy-lookup": {
                     "get": {
                         "operationId": "dummy_lookup",
                         "parameters": [
@@ -156,6 +157,7 @@ class MockActionEndpoint:
     def get_action(self) -> Action:
         return self.action
 
+    # noinspection PyUnusedLocal
     async def execute_with_context(
         self, request: Request, context: Dict[str, Any]
     ) -> Response:

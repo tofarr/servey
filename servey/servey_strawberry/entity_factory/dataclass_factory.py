@@ -1,12 +1,12 @@
 import inspect
 from dataclasses import is_dataclass, fields, dataclass
-from typing import Type, Optional, Dict, Any
+from typing import Type, Optional, Dict, Any, Callable
 
 import strawberry
 from strawberry.dataloader import DataLoader
 
-from servey.action.action import Action
-from servey.action.resolvable import Resolvable, get_resolvable
+from servey.action.action import Action, get_action
+from servey.action.batch_invoker import BatchInvoker
 from servey.servey_strawberry.entity_factory.entity_factory_abc import (
     EntityFactoryABC,
 )
@@ -34,9 +34,9 @@ class DataclassFactory(EntityFactoryABC):
         for f in fields(annotation):
             annotations[f.name] = schema_factory.get_type(f.type)
 
-        # Check for functions decorated with @resolvable
+        # Check for functions decorated with @action
         for key, value in annotation.__dict__.items():
-            resolvable = get_resolvable(value)
+            resolvable = get_action(value)
             if resolvable:
                 build_resolvable_field(resolvable, schema_factory, key, params)
 
@@ -78,42 +78,38 @@ class DataclassFactory(EntityFactoryABC):
 
 
 def build_resolvable_field(
-    resolvable: Resolvable,
+    action: Action,
     schema_factory: SchemaFactory,
     key: str,
     params: Dict[str, Any],
 ):
-    if resolvable.batch_fn:
-        fn = _wrap_fn_in_data_loader(resolvable)
-    else:
-        fn = resolvable.fn
-
-    action = Action(
-        name=key,
-        fn=fn,
-        access_control=resolvable.access_control,
-        cache_control=resolvable.cache_control,
-    )
+    # if resolvable.batch_fn:
+    #    fn = _wrap_fn_in_data_loader(resolvable)
 
     for handler_filter in schema_factory.handler_filters:
         action, continue_filtering = handler_filter.filter(action, schema_factory)
         if not continue_filtering:
             break
 
+    fn = action.fn
+    if action.batch_invoker:
+        fn = _wrap_fn_in_data_loader(action.fn, action.batch_invoker)
     sig = inspect.signature(fn)
     return_type = schema_factory.get_type(sig.return_annotation)
     params["__annotations__"][key] = return_type
-    params[key] = strawberry.field(resolver=action.fn)
+    params[key] = strawberry.field(resolver=fn)
 
 
-def _wrap_fn_in_data_loader(resolvable: Resolvable):
-    data_loader = DataLoader(load_fn=resolvable.batch_fn, max_batch_size=resolvable.max_batch_size)
+def _wrap_fn_in_data_loader(fn: Callable, batch_invoker: BatchInvoker):
+    data_loader = DataLoader(
+        load_fn=batch_invoker.fn, max_batch_size=batch_invoker.max_batch_size
+    )
 
-    sig = inspect.signature(resolvable.fn)
+    sig = inspect.signature(fn)
 
     async def wrapper(self) -> sig.return_annotation:
-        key = getattr(self, resolvable.key_arg)
-        result = await data_loader.load(key)
+        args = batch_invoker.arg_extractor(self)
+        result = await data_loader.load(*args)
         return result
 
     return wrapper

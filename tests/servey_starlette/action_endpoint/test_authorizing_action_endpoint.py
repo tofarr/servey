@@ -88,7 +88,7 @@ class TestAuthorizingActionEndpoint(TestCase):
                 "info": {"title": "Servey", "version": "0.1.0"},
                 "openapi": "3.0.2",
                 "paths": {
-                    "/actions/echo_get": {
+                    "/actions/echo-get": {
                         "get": {
                             "operationId": "echo_get",
                             "parameters": [

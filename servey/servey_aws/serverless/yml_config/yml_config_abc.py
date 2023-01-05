@@ -1,7 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from datetime import datetime
+from io import StringIO
+from pathlib import Path
+from typing import List, Optional, Callable
 
 from marshy.factory.impl_marshaller_factory import get_impls
+from marshy.types import ExternalItemType
 from ruamel.yaml import YAML
 
 GENERATED_HEADER = """
@@ -61,3 +65,22 @@ def _follow_path(root, path: List[str]):
             child = node[key] = {}
         node = child
     return node
+
+
+def create_yml_file(
+    file_name: str,
+    content: ExternalItemType,
+    str_mutate: Optional[Callable[[str], str]] = None,
+):
+    Path(file_name).parent.mkdir(parents=True, exist_ok=True)
+    with open(file_name, "w") as writer:
+        writer.write("# ")
+        writer.write(GENERATED_HEADER.replace("\n", "\n# "))
+        writer.write(f"\n# Updated at: {datetime.now().isoformat()}\n\n")
+        yaml = YAML()
+        sio = StringIO()
+        yaml.dump(content, sio)
+        result = sio.getvalue()
+        if str_mutate:
+            result = str_mutate(result)
+        writer.write(result)

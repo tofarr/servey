@@ -139,3 +139,11 @@ cython_debug/
 
 /.idea
 *.DS_Storage
+
+serverless_servey/
+.serverless/
+node_modules/
+package.json
+package-lock.json
+requirements.txt
+serverless.yml

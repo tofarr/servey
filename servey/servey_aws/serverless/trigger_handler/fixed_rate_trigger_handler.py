@@ -1,6 +1,7 @@
 from marshy.types import ExternalItemType
 
 from servey.action.action import Action
+from servey.errors import ServeyError
 from servey.trigger.fixed_rate_trigger import FixedRateTrigger
 from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
     TriggerHandlerABC,
@@ -22,11 +23,16 @@ class FixedRateTriggerHandler(TriggerHandlerABC):
         events = lambda_definition.get("events")
         if not events:
             events = lambda_definition["events"] = []
+        if trigger.interval < 60:
+            raise ServeyError("frequency_too_high")  # min is 60!
         for unit, seconds in UNITS.items():
             if not trigger.interval % seconds:
                 # noinspection PyTypeChecker
-                events["schedule"] = dict(
-                    rate=f"rate({trigger.interval / seconds} {unit})"
+                events.append(
+                    dict(
+                        schedule=dict(
+                            rate=f"rate({int(trigger.interval / seconds)} {unit})"
+                        )
+                    )
                 )
                 return
-        events.append(dict(schedule=dict(rate=f"rate({trigger.interval} seconds)")))

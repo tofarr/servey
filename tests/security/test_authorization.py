@@ -145,8 +145,9 @@ class TestAuthorization(TestCase):
             authorization.check_all_scopes({"foo", "zap"})
 
     def test_get_inject_at(self):
+        # noinspection PyUnusedLocal
         def foo(bar: str, auth: Authorization) -> str:
-            return f"foo:{foo}, auth:{auth}"
+            return f"bar:{bar}, auth:{auth}"
 
         foo("bar", ROOT)  # Nonsense
         self.assertEqual("auth", get_inject_at(foo))

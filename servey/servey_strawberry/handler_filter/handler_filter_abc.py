@@ -13,6 +13,7 @@ class HandlerFilterABC(ABC):
 
     priority: int = 100
 
+    # noinspection PyUnresolvedReferences
     @abstractmethod
     def filter(
         self,

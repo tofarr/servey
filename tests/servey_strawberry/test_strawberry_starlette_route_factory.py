@@ -1,22 +1,17 @@
 import os
-from datetime import datetime
 from unittest import TestCase
 from unittest.mock import patch
 
-from servey.action.action import action
 from servey.servey_strawberry.strawberry_starlette_route_factory import (
     StrawberryStarletteRouteFactory,
 )
-from servey.trigger.web_trigger import WEB_GET
 
 
 class TestStrawberryStarletteRouteFactory(TestCase):
     def test_create_routes(self):
         with patch.dict(
             os.environ,
-            {
-                "SERVEY_ACTION_PATH": "tests.servey_strawberry.test_strawberry_starlette_route_factory"
-            },
+            {"SERVEY_MAIN": "tests.servey_strawberry"},
         ):
             factory = StrawberryStarletteRouteFactory()
             routes = list(factory.create_routes())
@@ -26,7 +21,7 @@ class TestStrawberryStarletteRouteFactory(TestCase):
         with patch.dict(
             os.environ,
             {
-                "SERVEY_ACTION_PATH": "tests.servey_strawberry.test_strawberry_starlette_route_factory",
+                "SERVEY_MAIN": "tests.servey_strawberry",
                 "SERVER_DEBUG": "0",
             },
         ):
@@ -46,13 +41,8 @@ class TestStrawberryStarletteRouteFactory(TestCase):
 
         factory = StrawberryStarletteRouteFactory()
         with patch(
-            "servey.servey_strawberry.schema_factory.new_schema_for_actions",
+            "servey.servey_strawberry.schema_factory.create_schema",
             raise_module_not_found,
         ):
             routes = list(factory.create_routes())
             self.assertEqual([], routes)
-
-
-@action(triggers=(WEB_GET,))
-def get_the_time() -> datetime:
-    """This is a dummy"""

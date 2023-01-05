@@ -9,6 +9,12 @@ from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
 
 
 class WebTriggerHandler(TriggerHandlerABC):
+    """
+    Handler which outputs serverless definitions for api gateway triggers.
+    """
+
+    path_pattern: str = "/actions/{action_name}"
+
     def handle_trigger(
         self,
         action: Action,
@@ -20,6 +26,8 @@ class WebTriggerHandler(TriggerHandlerABC):
         events = lambda_definition.get("events")
         if not events:
             events = lambda_definition["events"] = []
+        path = self.path_pattern.format(action_name=action.name.replace("_", "-"))
         events.append(
-            dict(http=dict(path=action.name, method=trigger.method.value, cors=True))
+            dict(http=dict(path=path, method=trigger.method.value, cors=True))
+            # TODO: Add openapi documentation
         )

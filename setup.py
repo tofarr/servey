@@ -10,7 +10,7 @@ extras_require = {
     "server": [
         "starlette~=0.19",
         "strawberry-graphql~=0.151",
-        "uvicorn~=0.18",
+        "uvicorn[standard]~=0.18",
         "pygments~=2.13",
         "requests~=2.28",
         "python-multipart~=0.0",

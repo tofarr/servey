@@ -9,6 +9,7 @@ from servey.action.util import (
 
 class TestUtil(TestCase):
     def test_params_missing_annotation(self):
+        # noinspection PyUnusedLocal
         def dummy(foo):
             """Dummy"""
 

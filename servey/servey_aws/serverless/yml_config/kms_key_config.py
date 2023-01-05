@@ -1,13 +1,9 @@
-from datetime import datetime
-from io import StringIO
-
 from marshy.types import ExternalItemType
-from ruamel.yaml import YAML
 
 from servey.servey_aws.serverless.yml_config.yml_config_abc import (
     YmlConfigABC,
     ensure_ref_in_file,
-    GENERATED_HEADER,
+    create_yml_file,
 )
 
 
@@ -16,41 +12,30 @@ class KmsKeyConfig(YmlConfigABC):
     Set up some aspect of the serverless environment yml files. (For example, functions, resources, etc...)
     """
 
-    servey_kms_resource_yml_file: str = "serverless_kms_resource.yml"
-    servey_kms_role_statement_yml_file: str = "serverless_kms_role_statement.yml"
+    kms_resource_yml_file: str = "serverless_servey/kms_resource.yml"
+    kms_role_statement_yml_file: str = "serverless_servey/kms_role_statement.yml"
 
     def configure(self, main_serverless_yml_file: str):
         ensure_ref_in_file(
             main_serverless_yml_file,
             ["resources"],
-            self.servey_kms_resource_yml_file,
+            self.kms_resource_yml_file,
         )
         ensure_ref_in_file(
             main_serverless_yml_file,
             ["provider", "iamRoleStatements"],
-            self.servey_kms_role_statement_yml_file,
+            self.kms_role_statement_yml_file,
             "iamRoleStatements.0",
         )
-        self.build_kms_resource_functions_yml_file()
-        self.build_kms_role_statement_yml_file()
-
-    def build_kms_resource_functions_yml_file(self):
-        kms_resource_functions_yml = self.build_kms_resource_functions_yml()
-        with open(self.servey_kms_resource_yml_file, "w") as writer:
-            writer.write("# ")
-            writer.write(GENERATED_HEADER.replace("\n", "\n# "))
-            writer.write(f"\n# Updated at: {datetime.now().isoformat()}\n\n")
-            yaml = YAML()
-            s = StringIO()
-            yaml.dump(kms_resource_functions_yml, s)
-            s = s.getvalue().replace(
-                "AWS_ACCOUNT_ID", "!Sub arn:aws:iam::${aws:accountId}:root"
-            )
-            s = s.replace("SERVEY_KMS_KEY", "!Ref serveyKmsKey")
-            writer.write(s)
+        kms_resource_yml = self.build_kms_resource_yml()
+        create_yml_file(
+            self.kms_resource_yml_file, kms_resource_yml, _mutate_kms_resource_str
+        )
+        kms_role_statement_yml = self.build_kms_role_statement_yml()
+        create_yml_file(self.kms_role_statement_yml_file, kms_role_statement_yml)
 
     @staticmethod
-    def build_kms_resource_functions_yml() -> ExternalItemType:
+    def build_kms_resource_yml() -> ExternalItemType:
         kms_resource = {
             "Resources": {
                 "serveyKmsKey": {
@@ -86,18 +71,6 @@ class KmsKeyConfig(YmlConfigABC):
         }
         return kms_resource
 
-    def build_kms_role_statement_yml_file(self):
-        kms_role_statement_yml = self.build_kms_role_statement_yml()
-        with open(self.servey_kms_role_statement_yml_file, "w") as writer:
-            writer.write("# ")
-            writer.write(GENERATED_HEADER.replace("\n", "\n# "))
-            writer.write(f"\n# Updated at: {datetime.now().isoformat()}\n\n")
-            yaml = YAML()
-            s = StringIO()
-            yaml.dump(kms_role_statement_yml, s)
-            s = s.getvalue()
-            writer.write(s)
-
     @staticmethod
     def build_kms_role_statement_yml() -> ExternalItemType:
         kms_policy = {
@@ -119,3 +92,11 @@ class KmsKeyConfig(YmlConfigABC):
             ]
         }
         return kms_policy
+
+
+def _mutate_kms_resource_str(kms_resource: str) -> str:
+    kms_resource = kms_resource.replace(
+        "AWS_ACCOUNT_ID", "!Sub arn:aws:iam::${aws:accountId}:root"
+    )
+    kms_resource = kms_resource.replace("SERVEY_KMS_KEY", "!Ref serveyKmsKey")
+    return kms_resource

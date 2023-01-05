@@ -16,13 +16,14 @@ class TestStarletteApp(TestCase):
         def dummy() -> UUID:
             """No implementation required"""
 
+        # noinspection PyUnusedLocal
         @action(triggers=(WEB_GET,), access_control=ScopeAccessControl("root"))
         def secured_action(auth: Authorization) -> str:
-            """ No implementation requried """ ""
+            """ No implementation required """ ""
 
         @action(triggers=(WEB_GET,), cache_control=TtlCacheControl(30))
         def cached_action() -> datetime:
-            """ No implementation requried """ ""
+            """ No implementation required """ ""
 
         with patch(
             "servey.servey_starlette.route_factory.action_route_factory.find_actions",
@@ -34,10 +35,10 @@ class TestStarletteApp(TestCase):
         ):
             from servey.servey_starlette.starlette_app import app
 
-            self.assertEqual(len(app.routes), 9)
+            self.assertEqual(len(app.routes), 11)
             next(r for r in app.routes if r.path == "/actions/dummy")
-            next(r for r in app.routes if r.path == "/actions/secured_action")
-            next(r for r in app.routes if r.path == "/actions/cached_action")
+            next(r for r in app.routes if r.path == "/actions/secured-action")
+            next(r for r in app.routes if r.path == "/actions/cached-action")
 
     def test_statics(self):
         from servey.servey_starlette import statics

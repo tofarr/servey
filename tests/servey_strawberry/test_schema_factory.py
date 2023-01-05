@@ -7,11 +7,13 @@ from unittest import TestCase
 
 import strawberry
 from strawberry.annotation import StrawberryAnnotation
+
+# noinspection PyProtectedMember
 from strawberry.field import UNRESOLVED
 from strawberry.type import StrawberryOptional
 
 from servey.action.action import action, get_action, Action
-from servey.action.resolvable import resolvable
+from servey.action.batch_invoker import BatchInvoker
 from servey.servey_strawberry.handler_filter.handler_filter_abc import HandlerFilterABC
 from servey.servey_strawberry.schema_factory import create_schema_factory, SchemaFactory
 from servey.trigger.web_trigger import WEB_GET, WEB_POST
@@ -74,7 +76,7 @@ query{
         self.assertIs(schema_factory.get_type(Node), schema_factory.get_type(Node))
 
     def test_handler_filter_stopper(self):
-        def static_tree_size():
+        def static_tree_size() -> int:
             return 10
 
         class StopHandlerFilter(HandlerFilterABC):
@@ -197,10 +199,11 @@ query{
         resolved_type = schema_factory._resolve_type_futures(Times, set())
         self.assertEqual(Times, resolved_type)
 
-
     def test_batch_resolvable(self):
         schema_factory = create_schema_factory()
-        schema_factory.create_field_for_action(get_action(get_stats_for_numbers), WEB_GET)
+        schema_factory.create_field_for_action(
+            get_action(get_stats_for_numbers), WEB_GET
+        )
         schema = schema_factory.create_schema()
         str_schema = str(schema).strip()
         expected_schema = """
@@ -214,14 +217,16 @@ type Query {
 }
         """.strip()
         self.assertEqual(expected_schema, str_schema)
-        future = schema.execute("""
+        future = schema.execute(
+            """
 query{
   getStatsForNumbers(numbers: [2, 4, 6, 8]) {
     value
     factorial
   }
 }
-        """)
+        """
+        )
         loop = asyncio.get_event_loop()
         result = loop.run_until_complete(future)
         self.assertEqual(40320, loop.run_until_complete(NumberStats(8).factorial()))
@@ -230,7 +235,7 @@ query{
                 {"value": 2, "factorial": 2},
                 {"value": 4, "factorial": 24},
                 {"value": 6, "factorial": 720},
-                {"value": 8, "factorial": 40320}
+                {"value": 8, "factorial": 40320},
             ]
         }
         self.assertEqual(expected_result, result.data)
@@ -241,7 +246,7 @@ class Node:
     name: str
     child_nodes: List[ForwardRef(f"{__name__}.Node")] = field(default_factory=list)
 
-    @resolvable
+    @action
     def tree_size(self) -> int:
         result = 1 + sum(n.tree_size() for n in self.child_nodes)
         return result
@@ -296,10 +301,15 @@ async def batch_factorial(values: List[int]) -> List[int]:
 
 @dataclass
 class NumberStats:
-    """ Demonstrating batch resolvers """
+    """Demonstrating batch resolvers"""
+
     value: int
 
-    @resolvable(batch_fn=batch_factorial, key_arg="value")
+    @action(
+        batch_invoker=BatchInvoker(
+            fn=batch_factorial, arg_extractor=lambda ns: [ns.value]
+        )
+    )
     async def factorial(self) -> int:
         return factorial_result(self.value)
 

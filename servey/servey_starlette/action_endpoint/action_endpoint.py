@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-from typing import Tuple, Any, Optional, Dict, List, Iterator
+from typing import Tuple, Any, Optional, Dict, List, Iterator, Awaitable
 
 from json_urley import query_str_to_json_obj
 from marshy.marshaller.marshaller_abc import MarshallerABC
@@ -56,6 +56,9 @@ class ActionEndpoint(ActionEndpointABC):
         kwargs = await self.parse_request(request)
         kwargs.update(context)
         result = self.action.fn(**kwargs)
+        if isinstance(result, Awaitable):
+            result = await result
+        # Lazy action resolution would be done here!
         response = self.render_response(result)
         return response
 
@@ -225,11 +228,9 @@ def _get_valid_openapi_param_schema(schema: ExternalItemType):
         sub_schema: ExternalItemType = schema.get("items")
         if not sub_schema:
             return
-        sub_schema = _get_nullable_schema(sub_schema)
-        if not sub_schema:
-            return
+        sub_schema = _get_nullable_schema(sub_schema) or sub_schema
         type_ = sub_schema.get("type")
-        if type_ in ("boolean", "number", "integer", "string"):
+        if type_ in ("boolean", "number", "integer", "string", "null"):
             # We currently don't support nested arrays of objects / arrays in an openapi schema
             return schema
     elif type_ in ("boolean", "number", "integer", "object", "string"):

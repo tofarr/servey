@@ -5,7 +5,7 @@ from servey.errors import ServeyError
 from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory import (
     ActionEndpointFactory,
 )
-from servey.trigger.web_trigger import WebTrigger, WebTriggerMethod
+from servey.trigger.web_trigger import WebTrigger, WebTriggerMethod, WEB_POST
 
 
 class TestActionEndpointFactory(TestCase):
@@ -35,3 +35,13 @@ class TestActionEndpointFactory(TestCase):
         route = endpoint.get_route()
         # noinspection PyTypeChecker
         self.assertEqual("/foo", route.path)
+
+    def test_invalid_return(self):
+        # noinspection PyTypeChecker
+        @action(triggers=(WEB_POST,))
+        def dummy():
+            """No action required"""
+
+        factory = ActionEndpointFactory()
+        with self.assertRaises(ServeyError):
+            factory.create(get_action(dummy), set(), [])

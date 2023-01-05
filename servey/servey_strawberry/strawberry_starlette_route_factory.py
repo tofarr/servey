@@ -28,11 +28,11 @@ class StrawberryStarletteRouteFactory(RouteFactoryABC):
         # Create an authenticator object based on username and password
         try:
             from servey.servey_strawberry.schema_factory import (
-                new_schema_for_actions,
+                create_schema,
             )
             from strawberry.asgi import GraphQL
 
-            schema = new_schema_for_actions()
+            schema = create_schema()
             if not schema:
                 return
             graphql_app = GraphQL(schema, debug=self.debug)

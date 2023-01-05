@@ -9,11 +9,11 @@ from servey.finder.module_action_finder import ModuleActionFinder
 class TestModuleActionFinder(TestCase):
     def test_default_constructor(self):
         finder = ModuleActionFinder()
-        self.assertEqual(ModuleActionFinder("actions"), finder)
-        os.environ["SERVEY_ACTION_PATH"] = "foobar"
+        self.assertEqual(ModuleActionFinder("servey_main.actions"), finder)
+        os.environ["SERVEY_MAIN"] = "foobar"
         finder = ModuleActionFinder()
-        self.assertEqual(ModuleActionFinder("foobar"), finder)
-        os.environ.pop("SERVEY_ACTION_PATH")
+        self.assertEqual(ModuleActionFinder("foobar.actions"), finder)
+        os.environ.pop("SERVEY_MAIN")
 
     def test_find_actions(self):
         finder = ModuleActionFinder("tests.finder.test_module_action_finder")
@@ -25,6 +25,10 @@ class TestModuleActionFinder(TestCase):
         self.assertEqual(expected, actions)
         self.assertIsNone(actions[0].fn())
         self.assertEqual("Value: 5", actions[1].fn(5))
+
+    def test_find_actions_not_found(self):
+        finder = ModuleActionFinder("this.module.does.not.exist")
+        self.assertEqual([], list(finder.find_actions()))
 
 
 @action

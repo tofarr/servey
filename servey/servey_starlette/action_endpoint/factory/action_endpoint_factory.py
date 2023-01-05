@@ -44,8 +44,12 @@ class ActionEndpointFactory(ActionEndpointFactoryABC):
                     f"multi_paths_not_supported:{action.name}:{','.join(paths)}"
                 )
             else:
-                path = self.path_pattern.format(action_name=action.name)
+                path = self.path_pattern.format(
+                    action_name=action.name.replace("_", "-")
+                )
             result_type = inspect.signature(action.fn).return_annotation
+            if result_type == inspect.Signature.empty:
+                raise ServeyError(f"missing_return_type:{action.fn}")
             endpoint = ActionEndpoint(
                 action=action,
                 path=path,

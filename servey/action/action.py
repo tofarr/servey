@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Optional, Callable, Tuple
 
-
+from servey.action.batch_invoker import BatchInvoker
 from servey.action.example import Example
 from servey.cache_control.cache_control_abc import CacheControlABC
-from servey.security.access_control.action_access_control_abc import (
-    ActionAccessControlABC,
+from servey.security.access_control.access_control_abc import (
+    AccessControlABC,
 )
 from servey.security.access_control.allow_all import ALLOW_ALL
 from servey.trigger.trigger_abc import TriggerABC
@@ -22,20 +22,22 @@ class Action:
     fn: Callable
     name: str
     description: Optional[str] = None
-    access_control: ActionAccessControlABC = ALLOW_ALL
+    access_control: AccessControlABC = ALLOW_ALL
     triggers: Tuple[TriggerABC, ...] = tuple()
     timeout: int = 15
     examples: Optional[Tuple[Example, ...]] = None
     cache_control: Optional[CacheControlABC] = None
+    batch_invoker: Optional[BatchInvoker] = None
 
 
 def action(
     fn: Optional[Callable] = None,
-    access_control: ActionAccessControlABC = Action.access_control,
+    access_control: AccessControlABC = Action.access_control,
     triggers: Tuple[TriggerABC, ...] = Action.triggers,
     timeout: int = Action.timeout,
     examples: Optional[Tuple[Example, ...]] = None,
     cache_control: Optional[CacheControlABC] = None,
+    batch_invoker: Optional[BatchInvoker] = None,
 ):
     """
     Decorator for actions, which may be a function or a class with a designated method_name
@@ -60,6 +62,7 @@ def action(
             timeout=timeout,
             examples=examples,
             cache_control=cache_control,
+            batch_invoker=batch_invoker,
         )
 
     return wrapper_ if fn is None else wrapper_(fn)

@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import json
+import os
 import re
 
 from marshy.types import ExternalType
@@ -25,3 +26,12 @@ def secure_hash_content(content: bytes) -> str:
     b64_bytes = base64.b64encode(hash_bytes)
     b64_str = b64_bytes.decode("utf-8")
     return b64_str
+
+
+def get_servey_main():
+    servey_main = os.environ.get("SERVEY_MAIN")
+    if servey_main:
+        servey_main = to_snake_case(servey_main)
+    else:
+        servey_main = "servey_main"
+    return servey_main

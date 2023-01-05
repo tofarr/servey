@@ -2,6 +2,7 @@ import os
 from dataclasses import field, dataclass
 from typing import Iterator
 
+from marshy.types import ExternalItemType
 from schemey.util import filter_none
 from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
@@ -29,9 +30,7 @@ class OpenapiRouteFactory(RouteFactoryABC):
     action_route_factory: ActionRouteFactory = field(default_factory=ActionRouteFactory)
 
     def create_routes(self) -> Iterator[Route]:
-        yield Route(
-            "/openapi.json", endpoint=self.openapi_schema, include_in_schema=False
-        )
+        yield Route("/openapi.json", endpoint=self.endpoint, include_in_schema=False)
         yield Mount(
             "/docs",
             app=StaticFiles(packages=["servey.servey_starlette"], html=True),
@@ -39,7 +38,11 @@ class OpenapiRouteFactory(RouteFactoryABC):
         )
 
     # noinspection PyUnusedLocal
-    def openapi_schema(self, request: Request) -> Response:
+    def endpoint(self, request: Request) -> Response:
+        schema = self.openapi_schema()
+        return JSONResponse(schema)
+
+    def openapi_schema(self) -> ExternalItemType:
         schema = {
             "openapi": "3.0.2",
             "info": filter_none(
@@ -58,4 +61,4 @@ class OpenapiRouteFactory(RouteFactoryABC):
             action_endpoint = self.action_route_factory.create_action_endpoint(action)
             if action_endpoint:
                 action_endpoint.to_openapi_schema(schema)
-        return JSONResponse(schema)
+        return schema

@@ -1,4 +1,4 @@
-service: {service_name}
+service: {serverless_service_name}
 package:
   exclude:
   - aws/**
@@ -12,11 +12,16 @@ provider:
   environment:
     LOG_LEVEL: INFO
     KMS_KEY_ID: serveyKmsKey
+    CONNECTION_TABLE_NAME: servey_app_connection
+    SERVICE_NAME: {service_name}
 custom:
   pythonRequirements:
     useDownloadCache: false
     useStaticCache: false
     dockerizePip: true
+  prune:
+    automatic: true
+    number: 3
 plugins:
 - serverless-python-requirements
 - serverless-prune-plugin

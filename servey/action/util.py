@@ -1,4 +1,5 @@
 import inspect
+import os
 from typing import Callable, Optional, Set
 
 from marshy import get_default_context
@@ -30,7 +31,7 @@ def get_schema_for_params(
     json_schema = {
         "type": "object",
         "properties": properties,
-        "additionalProperties": False,
+        "additionalProperties": os.environ.get("SERVEY_STRICT_SCHEMA") == "1",
         "required": required,
     }
     schema = Schema(json_schema, dict)
@@ -109,18 +110,3 @@ def move_ref_items_to_components(
         schema = [move_ref_items_to_components(root, i, components) for i in current]
         return schema
     return current
-
-
-def inject_value_at(path: str, current, value):
-    path = path.split(".")
-    parent_path = path[:-1]
-    for p in parent_path:
-        if hasattr(current, p):
-            current = getattr(current, p)
-        else:
-            current = current[p]
-    p = path[-1]
-    if hasattr(current, p):
-        setattr(current, p, value)
-    else:
-        current[p] = value

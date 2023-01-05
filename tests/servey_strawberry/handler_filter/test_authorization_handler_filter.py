@@ -16,6 +16,7 @@ from servey.servey_strawberry.schema_factory import SchemaFactory
 
 class TestAuthorizationHandlerFilter(TestCase):
     def filtered_action(self):
+        # noinspection PyUnusedLocal
         @action(access_control=ScopeAccessControl("root"))
         def dummy(title: str, auth: Authorization) -> str:
             """Dummy"""
@@ -32,9 +33,7 @@ class TestAuthorizationHandlerFilter(TestCase):
             inspect.Parameter(
                 "title", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=str
             ),
-            inspect.Parameter(
-                "strawberry_info", inspect.Parameter.KEYWORD_ONLY, annotation=Info
-            ),
+            inspect.Parameter("info", inspect.Parameter.KEYWORD_ONLY, annotation=Info),
         ]
         self.assertEqual(expected_params, params)
         return filtered_action, filter_
@@ -58,8 +57,8 @@ class TestAuthorizationHandlerFilter(TestCase):
         raw_info = namedtuple("RawInfo", ["context"])(context=context)
         # noinspection PyTypeChecker
         info = Info(raw_info, None)
-        filtered_action.fn(title="foobar", strawberry_info=info)
-        filtered_action.fn(title="foobar", strawberry_info=info)
+        filtered_action.fn(title="foobar", info=info)
+        filtered_action.fn(title="foobar", info=info)
 
     def test_filter_no_auth(self):
         filtered_action, filter_ = self.filtered_action()
@@ -69,4 +68,4 @@ class TestAuthorizationHandlerFilter(TestCase):
         # noinspection PyTypeChecker
         info = Info(raw_info, None)
         with self.assertRaises(AuthorizationError):
-            filtered_action.fn(title="foobar", strawberry_info=info)
+            filtered_action.fn(title="foobar", info=info)

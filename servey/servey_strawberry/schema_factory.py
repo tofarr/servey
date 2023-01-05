@@ -37,6 +37,7 @@ class SchemaFactory:
     enums: Dict[str, Type] = field(default_factory=dict)
     query: Dict[str, StrawberryField] = field(default_factory=dict)
     mutation: Dict[str, StrawberryField] = field(default_factory=dict)
+    subscription: Dict[str, StrawberryField] = field(default_factory=dict)
     entity_factories: List[EntityFactoryABC] = field(default_factory=list)
     handler_filters: List[HandlerFilterABC] = field(default_factory=list)
 
@@ -149,10 +150,20 @@ class SchemaFactory:
             else None
         )
 
+        subscription_params = {
+            **self.subscription,
+            "__annotations__": {s.name: s.type for s in self.subscription.values()},
+        }
+        subscriptions = (
+            strawberry.type(type("Subscription", (), subscription_params))
+            if self.subscription
+            else None
+        )
+
         if not queries:
             LOGGER.warning("No graphql queries found - skipping schema generation")
             return None  # strawberry requires an API has at least 1 query!
-        schema = strawberry.Schema(queries, mutations)
+        schema = strawberry.Schema(queries, mutations, subscriptions)
         return schema
 
 
@@ -167,7 +178,7 @@ def create_schema_factory() -> SchemaFactory:
     return schema_factory
 
 
-def new_schema_for_actions():
+def create_schema():
     schema_factory = create_schema_factory()
     for action, trigger in find_actions_with_trigger_type(WebTrigger):
         schema_factory.create_field_for_action(action, trigger)

@@ -1,6 +1,7 @@
 import asyncio
 import json
 from datetime import datetime
+from typing import List, Optional
 from unittest import TestCase
 
 from starlette.datastructures import Headers
@@ -9,7 +10,12 @@ from starlette.requests import Request, empty_receive
 
 from servey.action.action import action, get_action
 from servey.action.example import Example
-from servey.errors import ServeyError
+
+# noinspection PyProtectedMember
+from servey.servey_starlette.action_endpoint.action_endpoint import (
+    _get_nullable_schema,
+    _get_valid_openapi_param_schema,
+)
 from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory import (
     ActionEndpointFactory,
 )
@@ -26,6 +32,7 @@ class TestActionEndpoint(TestCase):
         action_endpoint = ActionEndpointFactory().create(
             get_action(echo_get), set(), []
         )
+        # noinspection PyTypeChecker
         request = build_request(query_string=b"val=bar")
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(action_endpoint.execute(request))
@@ -34,7 +41,7 @@ class TestActionEndpoint(TestCase):
 
     def test_valid_input_post(self):
         @action(triggers=(WEB_POST,))
-        def echo_get(val: str) -> str:
+        async def echo_get(val: str) -> str:
             return val
 
         action_endpoint = ActionEndpointFactory().create(
@@ -103,6 +110,7 @@ class TestActionEndpoint(TestCase):
         self.assertEqual({"GET", "HEAD"}, set(route.methods))
 
     def test_open_api_get(self):
+        # noinspection PyUnusedLocal
         @action(
             triggers=(WEB_GET,),
             examples=(
@@ -220,6 +228,7 @@ class TestActionEndpoint(TestCase):
         self.assertEqual(expected_schema, schema)
 
     def test_open_api_post(self):
+        # noinspection PyUnusedLocal
         @action(
             triggers=(WEB_POST,),
             examples=(
@@ -316,6 +325,7 @@ class TestActionEndpoint(TestCase):
         self.assertEqual(expected_schema, schema)
 
     def test_nested_param_get(self):
+        # noinspection PyUnusedLocal
         @action(
             triggers=(WEB_GET,),
         )
@@ -355,6 +365,197 @@ class TestActionEndpoint(TestCase):
             "components": {},
         }
         self.assertEqual(expected_schema, schema)
+
+    def test_example_missing_parameters(self):
+        # noinspection PyUnusedLocal
+        @action(
+            triggers=(WEB_GET,),
+            examples=(
+                Example("has_b", {"a": 1, "b": 2}, result=3),
+                Example("missing_b", {"a": 1}, result=2),
+            ),
+        )
+        def add(a: int, b: int = None) -> int:
+            """Dummy"""
+
+        endpoint = ActionEndpointFactory().create(get_action(add), set(), [])
+        schema = {"paths": {}, "components": {}}
+        endpoint.to_openapi_schema(schema)
+        expected_schema = {
+            "paths": {
+                "/actions/add": {
+                    "get": {
+                        "responses": {
+                            "422": {"description": "Validation Error"},
+                            "200": {
+                                "description": "Successful Response",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {"type": "integer"},
+                                        "examples": {
+                                            "has_b": {"value": 3},
+                                            "missing_b": {"value": 2},
+                                        },
+                                    }
+                                },
+                            },
+                        },
+                        "operationId": "add",
+                        "summary": "Dummy",
+                        "parameters": [
+                            {
+                                "required": True,
+                                "schema": {"type": "integer"},
+                                "name": "a",
+                                "in": "query",
+                                "examples": {
+                                    "has_b": {"value": 1},
+                                    "missing_b": {"value": 1},
+                                },
+                            },
+                            {
+                                "required": False,
+                                "schema": {"type": "integer"},
+                                "name": "b",
+                                "in": "query",
+                                "examples": {"has_b": {"value": 2}},
+                            },
+                        ],
+                    }
+                }
+            },
+            "components": {},
+        }
+        self.assertEqual(expected_schema, schema)
+
+    def test_example_array_parameters(self):
+        # noinspection PyUnusedLocal
+        @action(
+            triggers=(WEB_GET,),
+            examples=(Example("standard", {"values": [1, 2, 3]}, result=6),),
+        )
+        def add(values: List[int]) -> int:
+            """Dummy"""
+
+        endpoint = ActionEndpointFactory().create(get_action(add), set(), [])
+        schema = {"paths": {}, "components": {}}
+        endpoint.to_openapi_schema(schema)
+        expected_schema = {
+            "paths": {
+                "/actions/add": {
+                    "get": {
+                        "responses": {
+                            "422": {"description": "Validation Error"},
+                            "200": {
+                                "description": "Successful Response",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {"type": "integer"},
+                                        "examples": {
+                                            "standard": {"value": 6},
+                                        },
+                                    }
+                                },
+                            },
+                        },
+                        "operationId": "add",
+                        "summary": "Dummy",
+                        "parameters": [
+                            {
+                                "required": True,
+                                "schema": {
+                                    "type": "array",
+                                    "items": {"type": "integer"},
+                                },
+                                "name": "values",
+                                "in": "query",
+                                "examples": {"standard": {"value": [1, 2, 3]}},
+                            }
+                        ],
+                    }
+                }
+            },
+            "components": {},
+        }
+        self.assertEqual(expected_schema, schema)
+
+    def test_example_array_object_parameters(self):
+        # noinspection PyUnusedLocal
+        @action(triggers=(WEB_GET,))
+        def add(values: Optional[Node]) -> int:
+            """Dummy"""
+
+        endpoint = ActionEndpointFactory().create(get_action(add), set(), [])
+        schema = {"paths": {}, "components": {}}
+        endpoint.to_openapi_schema(schema)
+        expected_schema = {
+            "paths": {
+                "/actions/add": {
+                    "get": {
+                        "responses": {
+                            "422": {"description": "Validation Error"},
+                            "200": {
+                                "description": "Successful Response",
+                                "content": {
+                                    "application/json": {"schema": {"type": "integer"}}
+                                },
+                            },
+                        },
+                        "operationId": "add",
+                        "summary": "Dummy",
+                        "parameters": [
+                            {
+                                "required": True,
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "name": "Node",
+                                            "properties": {
+                                                "name": {"type": "string"},
+                                                "child_nodes": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/properties/values/anyOf/0"
+                                                    },
+                                                },
+                                            },
+                                            "additionalProperties": False,
+                                            "required": ["name"],
+                                            "description": "Node(name: str, child_nodes: List[ForwardRef("
+                                            "'tests.servey_strawberry.test_schema_factory."
+                                            "Node')] = <factory>)",
+                                        },
+                                        {"type": "null"},
+                                    ]
+                                },
+                                "name": "values",
+                                "in": "query",
+                            }
+                        ],
+                    }
+                }
+            },
+            "components": {},
+        }
+        self.assertEqual(expected_schema, schema)
+
+    def test_nullable_schema(self):
+        self.assertIsNone(_get_nullable_schema({"anyOf": "invalid"}))
+        self.assertIsNone(
+            _get_nullable_schema(
+                {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "int"},
+                    ]
+                }
+            )
+        )
+
+    def test_get_valid_openapi_param_schema(self):
+        self.assertIsNone(_get_valid_openapi_param_schema({}))
+        self.assertIsNone(_get_valid_openapi_param_schema({"type": "array"}))
 
 
 def build_request(

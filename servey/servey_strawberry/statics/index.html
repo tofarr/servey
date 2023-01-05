@@ -57,6 +57,7 @@
         React.createElement(GraphiQL, {
           fetcher: GraphiQL.createFetcher({
             url: '/graphql',
+            subscriptionUrl: 'ws://localhost:8000/graphql'
           }),
           defaultEditorToolsVisibility: true,
         }),

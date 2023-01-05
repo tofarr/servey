@@ -17,16 +17,12 @@ class KmsAuthorizerFactory(AuthorizerFactoryABC):
     priority = 80
 
     def create_authorizer(self) -> Optional[AuthorizerABC]:
-        try:
-            # First we need a key id - this is stored in the SSM
-            kms_key_id = os.environ.get("KMS_KEY_ID")
-            if kms_key_id is None:
-                LOGGER.debug("KMS_SECRET_KEY NOT DEFINED - SKIPPING...")
-                return
-            from servey.servey_aws.authorizer.kms_authorizer import KmsAuthorizer
+        # First we need a key id - this is stored as an environment variable
+        kms_key_id = os.environ.get("KMS_KEY_ID")
+        if kms_key_id is None:
+            LOGGER.debug("KMS_SECRET_KEY NOT DEFINED - SKIPPING...")
+            return
+        from servey.servey_aws.authorizer.kms_authorizer import KmsAuthorizer
 
-            authorizer = KmsAuthorizer("alias/" + kms_key_id)
-            return authorizer
-        except ModuleNotFoundError:
-            LOGGER.error("Unable to load Module")
-            LOGGER.info("PyJWT is not available - skipping JwtAuthorizer")
+        authorizer = KmsAuthorizer("alias/" + kms_key_id)
+        return authorizer

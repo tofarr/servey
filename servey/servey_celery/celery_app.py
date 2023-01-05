@@ -28,6 +28,7 @@ from celery import Celery
 
 # Setup app and tasks...
 from servey.finder.action_finder_abc import find_actions_with_trigger_type
+from servey.finder.subscription_finder_abc import find_subscriptions
 from servey.trigger.fixed_rate_trigger import FixedRateTrigger
 
 _CELERY_BROKER = os.environ.get("CELERY_BROKER")
@@ -36,6 +37,12 @@ _LOGGER.info(f"Starting celery with broker {_CELERY_BROKER}")
 app = Celery(broker=_CELERY_BROKER)
 for _action, _ in find_actions_with_trigger_type(FixedRateTrigger):
     globals()[_action.name] = app.task(_action.fn)
+
+for _subscription in find_subscriptions():
+    if _subscription.action_subscribers:
+        for _action in _subscription.action_subscribers:
+            if _action.name not in globals():
+                globals()[_action.name] = app.task(_action.fn)
 
 
 # noinspection PyUnusedLocal
