@@ -31,7 +31,7 @@ def get_schema_for_params(
     json_schema = {
         "type": "object",
         "properties": properties,
-        "additionalProperties": os.environ.get("SERVEY_STRICT_SCHEMA") == "1",
+        "additionalProperties": os.environ.get("SERVEY_STRICT_SCHEMA") != "1",
         "required": required,
     }
     schema = Schema(json_schema, dict)

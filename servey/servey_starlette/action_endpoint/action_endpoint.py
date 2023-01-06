@@ -2,6 +2,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
+from string import Formatter
 from typing import Tuple, Any, Optional, Dict, List, Iterator, Awaitable
 
 from json_urley import query_str_to_json_obj
@@ -39,6 +40,11 @@ class ActionEndpoint(ActionEndpointABC):
     result_marshaller: MarshallerABC
     result_schema: Optional[Schema] = None
 
+    def __post_init__(self):
+        self.field_names = {
+            fname for _, fname, _, _ in Formatter().parse(self.path) if fname
+        }
+
     def get_action(self) -> Action:
         return self.action
 
@@ -67,6 +73,8 @@ class ActionEndpoint(ActionEndpointABC):
         if method in BODY_METHODS:
             body = await request.body()
             params: ExternalItemType = json.loads(body) if body else {}
+            if request.path_params:
+                params.update(request.path_params)
             error = next(self.params_schema.iter_errors(params), None)
             if error:
                 raise HTTPException(422, str(error))
@@ -77,9 +85,10 @@ class ActionEndpoint(ActionEndpointABC):
                 if isinstance(query_str, bytes):
                     query_str = query_str.decode("latin-1")
                 json_obj = query_str_to_json_obj(query_str)
+                if request.path_params:
+                    json_obj.update(request.path_params)
+                self.params_schema.validate(json_obj)
                 kwargs = self.params_marshaller.load(json_obj)
-                params = self.params_marshaller.dump(kwargs)
-                self.params_schema.validate(params)
             except Exception:
                 LOGGER.exception("invalid_input")
                 raise HTTPException(422, "invalid_input")
@@ -126,6 +135,25 @@ class ActionEndpoint(ActionEndpointABC):
         schema = move_ref_items_to_components(
             self.params_schema.schema, self.params_schema.schema, components
         )
+
+        if self.field_names:
+            parameters = []
+            properties = schema.get("properties")
+            required_properties = schema.get("required") or []
+            for field_name in self.field_names:
+                parameters.append(
+                    {
+                        "required": field_name in required_properties,
+                        "schema": properties.pop(field_name),
+                        "name": field_name,
+                        "in": "path",
+                    }
+                )
+                if field_name in required_properties:
+                    required_properties.remove(field_name)
+            path_method["parameters"] = parameters
+
+        # move params from schema to params if path params
         content = {"schema": schema}
         path_method["requestBody"] = {
             "content": {"application/json": content},
@@ -149,6 +177,10 @@ class ActionEndpoint(ActionEndpointABC):
                 path=[],
             )
         )
+        if self.field_names:
+            for param in params:
+                if param["name"] in self.field_names:
+                    param["in"] = "path"
         path_method["parameters"] = params
         responses: ExternalItemType = path_method["responses"]
         responses["422"] = {"description": "Validation Error"}
@@ -185,6 +217,7 @@ def _object_schema_to_json_urley_parameters(
         if not valid_schema:
             continue
         path.append(key.replace("~", "~~").replace(".", "~."))
+        valid_schema = _get_nullable_schema(valid_schema) or valid_schema
         if valid_schema.get("type") == "object":
             yield from _object_schema_to_json_urley_parameters(
                 valid_schema, examples, path
@@ -219,7 +252,7 @@ def _get_valid_openapi_param_schema(schema: ExternalItemType):
     nullable_schema = _get_nullable_schema(schema)
     if nullable_schema:
         sub_schema = _get_valid_openapi_param_schema(nullable_schema)
-        return schema if sub_schema else None
+        return nullable_schema if sub_schema else None
     type_ = schema.get("type")
     if not type_:
         return

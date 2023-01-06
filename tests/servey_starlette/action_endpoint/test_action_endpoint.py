@@ -19,7 +19,7 @@ from servey.servey_starlette.action_endpoint.action_endpoint import (
 from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory import (
     ActionEndpointFactory,
 )
-from servey.trigger.web_trigger import WEB_GET, WEB_POST
+from servey.trigger.web_trigger import WEB_GET, WEB_POST, WebTrigger, WebTriggerMethod
 from tests.servey_strawberry.test_schema_factory import Node
 
 
@@ -283,7 +283,7 @@ class TestActionEndpoint(TestCase):
                                         }
                                     },
                                     "schema": {
-                                        "additionalProperties": False,
+                                        "additionalProperties": True,
                                         "properties": {
                                             "node": {"$ref": "#/components/Node"}
                                         },
@@ -489,54 +489,32 @@ class TestActionEndpoint(TestCase):
         schema = {"paths": {}, "components": {}}
         endpoint.to_openapi_schema(schema)
         expected_schema = {
+            "components": {},
             "paths": {
                 "/actions/add": {
                     "get": {
+                        "operationId": "add",
+                        "parameters": [
+                            {
+                                "in": "query",
+                                "name": "values.name",
+                                "required": True,
+                                "schema": {"type": "string"},
+                            }
+                        ],
                         "responses": {
-                            "422": {"description": "Validation Error"},
                             "200": {
-                                "description": "Successful Response",
                                 "content": {
                                     "application/json": {"schema": {"type": "integer"}}
                                 },
+                                "description": "Successful " "Response",
                             },
+                            "422": {"description": "Validation " "Error"},
                         },
-                        "operationId": "add",
                         "summary": "Dummy",
-                        "parameters": [
-                            {
-                                "required": True,
-                                "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "name": "Node",
-                                            "properties": {
-                                                "name": {"type": "string"},
-                                                "child_nodes": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "$ref": "#/properties/values/anyOf/0"
-                                                    },
-                                                },
-                                            },
-                                            "additionalProperties": False,
-                                            "required": ["name"],
-                                            "description": "Node(name: str, child_nodes: List[ForwardRef("
-                                            "'tests.servey_strawberry.test_schema_factory."
-                                            "Node')] = <factory>)",
-                                        },
-                                        {"type": "null"},
-                                    ]
-                                },
-                                "name": "values",
-                                "in": "query",
-                            }
-                        ],
                     }
                 }
             },
-            "components": {},
         }
         self.assertEqual(expected_schema, schema)
 
@@ -557,6 +535,111 @@ class TestActionEndpoint(TestCase):
         self.assertIsNone(_get_valid_openapi_param_schema({}))
         self.assertIsNone(_get_valid_openapi_param_schema({"type": "array"}))
 
+    def test_get_with_path_params(self):
+        # noinspection PyUnusedLocal
+        @action(triggers=(WebTrigger(WebTriggerMethod.GET, "/find/{key}"),))
+        def find(key: str) -> int:
+            """ Dummy """
+            return 17
+
+        endpoint = ActionEndpointFactory().create(get_action(find), set(), [])
+        schema = {"paths": {}, "components": {}}
+        endpoint.to_openapi_schema(schema)
+        expected_schema = {
+            "components": {},
+            "paths": {
+                "/find/{key}": {
+                    "get": {
+                        "operationId": "find",
+                        "parameters": [
+                            {
+                                "in": "path",
+                                "name": "key",
+                                "required": True,
+                                "schema": {"type": "string"},
+                            }
+                        ],
+                        "responses": {
+                            "200": {
+                                "content": {
+                                    "application/json": {"schema": {"type": "integer"}}
+                                },
+                                "description": "Successful " "Response",
+                            },
+                            "422": {"description": "Validation " "Error"},
+                        },
+                        "summary": "Dummy",
+                    }
+                }
+            },
+        }
+        self.assertEqual(expected_schema, schema)
+        request = build_request(path_params={'key': 'bar'})
+        loop = asyncio.get_event_loop()
+        response = loop.run_until_complete(endpoint.execute(request))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(17, json.loads(response.body))
+
+    def test_post_with_path_params(self):
+        # noinspection PyUnusedLocal
+        @action(triggers=(WebTrigger(WebTriggerMethod.POST, "/find/{key}"),))
+        def find(key: str, value: str) -> int:
+            """ Dummy """
+            return len(key) + len(value)
+
+        endpoint = ActionEndpointFactory().create(get_action(find), set(), [])
+        schema = {"paths": {}, "components": {}}
+        endpoint.to_openapi_schema(schema)
+        expected_schema = {
+            "components": {},
+            "paths": {
+                "/find/{key}": {
+                    "post": {
+                        "operationId": "find",
+                        "parameters": [
+                            {
+                                "in": "path",
+                                "name": "key",
+                                "required": True,
+                                "schema": {"type": "string"},
+                            }
+                        ],
+                        'requestBody': {
+                            'content': {
+                                'application/json': {
+                                    'schema': {
+                                        'additionalProperties': True,
+                                        'properties': {
+                                            'value': {'type': 'string'}
+                                        },
+                                        'required': ['value'],
+                                        'type': 'object'
+                                    }
+                                }
+                            },
+                            'required': True
+                        },
+                        "responses": {
+                            "200": {
+                                "content": {
+                                    "application/json": {"schema": {"type": "integer"}}
+                                },
+                                "description": "Successful " "Response",
+                            },
+                            "422": {"description": "Validation " "Error"},
+                        },
+                        "summary": "Dummy",
+                    }
+                }
+            },
+        }
+        self.assertEqual(expected_schema, schema)
+        request = build_request(method='POST', path_params={'key': 'bar'}, body=json.dumps({"value": "ping"}))
+        loop = asyncio.get_event_loop()
+        response = loop.run_until_complete(endpoint.execute(request))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(7, json.loads(response.body))
+
 
 def build_request(
     method: str = "GET",
@@ -565,6 +648,7 @@ def build_request(
     query_string: str = None,
     headers: dict = None,
     body: str = None,
+    path_params: dict = None,
 ) -> Request:
     if headers is None:
         headers = {}
@@ -587,6 +671,7 @@ def build_request(
             "client": ("127.0.0.1", 8080),
             "server": (server, 443),
             "query_string": query_string,
+            "path_params": path_params,
         },
         receive=receive,
     )
