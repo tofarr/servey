@@ -62,6 +62,8 @@ def generate_serverless_scaffold():
 
 
 def generate_openapi_schema():
+    if "SERVEY_STRICT_SCHEMA" not in os.environ:
+        os.environ["SERVEY_STRICT_SCHEMA"] = "1"
     from servey.servey_starlette.route_factory.openapi_route_factory import (
         OpenapiRouteFactory,
     )

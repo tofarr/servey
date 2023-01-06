@@ -38,6 +38,7 @@ def action(
     examples: Optional[Tuple[Example, ...]] = None,
     cache_control: Optional[CacheControlABC] = None,
     batch_invoker: Optional[BatchInvoker] = None,
+    name: Optional[str] = None,
 ):
     """
     Decorator for actions, which may be a function or a class with a designated method_name
@@ -55,7 +56,7 @@ def action(
     def get_action_for_fn(fn_: Callable):
         return Action(
             fn=fn_,
-            name=fn_.__name__,
+            name=name or fn_.__name__,
             description=fn_.__doc__.strip() if fn_.__doc__ else None,
             access_control=access_control,
             triggers=triggers,
