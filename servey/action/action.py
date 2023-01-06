@@ -39,6 +39,7 @@ def action(
     cache_control: Optional[CacheControlABC] = None,
     batch_invoker: Optional[BatchInvoker] = None,
     name: Optional[str] = None,
+    description: Optional[str] = None,
 ):
     """
     Decorator for actions, which may be a function or a class with a designated method_name
@@ -57,7 +58,7 @@ def action(
         return Action(
             fn=fn_,
             name=name or fn_.__name__,
-            description=fn_.__doc__.strip() if fn_.__doc__ else None,
+            description=description or (fn_.__doc__.strip() if fn_.__doc__ else None),
             access_control=access_control,
             triggers=triggers,
             timeout=timeout,
