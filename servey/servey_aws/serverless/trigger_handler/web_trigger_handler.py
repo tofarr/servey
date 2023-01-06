@@ -26,7 +26,7 @@ class WebTriggerHandler(TriggerHandlerABC):
         events = lambda_definition.get("events")
         if not events:
             events = lambda_definition["events"] = []
-        path = self.path_pattern.format(action_name=action.name.replace("_", "-"))
+        path = trigger.path or self.path_pattern.format(action_name=action.name.replace("_", "-"))
         events.append(
             dict(http=dict(path=path, method=trigger.method.value, cors=True))
             # TODO: Add openapi documentation

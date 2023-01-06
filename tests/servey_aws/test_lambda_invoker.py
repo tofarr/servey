@@ -16,7 +16,7 @@ from servey.errors import ServeyError
 from servey.security.access_control.scope_access_control import ScopeAccessControl
 from servey.security.authorization import Authorization, ROOT, AuthorizationError
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
-from servey.trigger.web_trigger import WEB_POST, WEB_GET
+from servey.trigger.web_trigger import WEB_POST, WEB_GET, WebTriggerMethod, WebTrigger
 from tests.servey_strawberry.test_schema_factory import Node
 
 
@@ -161,6 +161,20 @@ class TestLambdaInvoker(TestCase):
         }
         self.assertEqual(expected_result, result)
 
+    def test_api_gateway_get_with_path_params(self):
+        invoker = get_invoker(get_node_by_path)
+        event = dict(httpMethod="GET", pathParameters=dict(name='foo'))
+        result = invoker(event, None)
+        # noinspection PyTypeChecker
+        expected_result = {
+            "statusCode": 200,
+            "headers": {
+                "Content-Type": "application/json",
+            },
+            "body": '{"name": "foo", "child_nodes": []}',
+        }
+        self.assertEqual(expected_result, result)
+
     def test_appsync_post_nested(self):
         with patch.dict(
             os.environ,
@@ -263,6 +277,11 @@ _NODES = {"foo": Node("foo")}
 
 @action(triggers=(WEB_GET,))
 def get_node(name: str) -> Optional[Node]:
+    return _NODES.get(name)
+
+
+@action(triggers=(WebTrigger(WebTriggerMethod.GET, "/nodes/{name}"),))
+def get_node_by_path(name: str) -> Optional[Node]:
     return _NODES.get(name)
 
 
