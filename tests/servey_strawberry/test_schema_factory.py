@@ -40,7 +40,7 @@ type Node {
 
 input NodeInput {
   name: String!
-  childNodes: [NodeInput!]!
+  childNodes: [NodeInput!] = null
 }
 
 type Query {
@@ -240,6 +240,56 @@ query{
         }
         self.assertEqual(expected_result, result.data)
 
+    def test_default_value_inputs(self):
+        schema_factory = create_schema_factory()
+        schema_factory.create_field_for_action(
+            get_action(test_of_default_values), WEB_GET
+        )
+        schema = schema_factory.create_schema()
+        str_schema = str(schema).strip()
+        expected_schema = """
+type ItemWithDefaultValues {
+  a: Int!
+  b: Float!
+  c: Boolean!
+  d: String
+}
+
+input ItemWithDefaultValuesInput {
+  a: Int = 10
+  b: Float = 1.5
+  c: Boolean = true
+  d: String = null
+}
+
+type Query {
+  testOfDefaultValues(tester: ItemWithDefaultValuesInput!): ItemWithDefaultValues!
+}
+        """.strip()
+        self.assertEqual(expected_schema, str_schema)
+        future = schema.execute(
+            """
+query{
+  testOfDefaultValues(tester: {}) {
+    a
+    b
+    c
+    d
+  }
+}
+        """
+        )
+        loop = asyncio.get_event_loop()
+        result = loop.run_until_complete(future)
+        expected_result = {
+            "testOfDefaultValues": {
+                "a": 10,
+                "b": 1.5,
+                "c": True,
+                "d": None
+            }
+        }
+        self.assertEqual(expected_result, result.data)
 
 @dataclass
 class Node:
@@ -318,3 +368,16 @@ class NumberStats:
 def get_stats_for_numbers(numbers: List[int]) -> List[NumberStats]:
     result = [NumberStats(n) for n in numbers]
     return result
+
+
+@dataclass
+class ItemWithDefaultValues:
+    a: int = 10
+    b: float = 1.5
+    c: bool = True
+    d: Optional[str] = None
+
+
+@action(triggers=(WEB_GET,))
+def test_of_default_values(tester: ItemWithDefaultValues) -> ItemWithDefaultValues:
+    return tester

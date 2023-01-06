@@ -1,5 +1,6 @@
 import inspect
-from dataclasses import is_dataclass, fields, dataclass
+from dataclasses import is_dataclass, fields, dataclass, MISSING
+from decimal import Decimal
 from typing import Type, Optional, Dict, Any, Callable
 
 import strawberry
@@ -62,12 +63,28 @@ class DataclassFactory(EntityFactoryABC):
             type_name=name, module="", schema_factory=schema_factory
         )
 
-        # noinspection PyDataclass
+        annotations = {}
         params = {
-            "__annotations__": {
-                f.name: schema_factory.get_input(f.type) for f in fields(annotation)
-            },
+            '__annotations__': annotations
         }
+        # noinspection PyDataclass
+        for f in fields(annotation):
+            type_ = f.type
+            if f.default is not MISSING or f.default_factory is not MISSING:
+                type_ = Optional[type_]
+                if (
+                    f.default is None or
+                    isinstance(f.default, str) or
+                    isinstance(f.default, int) or
+                    isinstance(f.default, bool) or
+                    isinstance(f.default, float) or
+                    isinstance(f.default, Decimal)
+                ):
+                    params[f.name] = f.default
+                else:
+                    params[f.name] = None  # In graphql null and undefined are the same.
+            annotations[f.name] = schema_factory.get_input(type_)
+
         wrap_type = dataclass(type(name, tuple(), params))
         input_ = strawberry.input(wrap_type)
         schema_factory.inputs[name] = input_
