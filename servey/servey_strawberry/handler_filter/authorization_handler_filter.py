@@ -54,14 +54,14 @@ class AuthorizationHandlerFilter(HandlerFilterABC):
                 )
             )
 
-        def resolver(**kwargs):
+        def resolver(*args, **kwargs):
             info = kwargs.pop(self.info_kwarg_name)
             authorization = self.get_authorization(info)
             if not action.access_control.is_executable(authorization):
                 raise AuthorizationError()
             if authorization_kwarg_name:
                 kwargs[authorization_kwarg_name] = authorization
-            result = fn(**kwargs)
+            result = fn(*args, **kwargs)
             return result
 
         sig = sig.replace(parameters=parameters)

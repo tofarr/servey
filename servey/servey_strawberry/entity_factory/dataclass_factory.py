@@ -102,9 +102,6 @@ def build_resolvable_field(
     key: str,
     params: Dict[str, Any],
 ):
-    # if resolvable.batch_fn:
-    #    fn = _wrap_fn_in_data_loader(resolvable)
-
     for handler_filter in schema_factory.handler_filters:
         action, continue_filtering = handler_filter.filter(action, schema_factory)
         if not continue_filtering:
