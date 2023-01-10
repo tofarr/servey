@@ -15,7 +15,6 @@ class PasswordAuthenticatorABC(ABC):
 
 
 def get_default_password_authenticator() -> PasswordAuthenticatorABC:
-    impls = get_impls(PasswordAuthenticatorABC)
-    impls = [i() for i in impls]
+    impls = list(get_impls(PasswordAuthenticatorABC))
     impls.sort(key=lambda i: i.priority, reverse=True)
-    return impls[0]
+    return impls[0]()
