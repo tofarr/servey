@@ -539,7 +539,7 @@ class TestActionEndpoint(TestCase):
         # noinspection PyUnusedLocal
         @action(triggers=(WebTrigger(WebTriggerMethod.GET, "/find/{key}"),))
         def find(key: str) -> int:
-            """ Dummy """
+            """Dummy"""
             return 17
 
         endpoint = ActionEndpointFactory().create(get_action(find), set(), [])
@@ -574,7 +574,7 @@ class TestActionEndpoint(TestCase):
             },
         }
         self.assertEqual(expected_schema, schema)
-        request = build_request(path_params={'key': 'bar'})
+        request = build_request(path_params={"key": "bar"})
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(endpoint.execute(request))
         self.assertEqual(200, response.status_code)
@@ -584,7 +584,7 @@ class TestActionEndpoint(TestCase):
         # noinspection PyUnusedLocal
         @action(triggers=(WebTrigger(WebTriggerMethod.POST, "/find/{key}"),))
         def find(key: str, value: str) -> int:
-            """ Dummy """
+            """Dummy"""
             return len(key) + len(value)
 
         endpoint = ActionEndpointFactory().create(get_action(find), set(), [])
@@ -604,20 +604,18 @@ class TestActionEndpoint(TestCase):
                                 "schema": {"type": "string"},
                             }
                         ],
-                        'requestBody': {
-                            'content': {
-                                'application/json': {
-                                    'schema': {
-                                        'additionalProperties': True,
-                                        'properties': {
-                                            'value': {'type': 'string'}
-                                        },
-                                        'required': ['value'],
-                                        'type': 'object'
+                        "requestBody": {
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "additionalProperties": True,
+                                        "properties": {"value": {"type": "string"}},
+                                        "required": ["value"],
+                                        "type": "object",
                                     }
                                 }
                             },
-                            'required': True
+                            "required": True,
                         },
                         "responses": {
                             "200": {
@@ -634,7 +632,11 @@ class TestActionEndpoint(TestCase):
             },
         }
         self.assertEqual(expected_schema, schema)
-        request = build_request(method='POST', path_params={'key': 'bar'}, body=json.dumps({"value": "ping"}))
+        request = build_request(
+            method="POST",
+            path_params={"key": "bar"},
+            body=json.dumps({"value": "ping"}),
+        )
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(endpoint.execute(request))
         self.assertEqual(200, response.status_code)

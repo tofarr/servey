@@ -65,21 +65,19 @@ class DataclassFactory(EntityFactoryABC):
         )
 
         annotations = {}
-        params = {
-            '__annotations__': annotations
-        }
+        params = {"__annotations__": annotations}
         # noinspection PyDataclass
         for f in fields(annotation):
             type_ = f.type
             if f.default is not MISSING:
                 type_ = Optional[type_]
                 if (
-                    f.default is None or
-                    isinstance(f.default, str) or
-                    isinstance(f.default, int) or
-                    isinstance(f.default, bool) or
-                    isinstance(f.default, float) or
-                    isinstance(f.default, Decimal)
+                    f.default is None
+                    or isinstance(f.default, str)
+                    or isinstance(f.default, int)
+                    or isinstance(f.default, bool)
+                    or isinstance(f.default, float)
+                    or isinstance(f.default, Decimal)
                 ):
                     params[f.name] = f.default
             elif f.default_factory is not MISSING:

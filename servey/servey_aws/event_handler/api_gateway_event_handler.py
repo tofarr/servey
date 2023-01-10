@@ -35,7 +35,7 @@ class ApiGatewayEventHandler(EventHandler):
             params = json.loads(event.get("body") or "{}")
         else:
             params = event.get("queryStringParameters") or {}
-        path_parameters = event.get('pathParameters')
+        path_parameters = event.get("pathParameters")
         if path_parameters:
             params.update(path_parameters)
         if self.param_schema:

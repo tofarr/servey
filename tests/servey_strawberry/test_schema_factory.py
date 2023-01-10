@@ -40,7 +40,7 @@ type Node {
 
 input NodeInput {
   name: String!
-  childNodes: [NodeInput!] = null
+  childNodes: [NodeInput!]
 }
 
 type Query {
@@ -282,14 +282,10 @@ query{
         loop = asyncio.get_event_loop()
         result = loop.run_until_complete(future)
         expected_result = {
-            "testOfDefaultValues": {
-                "a": 10,
-                "b": 1.5,
-                "c": True,
-                "d": None
-            }
+            "testOfDefaultValues": {"a": 10, "b": 1.5, "c": True, "d": None}
         }
         self.assertEqual(expected_result, result.data)
+
 
 @dataclass
 class Node:

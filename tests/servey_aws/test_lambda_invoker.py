@@ -163,7 +163,7 @@ class TestLambdaInvoker(TestCase):
 
     def test_api_gateway_get_with_path_params(self):
         invoker = get_invoker(get_node_by_path)
-        event = dict(httpMethod="GET", pathParameters=dict(name='foo'))
+        event = dict(httpMethod="GET", pathParameters=dict(name="foo"))
         result = invoker(event, None)
         # noinspection PyTypeChecker
         expected_result = {

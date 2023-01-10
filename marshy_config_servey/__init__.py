@@ -23,6 +23,7 @@ def configure(context: MarshallerContext):
     context.register_marshaller(ToSecondDatetimeMarshaller())
     configure_finders(context)
     configure_asyncio_subscriptions(context)
+    configure_threads(context)
     configure_auth(context)
     configure_starlette(context)
     configure_aws(context)
@@ -50,11 +51,23 @@ def configure_asyncio_subscriptions(context: MarshallerContext):
     )
 
 
+def configure_threads(context: MarshallerContext):
+    from servey.servey_thread.thread_factory_abc import ThreadFactoryABC
+    from servey.servey_thread.fixed_rate_trigger_thread_factory import (
+        FixedRateTriggerThreadFactory,
+    )
+
+    register_impl(ThreadFactoryABC, FixedRateTriggerThreadFactory, context)
+
+
 def configure_auth(context: MarshallerContext):
     from servey.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
     from servey.security.authorizer.jwt_authorizer_factory import JwtAuthorizerFactory
+    from servey.security.authenticator.password_authenticator_abc import PasswordAuthenticatorABC
+    from servey.security.authenticator.root_password_authenticator import RootPasswordAuthenticator
 
     register_impl(AuthorizerFactoryABC, JwtAuthorizerFactory, context)
+    register_impl(PasswordAuthenticatorABC, RootPasswordAuthenticator, context)
 
 
 def configure_starlette(context: MarshallerContext):
@@ -277,6 +290,18 @@ def configure_celery(context: MarshallerContext):
         register_impl(
             SubscriptionServiceFactoryABC, CelerySubscriptionServiceFactory, context
         )
+
+        from servey.servey_celery.celery_config.celery_config_abc import CeleryConfigABC
+        from servey.servey_celery.celery_config.fixed_rate_trigger_config import (
+            FixedRateTriggerConfig,
+        )
+        from servey.servey_celery.celery_config.subscription_config import (
+            SubscriptionConfig,
+        )
+
+        register_impl(CeleryConfigABC, FixedRateTriggerConfig, context)
+        register_impl(CeleryConfigABC, SubscriptionConfig, context)
+
     except ModuleNotFoundError as e:
         LOGGER.error(e)
-        LOGGER.info("Serverless module not found: skipping")
+        LOGGER.info("Celery module not found: skipping")

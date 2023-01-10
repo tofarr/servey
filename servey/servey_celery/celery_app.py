@@ -26,28 +26,13 @@ import logging
 import os
 from celery import Celery
 
-# Setup app and tasks...
-from servey.finder.action_finder_abc import find_actions_with_trigger_type
-from servey.finder.subscription_finder_abc import find_subscriptions
-from servey.trigger.fixed_rate_trigger import FixedRateTrigger
+from marshy.factory.impl_marshaller_factory import get_impls
+from servey.servey_celery.celery_config.celery_config_abc import CeleryConfigABC
 
+# Setup app and tasks...
 _CELERY_BROKER = os.environ.get("CELERY_BROKER")
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.info(f"Starting celery with broker {_CELERY_BROKER}")
 app = Celery(broker=_CELERY_BROKER)
-for _action, _ in find_actions_with_trigger_type(FixedRateTrigger):
-    globals()[_action.name] = app.task(_action.fn)
-
-for _subscription in find_subscriptions():
-    if _subscription.action_subscribers:
-        for _action in _subscription.action_subscribers:
-            if _action.name not in globals():
-                globals()[_action.name] = app.task(_action.fn)
-
-
-# noinspection PyUnusedLocal
-@app.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
-    for action, trigger in find_actions_with_trigger_type(FixedRateTrigger):
-        task = globals()[action.name]
-        sender.add_periodic_task(trigger.interval, task.s())
+for impl in get_impls(CeleryConfigABC):
+    impl().configure(app, globals())

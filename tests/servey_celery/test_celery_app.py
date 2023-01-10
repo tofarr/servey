@@ -31,7 +31,7 @@ class TestCeleryApp(TestCase):
                 return_value=[get_action(ping), get_action(consume_message)],
             ),
             patch(
-                "servey.finder.subscription_finder_abc.find_subscriptions",
+                "servey.servey_celery.celery_config.subscription_config.find_subscriptions",
                 return_value=[subscription_],
             ),
             patch.dict(os.environ, dict(CELERY_BROKER="redis://localhost:6379/0")),

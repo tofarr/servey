@@ -5,9 +5,9 @@ from unittest.mock import patch
 
 from starlette.exceptions import HTTPException
 
+from servey.security.authenticator.root_password_authenticator import RootPasswordAuthenticator
 from servey.servey_starlette.route_factory.authenticator_route_factory import (
-    AuthenticatorRouteFactory,
-    RootPasswordAuthenticator,
+    AuthenticatorRouteFactory, PasswordLoginEndpoint,
 )
 from tests.servey_starlette.action_endpoint.test_action_endpoint import build_request
 
@@ -18,7 +18,7 @@ class TestAuthenticatorRouteFactory(TestCase):
             self.assertEqual([], list(AuthenticatorRouteFactory().create_routes()))
 
     def test_root_password_authenticator(self):
-        authenticator = RootPasswordAuthenticator("admin", "Password123!")
+        authenticator = PasswordLoginEndpoint(RootPasswordAuthenticator("admin", "Password123!"))
         request = build_request(
             method="POST",
             body="username=admin&password=Password123!",
@@ -31,7 +31,7 @@ class TestAuthenticatorRouteFactory(TestCase):
         self.assertEqual(200, response.status_code)
 
     def test_root_password_authenticator_wrong_password(self):
-        authenticator = RootPasswordAuthenticator("admin", "Password123!")
+        authenticator = PasswordLoginEndpoint(RootPasswordAuthenticator("admin", "Password123!"))
         request = build_request(
             method="POST",
             body="username=admin&password=NotCorrect",
