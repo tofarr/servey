@@ -1,3 +1,5 @@
+TODO: Setup s3 resource for static routes
+
 # Servey - A Flexible Action Framework For Python
 
 This project specifying metadata for python functions (In a manner similar to FastAPI) which is then used to
@@ -351,6 +353,15 @@ Produce an openapi schema in `openapi.json`:
 Produce a graphql schema in `servey_schema.graphql`:
 
 `python -m servey --run=graphql-schema`
+
+## Pluggability
+
+We use marshy for pluggable components. See (marshy_config_servey)[marshy_config_servey/__init__.py]
+
+## Deployment Patterns
+
+* API in ApiGateway / AppSync, SPA hosted on S3 and cloudfront out in front, Deployment of all via serverless.
+* Docker Image containing Nginx / Starlette app deployed to Heroku / Linode.
 
 ## Deploying new versions of this Servey to Pypi
 

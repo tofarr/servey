@@ -5,6 +5,7 @@ from marshy.marshaller_context import MarshallerContext
 
 from servey.finder.module_subscription_finder import ModuleSubscriptionFinder
 from servey.finder.subscription_finder_abc import SubscriptionFinderABC
+from servey.servey_starlette.route_factory.static_site_route_factory import StaticSiteRouteFactory
 from servey.subscription.subscription_service import SubscriptionServiceFactoryABC
 from servey.util.to_second_datetime_marshaller import (
     ToSecondDatetimeMarshaller,
@@ -126,6 +127,7 @@ def configure_starlette_route_factory(context: MarshallerContext):
     register_impl(RouteFactoryABC, SubscriptionRouteFactory, context)
     register_impl(SubscriptionServiceFactoryABC, SubscriptionRouteFactory, context)
     register_impl(RouteFactoryABC, AsyncapiRouteFactory, context)
+    register_impl(RouteFactoryABC, StaticSiteRouteFactory, context)
 
 
 def configure_strawberry(context: MarshallerContext):

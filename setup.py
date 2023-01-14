@@ -43,7 +43,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/tofarr/servey",
-    packages=setuptools.find_packages(exclude=("tests", "servey_main")),
+    packages=setuptools.find_packages(exclude=("tests", "servey_main", "static_site")),
     package_data={"": ["*.html", "*.js", "*.css", "*.yml"]},
     include_package_data=True,
     install_requires=[

@@ -7,7 +7,7 @@ from servey.servey_starlette.route_factory.route_factory_abc import RouteFactory
 
 LOGGER = logging.getLogger(__name__)
 routes = []
-for route_factory in get_impls(RouteFactoryABC):
+for route_factory in sorted(list(get_impls(RouteFactoryABC)), key=lambda f: f.priority, reverse=True):
     routes.extend(route_factory().create_routes())
 for route in routes:
     LOGGER.debug(f"starlette_path:%s", route.path)
