@@ -147,3 +147,5 @@ package.json
 package-lock.json
 requirements.txt
 serverless.yml
+
+.DS_Store

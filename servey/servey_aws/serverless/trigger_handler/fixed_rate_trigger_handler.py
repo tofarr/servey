@@ -27,11 +27,14 @@ class FixedRateTriggerHandler(TriggerHandlerABC):
             raise ServeyError("frequency_too_high")  # min is 60!
         for unit, seconds in UNITS.items():
             if not trigger.interval % seconds:
+                rate = int(trigger.interval / seconds)
+                if rate == 1:
+                    unit = unit[:-1]  # remove plural
                 # noinspection PyTypeChecker
                 events.append(
                     dict(
                         schedule=dict(
-                            rate=f"rate({int(trigger.interval / seconds)} {unit})"
+                            rate=f"rate({rate} {unit})"
                         )
                     )
                 )

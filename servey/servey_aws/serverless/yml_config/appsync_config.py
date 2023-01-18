@@ -52,7 +52,9 @@ class AppsyncConfig(YmlConfigABC):
             schema = schema.replace(
                 '\n"""Date with time (isoformat)"""\nscalar DateTime\n', ""
             )
-            schema = schema.replace("DateTime", "AWSDateTime")
+            # Ugly AWS variable substitution
+            schema = schema.replace(": DateTime", ": AWSDateTime")
+            schema = schema.replace(": UUID", ": ID")
             writer.write(schema)
 
     def build_servey_action_functions_yml(self) -> ExternalItemType:
