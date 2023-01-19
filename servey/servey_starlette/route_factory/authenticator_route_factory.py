@@ -9,8 +9,10 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-from servey.security.authenticator.password_authenticator_abc import PasswordAuthenticatorABC, \
-    get_default_password_authenticator
+from servey.security.authenticator.password_authenticator_abc import (
+    PasswordAuthenticatorABC,
+    get_default_password_authenticator,
+)
 from servey.security.authorizer.authorizer_abc import AuthorizerABC
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
 from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
@@ -31,12 +33,16 @@ class AuthenticatorRouteFactory(RouteFactoryABC):
 
 @dataclass
 class PasswordLoginEndpoint:
-    password_authenticator: PasswordAuthenticatorABC = field(default_factory=get_default_password_authenticator)
+    password_authenticator: PasswordAuthenticatorABC = field(
+        default_factory=get_default_password_authenticator
+    )
     authorizer: AuthorizerABC = field(default_factory=get_default_authorizer)
 
     async def login(self, request: Request) -> JSONResponse:
         form_data = await request.form()
-        authorization = self.password_authenticator.authenticate(form_data["username"], form_data["password"])
+        authorization = self.password_authenticator.authenticate(
+            form_data["username"], form_data["password"]
+        )
         if authorization:
             return JSONResponse(
                 {

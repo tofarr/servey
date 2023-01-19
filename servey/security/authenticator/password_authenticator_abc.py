@@ -11,7 +11,7 @@ class PasswordAuthenticatorABC(ABC):
 
     @abstractmethod
     def authenticate(self, username: str, password: str) -> Optional[Authorization]:
-        """ Authenticate the username and password given"""
+        """Authenticate the username and password given"""
 
 
 def get_default_password_authenticator() -> PasswordAuthenticatorABC:

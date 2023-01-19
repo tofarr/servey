@@ -7,7 +7,7 @@ import json
 import logging
 import os
 
-from servey.util import get_servey_main
+from servey.errors import ServeyError
 
 LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 logging.basicConfig(level=LOGLEVEL)
@@ -41,26 +41,6 @@ def start_scheduler():
         import servey.servey_thread.__main__
 
 
-def generate_serverless_scaffold():
-    main_serverless_yml_file = (
-        os.environ.get("MAIN_SERVERLESS_YML_FILE") or "serverless.yml"
-    )
-    if not os.path.exists(main_serverless_yml_file):
-        from servey.servey_aws.serverless import yml_config
-        from importlib import resources
-
-        template = resources.read_text(yml_config, "serverless_template.yml")
-        serverless_yml_content = template.format(
-            serverless_service_name=get_servey_main().title().replace("_", ""),
-            service_name=get_servey_main(),
-        )
-        with open(main_serverless_yml_file, "w") as f:
-            f.write(serverless_yml_content)
-    from servey.servey_aws.serverless.yml_config.yml_config_abc import configure
-
-    configure(main_serverless_yml_file)
-
-
 def generate_openapi_schema():
     if "SERVEY_STRICT_SCHEMA" not in os.environ:
         os.environ["SERVEY_STRICT_SCHEMA"] = "1"
@@ -84,9 +64,10 @@ def generate_graphql_schema():
 def main():
     parser = argparse.ArgumentParser(description="Servey")
     parser.add_argument("--run", default="server")
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     if args.run == "sls":
-        generate_serverless_scaffold()
+        # noinspection PyUnresolvedReferences
+        import servey.servey_aws.serverless.__main__
     elif args.run == "openapi":
         generate_openapi_schema()
     elif args.run == "graphql-schema":
@@ -94,9 +75,11 @@ def main():
     elif args.run == "action":
         # noinspection PyUnresolvedReferences
         import servey.servey_direct.__main__
-    else:
+    elif args.run == "server":
         start_scheduler()
         start_http_server()
+    else:
+        raise ServeyError(f"unknown:{args.run}")
 
 
 if __name__ == "__main__":

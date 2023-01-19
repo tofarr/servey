@@ -31,11 +31,5 @@ class FixedRateTriggerHandler(TriggerHandlerABC):
                 if rate == 1:
                     unit = unit[:-1]  # remove plural
                 # noinspection PyTypeChecker
-                events.append(
-                    dict(
-                        schedule=dict(
-                            rate=f"rate({rate} {unit})"
-                        )
-                    )
-                )
+                events.append(dict(schedule=dict(rate=f"rate({rate} {unit})")))
                 return

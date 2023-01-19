@@ -5,7 +5,9 @@ import os
 from dataclasses import field
 from typing import Optional
 
-from servey.security.authenticator.password_authenticator_abc import PasswordAuthenticatorABC
+from servey.security.authenticator.password_authenticator_abc import (
+    PasswordAuthenticatorABC,
+)
 from servey.security.authorization import ROOT, Authorization
 
 LOGGER = logging.getLogger(__name__)
