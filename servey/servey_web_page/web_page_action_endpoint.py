@@ -2,12 +2,11 @@ from dataclasses import dataclass
 from http.client import HTTPException
 from typing import Optional, Any
 
-from jinja2 import Environment, PackageLoader
+from marshy.types import ExternalItemType
 from starlette.responses import HTMLResponse
 
 from servey.servey_starlette.action_endpoint.action_endpoint import ActionEndpoint
 from servey.servey_web_page.web_page_trigger import get_environment
-from servey.util import get_servey_main
 
 
 @dataclass
@@ -40,3 +39,6 @@ class WebPageActionEndpoint(ActionEndpoint):
             template = get_environment().get_template(self.template_name)
             setattr(self, "_template", template)
         return template
+
+    def to_openapi_schema(self, schema: ExternalItemType):
+        pass  # Not included in OpenAPI

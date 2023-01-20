@@ -23,7 +23,6 @@ from servey.servey_aws.event_handler.event_handler_abc import (
     EventHandlerFactoryABC,
 )
 from servey.servey_web_page.web_page_trigger import WebPageTrigger, get_environment
-from servey.util import get_servey_main
 
 
 @dataclass
