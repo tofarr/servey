@@ -27,6 +27,7 @@ def start_http_server():
         port=PORT,
         log_level=LOGLEVEL.lower(),
         reload=DEBUG,
+        reload_includes=["*.j2", "*.py"],
         reload_dirs=["."],
     )
 

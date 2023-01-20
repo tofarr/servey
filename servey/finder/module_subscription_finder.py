@@ -26,8 +26,8 @@ class ModuleSubscriptionFinder(SubscriptionFinderABC):
             module = importlib.import_module(self.root_module_name)
             # noinspection PyTypeChecker
             yield from _find_subscriptions_in_module(module)
-        except ModuleNotFoundError:
-            LOGGER.warning("error_finding_subscriptions")
+        except ModuleNotFoundError as e:
+            LOGGER.info(f"no_subscriptions_found:{e}")
 
 
 def _find_subscriptions_in_module(module) -> Iterator[Subscription]:

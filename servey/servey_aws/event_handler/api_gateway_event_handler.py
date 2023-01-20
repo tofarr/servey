@@ -69,11 +69,17 @@ class ApiGatewayEventHandler(EventHandler):
             "headers": {"Content-Type": "application/json"},
             "body": json.dumps(dumped),
         }
+        self.apply_caching(event, response)
+        return response
+
+    def apply_caching(self, event: ExternalItemType, response: ExternalItemType):
         if self.action.cache_control:
             headers = event.get("headers") or {}
             if_match = headers.get("If-Match")
             if_modified_since = headers.get("If-Modified-Since")
-            cache_header = self.action.cache_control.get_cache_header(dumped)
+            cache_header = self.action.cache_control.get_cache_header_from_content(
+                response["body"]
+            )
             response["headers"].update(cache_header.get_http_headers())
             if if_match and cache_header.etag:
                 if cache_header.etag == if_match:
@@ -87,7 +93,6 @@ class ApiGatewayEventHandler(EventHandler):
                 ):
                     response["statusCode"] = 304
                     response["body"] = ""
-        return response
 
 
 @dataclass

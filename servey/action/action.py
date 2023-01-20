@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Callable, Tuple
+from typing import Optional, Callable, Tuple, Union
 
 from servey.action.batch_invoker import BatchInvoker
 from servey.action.example import Example
@@ -33,7 +33,7 @@ class Action:
 def action(
     fn: Optional[Callable] = None,
     access_control: AccessControlABC = Action.access_control,
-    triggers: Tuple[TriggerABC, ...] = Action.triggers,
+    triggers: Union[TriggerABC, Tuple[TriggerABC, ...]] = Action.triggers,
     timeout: int = Action.timeout,
     examples: Optional[Tuple[Example, ...]] = None,
     cache_control: Optional[CacheControlABC] = None,
@@ -49,6 +49,9 @@ def action(
     When mounting, operations like security checks and validations are performed, as well as
     parameter injection for class based actions.
     """
+
+    if isinstance(triggers, TriggerABC):
+        triggers = (triggers,)
 
     def wrapper_(fn_: Callable):
         fn_.__servey_action__ = get_action_for_fn(fn_)

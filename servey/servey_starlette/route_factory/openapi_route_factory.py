@@ -28,8 +28,14 @@ class OpenapiRouteFactory(RouteFactoryABC):
         default_factory=lambda: os.environ.get("SERVEY_API_VERSION") or "0.1.0"
     )
     action_route_factory: ActionRouteFactory = field(default_factory=ActionRouteFactory)
+    debug: bool = field(
+        default_factory=lambda: int(os.environ.get("SERVER_DEBUG", "1")) == 1
+    )
 
     def create_routes(self) -> Iterator[Route]:
+        if not self.debug:
+            return
+        # add as template route
         yield Route("/openapi.json", endpoint=self.endpoint, include_in_schema=False)
         yield Mount(
             "/docs",

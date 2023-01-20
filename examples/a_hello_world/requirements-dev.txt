@@ -1,0 +1,2 @@
+python-dotenv
+servey[server,serverless,web_page]

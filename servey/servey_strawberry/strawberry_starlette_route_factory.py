@@ -39,6 +39,7 @@ class StrawberryStarletteRouteFactory(RouteFactoryABC):
             yield Route(path=self.graphql_path, methods=["post"], endpoint=graphql_app)
             yield WebSocketRoute(path=self.graphql_path, endpoint=graphql_app)
             if self.debug:
+                # add as template route
                 yield Mount(
                     "/graphiql",
                     app=StaticFiles(

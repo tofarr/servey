@@ -26,8 +26,8 @@ class ModuleActionFinder(ActionFinderABC):
             module = importlib.import_module(self.root_module_name)
             # noinspection PyTypeChecker
             yield from _find_actions_in_module(module)
-        except ModuleNotFoundError:
-            LOGGER.warning("error_finding_actions")
+        except ModuleNotFoundError as e:
+            LOGGER.warning(f"no_actions_found:{e}")
 
 
 def _find_actions_in_module(module) -> Iterator[Action]:

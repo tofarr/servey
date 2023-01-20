@@ -3,13 +3,7 @@ import logging
 from marshy.factory.impl_marshaller_factory import register_impl
 from marshy.marshaller_context import MarshallerContext
 
-from servey.finder.module_subscription_finder import ModuleSubscriptionFinder
-from servey.finder.subscription_finder_abc import SubscriptionFinderABC
-from servey.servey_starlette.route_factory.static_site_route_factory import StaticSiteRouteFactory
 from servey.subscription.subscription_service import SubscriptionServiceFactoryABC
-from servey.util.to_second_datetime_marshaller import (
-    ToSecondDatetimeMarshaller,
-)
 
 priority = 90
 LOGGER = logging.getLogger(__name__)
@@ -17,6 +11,9 @@ LOGGER = logging.getLogger(__name__)
 
 def configure(context: MarshallerContext):
     from marshy.factory.dataclass_marshaller_factory import DataclassMarshallerFactory
+    from servey.util.to_second_datetime_marshaller import (
+        ToSecondDatetimeMarshaller,
+    )
 
     context.register_factory(
         DataclassMarshallerFactory(priority=101, exclude_dumped_values=tuple())
@@ -32,11 +29,14 @@ def configure(context: MarshallerContext):
     configure_strawberry(context)
     configure_strawberry_starlette(context)
     configure_celery(context)
+    configure_jinja2(context)
 
 
 def configure_finders(context: MarshallerContext):
     from servey.finder.action_finder_abc import ActionFinderABC
     from servey.finder.module_action_finder import ModuleActionFinder
+    from servey.finder.module_subscription_finder import ModuleSubscriptionFinder
+    from servey.finder.subscription_finder_abc import SubscriptionFinderABC
 
     register_impl(ActionFinderABC, ModuleActionFinder, context)
     register_impl(SubscriptionFinderABC, ModuleSubscriptionFinder, context)
@@ -64,8 +64,12 @@ def configure_threads(context: MarshallerContext):
 def configure_auth(context: MarshallerContext):
     from servey.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
     from servey.security.authorizer.jwt_authorizer_factory import JwtAuthorizerFactory
-    from servey.security.authenticator.password_authenticator_abc import PasswordAuthenticatorABC
-    from servey.security.authenticator.root_password_authenticator import RootPasswordAuthenticator
+    from servey.security.authenticator.password_authenticator_abc import (
+        PasswordAuthenticatorABC,
+    )
+    from servey.security.authenticator.root_password_authenticator import (
+        RootPasswordAuthenticator,
+    )
 
     register_impl(AuthorizerFactoryABC, JwtAuthorizerFactory, context)
     register_impl(PasswordAuthenticatorABC, RootPasswordAuthenticator, context)
@@ -76,8 +80,7 @@ def configure_starlette(context: MarshallerContext):
         configure_starlette_action_endpoint_factory(context)
         configure_starlette_route_factory(context)
     except ModuleNotFoundError as e:
-        LOGGER.error(e)
-        LOGGER.info("Starlette not installed - Skipping")
+        _raise_non_ignored(e)
 
 
 def configure_starlette_action_endpoint_factory(context: MarshallerContext):
@@ -119,6 +122,9 @@ def configure_starlette_route_factory(context: MarshallerContext):
     )
     from servey.servey_starlette.route_factory.asyncapi_route_factory import (
         AsyncapiRouteFactory,
+    )
+    from servey.servey_starlette.route_factory.static_site_route_factory import (
+        StaticSiteRouteFactory,
     )
 
     register_impl(RouteFactoryABC, ActionRouteFactory, context)
@@ -171,9 +177,7 @@ def configure_strawberry(context: MarshallerContext):
         register_impl(EntityFactoryABC, NoOpFactory, context)
 
     except ModuleNotFoundError as e:
-        LOGGER.error(e)
-        LOGGER.info("Strawberry Module not found: skipping")
-        return
+        _raise_non_ignored(e)
 
 
 def configure_strawberry_starlette(context: MarshallerContext):
@@ -188,9 +192,7 @@ def configure_strawberry_starlette(context: MarshallerContext):
         register_impl(RouteFactoryABC, StrawberryStarletteRouteFactory, context)
 
     except ModuleNotFoundError as e:
-        LOGGER.error(e)
-        LOGGER.info("Strawberry Module not found: skipping")
-        return
+        _raise_non_ignored(e)
 
 
 def configure_aws(context: MarshallerContext):
@@ -244,8 +246,7 @@ def configure_aws(context: MarshallerContext):
         )
 
     except ModuleNotFoundError as e:
-        LOGGER.error(e)
-        LOGGER.info("AWS module not found: skipping")
+        _raise_non_ignored(e)
 
 
 def configure_serverless(context: MarshallerContext):
@@ -279,8 +280,7 @@ def configure_serverless(context: MarshallerContext):
         register_impl(TriggerHandlerABC, FixedRateTriggerHandler, context)
 
     except ModuleNotFoundError as e:
-        LOGGER.error(e)
-        LOGGER.info("Serverless module not found: skipping")
+        _raise_non_ignored(e)
 
 
 def configure_celery(context: MarshallerContext):
@@ -305,5 +305,69 @@ def configure_celery(context: MarshallerContext):
         register_impl(CeleryConfigABC, SubscriptionConfig, context)
 
     except ModuleNotFoundError as e:
-        LOGGER.error(e)
-        LOGGER.info("Celery module not found: skipping")
+        _raise_non_ignored(e)
+
+
+def configure_jinja2(context: MarshallerContext):
+    try:
+        from jinja2 import Template
+
+        try:
+            from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory_abc import (
+                ActionEndpointFactoryABC,
+            )
+            from servey.servey_web_page.web_page_action_endpoint_factory import (
+                WebPageActionEndpointFactory,
+            )
+            register_impl(ActionEndpointFactoryABC, WebPageActionEndpointFactory, context)
+        except ModuleNotFoundError as e:
+            _raise_non_ignored(e)
+
+        try:
+            from servey.servey_aws.event_handler.event_handler_abc import (
+                EventHandlerFactoryABC,
+            )
+            from servey.servey_web_page.web_page_event_handler import (
+                WebPageEventHandlerFactory,
+            )
+            register_impl(EventHandlerFactoryABC, WebPageEventHandlerFactory, context)
+        except ModuleNotFoundError as e:
+            _raise_non_ignored(e)
+
+        try:
+            from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
+                TriggerHandlerABC,
+            )
+            from servey.servey_web_page.web_page_trigger_handler import (
+                WebPageTriggerHandler,
+            )
+            register_impl(TriggerHandlerABC, WebPageTriggerHandler, context)
+        except ModuleNotFoundError as e:
+            _raise_non_ignored(e)
+
+    except ModuleNotFoundError as e:
+        _raise_non_ignored(e)
+
+
+# Due to the use of extras, certain modules may not be present, but that's okay
+_NO_MODULE_NAMED = "No module named '"
+_IGNORABLE_MISSING_MODULE_NAMES = {
+    'celery',
+    'requests',
+    'jinja2',
+    'ruamel',
+    'ruamel.yaml',
+    'boto3',
+    'starlette',
+    'strawberry',
+}
+
+
+def _raise_non_ignored(e: ModuleNotFoundError):
+    msg = str(e)
+    if msg.startswith(_NO_MODULE_NAMED):
+        module_name = msg[len(_NO_MODULE_NAMED):-1]
+        if module_name in _IGNORABLE_MISSING_MODULE_NAMES:
+            LOGGER.debug(msg)
+            return
+    raise e

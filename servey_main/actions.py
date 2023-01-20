@@ -8,6 +8,7 @@ from servey.cache_control.ttl_cache_control import TtlCacheControl
 from servey.action.example import Example
 from servey.security.authorization import Authorization, ROOT
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
+from servey.servey_web_page.web_page_trigger import WebPageTrigger
 from servey.trigger.fixed_rate_trigger import FixedRateTrigger
 from servey.trigger.web_trigger import WEB_GET, WEB_POST
 
@@ -183,3 +184,13 @@ def broadcast_print(message: str, count: int) -> bool:
 def print_consumer(event: PrintEvent):
     for _ in range(event.count):
         print(event.message)
+
+
+@action(triggers=(WebPageTrigger(path="/"),))
+def index():
+    pass  # No model, no time
+
+
+@action(triggers=(WebPageTrigger(),))
+def current_time_page() -> datetime:
+    return datetime.now()

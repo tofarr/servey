@@ -1,4 +1,17 @@
-TODO: Setup s3 resource for static routes
+Example with s3 probably makes the most sense unless you want to put together a full template engine with jinja2.
+Maybe this is wanted.
+Maybe we make it an extra. How would it work?
+
+WebpageTrigger...
+
+On App Load, We execute an action, and then render a result using a Jinja Template.
+WebPageTrigger(
+  path= # defaults to /action_name
+  method= # The method to invoke
+  template= # defaults to /templates/action_name.html
+)
+
+Gives us an efficient way to mount websites as an alternative to s3
 
 # Servey - A Flexible Action Framework For Python
 
@@ -343,6 +356,41 @@ Then you can regenerate your serverless.yml definitions using:
   access by Appsync or API Gateway.
 * Once you deploy your serverless project, you should be able to test from the Appsync, Api Gateway, and Lambda consoles
   respectively.
+  
+## Templating
+
+Although the focus of the project is on building out REST / Graphql APIs, we also included an integration with the Jinja2
+Templating Engine, and the ability to deploy static files. Actions are linked to templates by means of a WebPageTrigger
+```
+@action(triggers=(WebPageTrigger(),))
+def current_time_page() -> datetime:
+    """
+    No template or path were defined, so these are derived from the action name
+    ('/current-time-page' and 'templates/current_time_page.j2' respectively
+    """
+    return datetime.now() 
+```
+
+The template is passed the result of the action as a `model` variable. e.g.:
+
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Current Time</title>
+</head>
+<body>
+<h1>The current time is {{ model }}</h1>
+</body>
+</html>
+```
+
+This allows opportunities for bootstrapping.
+
+Note: We currently do not automatically deploy static files to AWS - it is assumed you will add S3 / Cloudfront / Route53
+resources to your serverless definition manually, as there is a lot of variability in how you may want to set this up. We 
+do however include an example that includes S3, Route53 and cloudfront (here)[examples/a_hello_world]
 
 ## Command line tools
 

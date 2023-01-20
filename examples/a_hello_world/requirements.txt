@@ -1,2 +1,1 @@
-dotenv
-servey[aws,server,serverless]
+servey[web_page]

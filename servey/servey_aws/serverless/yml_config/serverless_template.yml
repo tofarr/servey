@@ -13,7 +13,7 @@ provider:
     LOG_LEVEL: INFO
     KMS_KEY_ID: serveyKmsKey
     CONNECTION_TABLE_NAME: servey_app_connection
-    SERVICE_NAME: {service_name}
+    SERVEY_MAIN: {service_name}
 custom:
   pythonRequirements:
     useDownloadCache: false

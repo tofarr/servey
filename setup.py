@@ -16,13 +16,13 @@ extras_require = {
         "python-multipart~=0.0",
     ],
     "scheduler": ["celery~=5.2"],
-    "aws": [
-        "boto3~=1.26",
-    ],
     "serverless": [
         "pyyaml~=6.0",
         "ruamel.yaml~=0.17",
         "strawberry-graphql~=0.125",  # We need this to generate the graphql schema - or do we?
+    ],
+    "web_page": [
+        "Jinja2~=3.1",
     ],
 }
 extras_require["all"] = list(
@@ -43,7 +43,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/tofarr/servey",
-    packages=setuptools.find_packages(exclude=("tests", "servey_main", "static_site")),
+    packages=setuptools.find_packages(exclude=("tests", "servey_main", "static_site", "examples")),
     package_data={"": ["*.html", "*.js", "*.css", "*.yml"]},
     include_package_data=True,
     install_requires=[
