@@ -3,7 +3,7 @@ from http.client import HTTPException
 from typing import Optional, Any
 
 from marshy.types import ExternalItemType
-from starlette.responses import HTMLResponse
+from starlette.responses import Response
 
 from servey.servey_starlette.action_endpoint.action_endpoint import ActionEndpoint
 from servey.servey_web_page.web_page_trigger import get_environment
@@ -14,8 +14,8 @@ class WebPageActionEndpoint(ActionEndpoint):
     """
     Wrapper that combines an action with a template
     """
-
     template_name: Optional[str] = None
+    content_type: str = 'text/html'
 
     def __post_init__(self):
         if not self.template_name:
@@ -30,7 +30,7 @@ class WebPageActionEndpoint(ActionEndpoint):
             if error:
                 raise HTTPException(500, str(error))
         body = self.template.render(model=result_content)
-        return HTMLResponse(body)
+        return Response(content=body, media_type=self.content_type)
 
     @property
     def template(self):

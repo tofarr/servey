@@ -1,4 +1,5 @@
 import inspect
+import mimetypes
 from dataclasses import field, dataclass
 from typing import Set, List, Optional
 
@@ -64,5 +65,6 @@ class WebPageActionEndpointFactory(ActionEndpointFactoryABC):
             if self.validate_output and result_type
             else None,
             template_name=trigger.template_name,
+            content_type=mimetypes.guess_type(action.name or '')[0] or 'text/html'
         )
         return endpoint

@@ -53,3 +53,12 @@ class TestAction(TestCase):
             cache_control=TtlCacheControl(900),
         )
         self.assertEqual(expected, action_)
+
+    def test_single_trigger(self):
+        # noinspection PyUnusedLocal
+        @action(triggers=WEB_GET)
+        def noop(value: int) -> str:
+            """Noop"""
+
+        action_ = get_action(noop)
+        self.assertEqual((WEB_GET,), action_.triggers)

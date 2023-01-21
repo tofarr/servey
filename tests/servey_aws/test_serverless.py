@@ -7,9 +7,9 @@ from typing import Dict
 from unittest import TestCase
 from unittest.mock import patch
 
-from servey.__main__ import generate_serverless_scaffold
 from servey.action.action import get_action
 from servey.errors import ServeyError
+from servey.servey_aws.serverless.__main__ import generate_serverless_scaffold
 from servey.servey_aws.serverless.trigger_handler.fixed_rate_trigger_handler import (
     FixedRateTriggerHandler,
 )
@@ -31,7 +31,7 @@ class TestServerless(TestCase):
             patch("pathlib.PosixPath.mkdir", mock_file_system.mkdir),
             patch.dict(os.environ, {"SERVEY_MAIN": "tests.specs.number_spec"}),
         ):
-            generate_serverless_scaffold()
+            generate_serverless_scaffold(set())
         generated_files = [
             "serverless.yml",
             "serverless_servey/kms_resource.yml",

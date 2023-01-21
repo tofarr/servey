@@ -127,3 +127,7 @@ class TestAuthorizingActionEndpoint(TestCase):
                 "servers": [{"url": "https://testy.com"}],
             }
             self.assertEqual(expected_schema, schema)
+
+    def test_non_debug(self):
+        openapi_route_factory = OpenapiRouteFactory(debug=False)
+        self.assertFalse(list(openapi_route_factory.create_routes()))

@@ -1,9 +1,9 @@
 import asyncio
 import inspect
+import mimetypes
 from dataclasses import field, dataclass
 from typing import Optional, Any, Awaitable
 
-from jinja2 import PackageLoader, Environment
 from marshy import get_default_context
 from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType
@@ -28,6 +28,7 @@ from servey.servey_web_page.web_page_trigger import WebPageTrigger, get_environm
 @dataclass
 class WebPageEventHandler(ApiGatewayEventHandler):
     template_name: Optional[str] = None
+    content_type: str = "text/html"
 
     @property
     def template(self):
@@ -45,9 +46,12 @@ class WebPageEventHandler(ApiGatewayEventHandler):
             result = loop.run_until_complete(result)
         dumped = self.result_marshaller.dump(result)
         body = self.template.render(model=dumped)
+        headers = {}
+        if self.content_type:
+            headers["Content-Type"] = self.content_type
         response = {
             "statusCode": 200,
-            "headers": {"Content-Type": "text/html"},
+            "headers": headers,
             "body": body,
         }
         self.apply_caching(event, response)
@@ -99,4 +103,5 @@ class WebPageEventHandlerFactory(EventHandlerFactoryABC):
             authorizer=authorizer,
             priority=self.priority,
             template_name=trigger.template_name or f"{action.name}.j2",
+            content_type=mimetypes.guess_type(action.name or '')[0] or 'text/html'
         )
