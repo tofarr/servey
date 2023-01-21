@@ -1,0 +1,14 @@
+
+Resources:
+  #DnsRecord:
+  #  Type: "AWS::Route53::RecordSet"
+  #  Properties:
+  #    AliasTarget:
+  #      DNSName: ${self:custom.aliasDNSName}
+  #      HostedZoneId: ${self:custom.aliasHostedZoneId}
+  #    HostedZoneName: ${self:custom.siteName}.
+  #    Name:
+  #      Ref: StaticSite
+  #    Type: 'A'
+
+

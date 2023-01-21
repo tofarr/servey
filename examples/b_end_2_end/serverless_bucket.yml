@@ -1,0 +1,43 @@
+
+Resources:
+  # I need to create an origin access identity here
+  OriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "Allow cloudfront to access the static bucket"
+  StaticBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: ${self:custom.staticBucket}
+      WebsiteConfiguration:
+        IndexDocument: index.html
+  StaticSiteS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: StaticBucket
+      PolicyDocument:
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: "cloudfront.amazonaws.com"
+            Action:
+            - s3:GetObject
+            Resource:
+              Fn::Join:
+                - ""
+                - - "arn:aws:s3:::"
+                  - Ref: "StaticBucket"
+                  - "/*"
+            Condition:
+              StringEquals:
+                "AWS:SourceArn":
+                  Fn::Join:
+                      - ""
+                      - - "arn:aws:cloudfront::"
+                        - Ref: "AWS::AccountId"
+                        - ":distribution/"
+                        - Ref: OriginAccessIdentity

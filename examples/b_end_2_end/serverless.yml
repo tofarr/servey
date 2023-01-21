@@ -1,0 +1,49 @@
+service: End2End
+package:
+  exclude:
+  - aws/**
+  - node_modules/**
+  - venv/**
+  - .venv/**
+  - tests/**
+provider:
+  name: aws
+  runtime: python3.9
+  region: us-east-1
+  stage: dev
+  environment:
+    LOG_LEVEL: INFO
+    KMS_KEY_ID: serveyKmsKey
+    CONNECTION_TABLE_NAME: servey_app_connection
+    SERVEY_MAIN: end_2_end
+  iamRoleStatements:
+  - ${file(serverless_servey/kms_role_statement.yml):iamRoleStatements.0, ''}
+plugins:
+- serverless-python-requirements
+- serverless-prune-plugin
+- serverless-appsync-plugin
+- serverless-s3-sync
+# - serverless-api-gateway-caching
+custom:
+  staticBucket: end2endserveybucket
+  #hostedZoneName: serverless-zombo.com
+  #aliasHostedZoneId: Z3AQBSTGFYJSTF    # us-east-1
+  #aliasDNSName: s3-website-us-east-1.amazonaws.com
+  pythonRequirements:
+    useDownloadCache: false
+    useStaticCache: false
+    dockerizePip: true
+  prune:
+    automatic: true
+    number: 3
+  appSync:
+  - ${file(serverless_servey/appsync.yml)}
+  s3Sync:
+    - bucketName: ${self:custom.staticBucket}
+      localDir: static_site
+functions:
+- ${file(serverless_servey/actions.yml)}
+resources:
+  - ${file(serverless_servey/kms_resource.yml)}
+  - ${file(serverless_bucket.yml)}
+  - ${file(serverless_cloudfront.yml)}

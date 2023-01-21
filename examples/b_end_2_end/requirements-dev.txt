@@ -1,0 +1,3 @@
+python-dotenv
+pip-tools
+servey[server,serverless,web_page]

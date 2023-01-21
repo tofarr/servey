@@ -1,0 +1,59 @@
+
+Resources:
+  End2EndDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Enabled: "true"
+          DefaultRootObject: /
+          # The default caching applies to the default (root) objects, not to images etc...
+          DefaultCacheBehavior:
+            AllowedMethods:
+            - GET
+            - HEAD
+            MinTTL: "0"
+            MaxTTL: "0"
+            DefaultTTL: "0"
+            TargetOriginId: myAPIOrigin
+            ForwardedValues:
+              QueryString: 'true'
+              Cookies:
+                Forward: all
+            ViewerProtocolPolicy: redirect-to-https
+          # Here we define two behaviours of how we cache responses
+          CacheBehaviors:
+          - AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+            TargetOriginId: myS3Origin
+            ForwardedValues:
+              QueryString: "false"
+            ViewerProtocolPolicy: https-only
+            MinTTL: "0"
+            MaxTTL: "6"
+            DefaultTTL: "3"
+            PathPattern: static/*
+          # Here we define the API origin
+          Origins:
+            - DomainName:
+               Fn::Join:
+                - ""
+                - - Ref: ApiGatewayRestApi
+                  - ".execute-api.${self:provider.region}.amazonaws.com"
+              Id: myAPIOrigin
+              OriginPath: /${self:provider.stage}
+              CustomOriginConfig:
+                OriginProtocolPolicy: https-only
+            # Here's the origin from S3...
+            - DomainName: ${self:custom.staticBucket}.s3.amazonaws.com
+              #OriginPath: /
+              ## An identifier for the origin which must be unique within the distribution
+              Id: myS3Origin
+              # Dont need this because of permissive bucket policy
+              S3OriginConfig:
+                OriginAccessIdentity:
+                  Fn::Join:
+                    - ""
+                    - - "origin-access-identity/cloudfront/"
+                      - Ref: OriginAccessIdentity

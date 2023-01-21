@@ -390,7 +390,7 @@ This allows opportunities for bootstrapping.
 
 Note: We currently do not automatically deploy static files to AWS - it is assumed you will add S3 / Cloudfront / Route53
 resources to your serverless definition manually, as there is a lot of variability in how you may want to set this up. We 
-do however include an example that includes S3, Route53 and cloudfront (here)[examples/a_hello_world]
+do however include an example that includes S3, Route53 and cloudfront (here)[examples/b_end_2_end]
 
 ## Command line tools
 
