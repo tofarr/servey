@@ -22,6 +22,18 @@ from tests.specs.number_spec.actions import integer_stats_publisher
 
 
 class TestServerless(TestCase):
+
+    def test_generate(self):
+        mock_file_system = MockFileSystem()
+        # noinspection SpellCheckingInspection
+        with (
+            patch("os.path.exists", mock_file_system.exists),
+            patch("builtins.open", mock_file_system.open),
+            patch("pathlib.PosixPath.mkdir", mock_file_system.mkdir),
+            patch.dict(os.environ, {"SERVEY_MAIN": "tests.specs.number_spec"}),
+        ):
+            generate_serverless_scaffold(set())
+
     def test_generate(self):
         mock_file_system = MockFileSystem()
         # noinspection SpellCheckingInspection
@@ -47,7 +59,50 @@ class TestServerless(TestCase):
             self.assertIn(generated_file, mock_file_system.contents)
         # More checks on the content of the files would be appropriate here
 
+    def test_generate_skip(self):
+        mock_file_system = MockFileSystem()
+        # noinspection SpellCheckingInspection
+        with (
+            patch("os.path.exists", mock_file_system.exists),
+            patch("builtins.open", mock_file_system.open),
+            patch("pathlib.PosixPath.mkdir", mock_file_system.mkdir),
+            patch.dict(os.environ, {"SERVEY_MAIN": "tests.specs.number_spec"}),
+        ):
+            generate_serverless_scaffold({"KmsKeyConfig"})
+        generated_files = [
+            "serverless.yml",
+            "serverless_servey/subscriptions_handlers.yml",
+            "serverless_servey/subscriptions_resources.yml",
+            "serverless_servey/subscriptions_role_statement.yml",
+            "serverless_servey/schema.graphql",
+            "serverless_servey/appsync.yml",
+            "serverless_servey/actions.yml",
+        ]
+        for generated_file in generated_files:
+            self.assertIn(generated_file, mock_file_system.contents)
+        # More checks on the content of the files would be appropriate here
+
+    def test_generate_unknown_skip(self):
+        mock_file_system = MockFileSystem()
+        # noinspection SpellCheckingInspection
+        with (
+            patch("os.path.exists", mock_file_system.exists),
+            patch("builtins.open", mock_file_system.open),
+            patch("pathlib.PosixPath.mkdir", mock_file_system.mkdir),
+            patch.dict(os.environ, {"SERVEY_MAIN": "tests.specs.number_spec"}),
+        ):
+            with self.assertRaises(ServeyError):
+                generate_serverless_scaffold({"SomeBadValue"})
+
     def test_fixed_rate_trigger_handler(self):
+        result = {}
+        FixedRateTriggerHandler().handle_trigger(
+            get_action(integer_stats_publisher), FixedRateTrigger(60), result
+        )
+        expected = {'events': [{'schedule': {'rate': 'rate(1 minute)'}}]}
+        self.assertEqual(expected, result)
+
+    def test_fixed_rate_trigger_handler_rate_too_high(self):
         with self.assertRaises(ServeyError):
             FixedRateTriggerHandler().handle_trigger(
                 get_action(integer_stats_publisher), FixedRateTrigger(30), {}
