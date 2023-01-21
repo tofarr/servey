@@ -21,7 +21,6 @@ def configure(context: MarshallerContext):
     context.register_marshaller(ToSecondDatetimeMarshaller())
     configure_finders(context)
     configure_asyncio_subscriptions(context)
-    configure_threads(context)
     configure_auth(context)
     configure_starlette(context)
     configure_aws(context)
@@ -50,16 +49,6 @@ def configure_asyncio_subscriptions(context: MarshallerContext):
     register_impl(
         SubscriptionServiceFactoryABC, AsyncioSubscriptionServiceFactory, context
     )
-
-
-def configure_threads(context: MarshallerContext):
-    from servey.servey_thread.thread_factory_abc import ThreadFactoryABC
-    from servey.servey_thread.fixed_rate_trigger_thread_factory import (
-        FixedRateTriggerThreadFactory,
-    )
-
-    register_impl(ThreadFactoryABC, FixedRateTriggerThreadFactory, context)
-
 
 def configure_auth(context: MarshallerContext):
     from servey.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
