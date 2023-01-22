@@ -3,9 +3,10 @@ from http.client import HTTPException
 from typing import Optional, Any
 
 from marshy.types import ExternalItemType
-from starlette.responses import Response
+from starlette.responses import Response, RedirectResponse
 
 from servey.servey_starlette.action_endpoint.action_endpoint import ActionEndpoint
+from servey.servey_web_page.redirect import Redirect
 from servey.servey_web_page.web_page_trigger import get_environment
 
 
@@ -22,6 +23,8 @@ class WebPageActionEndpoint(ActionEndpoint):
             self.template_name = f"{self.action.name}.j2"
 
     def render_response(self, result: Any):
+        if isinstance(result, Redirect):
+            return RedirectResponse(result.url, result.status_code)
         result_content = (
             self.result_marshaller.dump(result) if self.result_marshaller else None
         )

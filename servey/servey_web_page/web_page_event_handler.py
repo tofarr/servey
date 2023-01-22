@@ -22,6 +22,7 @@ from servey.servey_aws.event_handler.event_handler_abc import (
     EventHandlerABC,
     EventHandlerFactoryABC,
 )
+from servey.servey_web_page.redirect import Redirect
 from servey.servey_web_page.web_page_trigger import WebPageTrigger, get_environment
 
 
@@ -44,6 +45,14 @@ class WebPageEventHandler(ApiGatewayEventHandler):
         if isinstance(result, Awaitable):
             loop = asyncio.get_event_loop()
             result = loop.run_until_complete(result)
+        if isinstance(result, Redirect):
+            return {
+                "statusCode": result.status_code,
+                "headers": {
+                    "Location": result.url
+                }
+            }
+
         dumped = self.result_marshaller.dump(result)
         body = self.template.render(model=dumped)
         headers = {}
