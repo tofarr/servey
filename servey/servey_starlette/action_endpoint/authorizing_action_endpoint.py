@@ -65,7 +65,9 @@ class AuthorizingActionEndpoint(ActionEndpointABC):
 
         route = self.action_endpoint.get_route()
         paths: Dict = schema["paths"]
-        path: Dict = paths[route.path]
+        path: Dict = paths.get(route.path)
+        if not path:
+            return
         for method in route.methods:
             path_method: Dict = path.get(method.lower())
             if path_method is None:

@@ -253,6 +253,9 @@ def _get_valid_openapi_param_schema(schema: ExternalItemType):
     if nullable_schema:
         sub_schema = _get_valid_openapi_param_schema(nullable_schema)
         return nullable_schema if sub_schema else None
+    enum = schema.get('enum')
+    if enum:
+        return schema
     type_ = schema.get("type")
     if not type_:
         return
