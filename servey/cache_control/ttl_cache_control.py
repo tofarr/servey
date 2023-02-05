@@ -13,6 +13,7 @@ from servey.cache_control.secure_hash_cache_control import SecureHashCacheContro
 class TtlCacheControl(CacheControlABC):
     ttl: int
     cache_control: CacheControlABC = SecureHashCacheControl()
+    must_revalidate: bool = False
 
     def get_cache_header(self, item: ExternalItemType):
         cache_header = self.cache_control.get_cache_header(item)
@@ -29,4 +30,5 @@ class TtlCacheControl(CacheControlABC):
             updated_at=cache_header.updated_at,
             expire_at=expire_at,
             private=cache_header.private,
+            must_revalidate=self.must_revalidate
         )

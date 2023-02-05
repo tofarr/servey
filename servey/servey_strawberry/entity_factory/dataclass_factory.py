@@ -1,14 +1,18 @@
 import dataclasses
 import inspect
 from dataclasses import is_dataclass, fields, dataclass, MISSING
+from datetime import datetime
 from decimal import Decimal
-from typing import Type, Optional, Dict, Any, Callable
+from typing import Type, Optional, Dict, Any, Callable, Union
 
 import strawberry
-from strawberry.dataloader import DataLoader
+from dateutil.relativedelta import relativedelta
+from strawberry.dataloader import DataLoader, AbstractCache
 
 from servey.action.action import Action, get_action
 from servey.action.batch_invoker import BatchInvoker
+from servey.cache_control.cache_control_abc import CacheControlABC
+from servey.cache_control.ttl_cache_control import TtlCacheControl
 from servey.servey_strawberry.entity_factory.entity_factory_abc import (
     EntityFactoryABC,
 )
@@ -107,16 +111,19 @@ def build_resolvable_field(
 
     fn = action.fn
     if action.batch_invoker:
-        fn = _wrap_fn_in_data_loader(action.fn, action.batch_invoker)
+        fn = _wrap_fn_in_data_loader(action.fn, action.batch_invoker, action.cache_control)
     sig = inspect.signature(fn)
     return_type = schema_factory.get_type(sig.return_annotation)
     params["__annotations__"][key] = return_type
     params[key] = strawberry.field(resolver=fn)
 
 
-def _wrap_fn_in_data_loader(fn: Callable, batch_invoker: BatchInvoker):
+def _wrap_fn_in_data_loader(fn: Callable, batch_invoker: BatchInvoker, cache_control: CacheControlABC):
+    ttl = cache_control.ttl if hasattr(cache_control, 'ttl') else 10
     data_loader = DataLoader(
-        load_fn=batch_invoker.fn, max_batch_size=batch_invoker.max_batch_size
+        load_fn=batch_invoker.fn,
+        max_batch_size=batch_invoker.max_batch_size,
+        cache_map=_UserCache(relativedelta(seconds=ttl))
     )
 
     sig = inspect.signature(fn)
@@ -127,3 +134,29 @@ def _wrap_fn_in_data_loader(fn: Callable, batch_invoker: BatchInvoker):
         return result
 
     return wrapper
+
+
+@dataclass
+class _UserCacheEntry:
+    value: Any
+    expire_at: datetime
+
+
+class _UserCache(AbstractCache):
+    def __init__(self, expire_in: relativedelta):
+        self.cache: Dict[Any, _UserCacheEntry] = {}
+        self.expire_in = expire_in
+
+    def get(self, key: Any) -> Union[Any, None]:
+        entry = self.cache.get(key)
+        if entry and entry.expire_at > datetime.now():
+            return entry.value
+
+    def set(self, key: Any, value: Any) -> None:
+        self.cache[key] = _UserCacheEntry(value, datetime.now() + self.expire_in)  # store data in the cache
+
+    def delete(self, key: Any) -> None:
+        del self.cache[key]  # delete key from the cache
+
+    def clear(self) -> None:
+        self.cache.clear()  # clear the cache

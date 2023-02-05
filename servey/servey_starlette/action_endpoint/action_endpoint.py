@@ -7,7 +7,7 @@ from typing import Tuple, Any, Optional, Dict, List, Iterator, Awaitable
 
 from json_urley import query_str_to_json_obj
 from marshy.marshaller.marshaller_abc import MarshallerABC
-from marshy.types import ExternalItemType
+from marshy.types import ExternalItemType, ExternalType
 from schemey import Schema
 from schemey.util import filter_none
 from starlette.exceptions import HTTPException
@@ -87,6 +87,7 @@ class ActionEndpoint(ActionEndpointABC):
                 json_obj = query_str_to_json_obj(query_str)
                 if request.path_params:
                     json_obj.update(request.path_params)
+                json_obj = _fix_strings(json_obj, self.params_schema.schema)
                 self.params_schema.validate(json_obj)
                 kwargs = self.params_marshaller.load(json_obj)
             except Exception:
@@ -282,3 +283,33 @@ def _get_nullable_schema(schema: ExternalItemType):
         if len(non_nulls) != 1:
             return
         return non_nulls[0]
+
+
+def _fix_strings(param: ExternalType, schema: ExternalItemType):
+    """
+    Json urley may have parsed items as strings that should not be
+    """
+    any_of = schema.get("anyOf")
+    if any_of:
+        items = [a for a in any_of if a != dict(type="null")]
+        if len(items) == 1:
+            schema = items[0]
+    if isinstance(param, dict):
+        properties_schema: Dict = schema.get('properties')
+        if properties_schema:
+            result = {}
+            for k, v in param.items():
+                s = properties_schema.get(k)
+                if s:
+                    v = _fix_strings(v, s)
+                result[k] = v
+            param = result
+        return param
+    elif isinstance(param, list):
+        item_schema = schema.get('items')
+        if item_schema:
+            param = [_fix_strings(i, item_schema) for i in param]
+        return param
+    if schema.get('type') == 'string':
+        return str(param)
+    return param

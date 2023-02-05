@@ -53,7 +53,7 @@ class TestCachingActionEndpoint(TestCase):
         # noinspection SpellCheckingInspection
         request = build_request(
             query_string="val=bar",
-            headers={"If-Match": "TCk/8BCnMPCXJ2EzHRtWeEeNQlwtxc79FtjyAFnkl/M="},
+            headers={"If-None-Match": "TCk/8BCnMPCXJ2EzHRtWeEeNQlwtxc79FtjyAFnkl/M="},
         )
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(action_endpoint.execute(request))

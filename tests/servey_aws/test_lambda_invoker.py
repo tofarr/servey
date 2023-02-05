@@ -133,7 +133,7 @@ class TestLambdaInvoker(TestCase):
         self.assertEqual(expected_result, result)
         # noinspection SpellCheckingInspection
         event["headers"] = {
-            "If-Match": "3g6+tMQd4iiW50nY1WFSohCR/S4DGhUbtq20jRcr5so=",
+            "If-None-Match": "3g6+tMQd4iiW50nY1WFSohCR/S4DGhUbtq20jRcr5so=",
         }
         result = invoker(event, None)
         # noinspection PyTypeChecker

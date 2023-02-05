@@ -69,7 +69,7 @@ def configure_starlette(context: MarshallerContext):
         configure_starlette_action_endpoint_factory(context)
         configure_starlette_route_factory(context)
     except ModuleNotFoundError as e:
-        _raise_non_ignored(e)
+        raise_non_ignored(e)
 
 
 def configure_starlette_action_endpoint_factory(context: MarshallerContext):
@@ -166,7 +166,7 @@ def configure_strawberry(context: MarshallerContext):
         register_impl(EntityFactoryABC, NoOpFactory, context)
 
     except ModuleNotFoundError as e:
-        _raise_non_ignored(e)
+        raise_non_ignored(e)
 
 
 def configure_strawberry_starlette(context: MarshallerContext):
@@ -181,7 +181,7 @@ def configure_strawberry_starlette(context: MarshallerContext):
         register_impl(RouteFactoryABC, StrawberryStarletteRouteFactory, context)
 
     except ModuleNotFoundError as e:
-        _raise_non_ignored(e)
+        raise_non_ignored(e)
 
 
 def configure_aws(context: MarshallerContext):
@@ -235,7 +235,7 @@ def configure_aws(context: MarshallerContext):
         )
 
     except ModuleNotFoundError as e:
-        _raise_non_ignored(e)
+        raise_non_ignored(e)
 
 
 def configure_serverless(context: MarshallerContext):
@@ -269,7 +269,7 @@ def configure_serverless(context: MarshallerContext):
         register_impl(TriggerHandlerABC, FixedRateTriggerHandler, context)
 
     except ModuleNotFoundError as e:
-        _raise_non_ignored(e)
+        raise_non_ignored(e)
 
 
 def configure_celery(context: MarshallerContext):
@@ -294,7 +294,7 @@ def configure_celery(context: MarshallerContext):
         register_impl(CeleryConfigABC, SubscriptionConfig, context)
 
     except ModuleNotFoundError as e:
-        _raise_non_ignored(e)
+        raise_non_ignored(e)
 
 
 def configure_jinja2(context: MarshallerContext):
@@ -310,7 +310,7 @@ def configure_jinja2(context: MarshallerContext):
             )
             register_impl(ActionEndpointFactoryABC, WebPageActionEndpointFactory, context)
         except ModuleNotFoundError as e:
-            _raise_non_ignored(e)
+            raise_non_ignored(e)
 
         try:
             from servey.servey_aws.event_handler.event_handler_abc import (
@@ -321,7 +321,7 @@ def configure_jinja2(context: MarshallerContext):
             )
             register_impl(EventHandlerFactoryABC, WebPageEventHandlerFactory, context)
         except ModuleNotFoundError as e:
-            _raise_non_ignored(e)
+            raise_non_ignored(e)
 
         try:
             from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
@@ -332,10 +332,10 @@ def configure_jinja2(context: MarshallerContext):
             )
             register_impl(TriggerHandlerABC, WebPageTriggerHandler, context)
         except ModuleNotFoundError as e:
-            _raise_non_ignored(e)
+            raise_non_ignored(e)
 
     except ModuleNotFoundError as e:
-        _raise_non_ignored(e)
+        raise_non_ignored(e)
 
 
 # Due to the use of extras, certain modules may not be present, but that's okay
@@ -352,7 +352,7 @@ _IGNORABLE_MISSING_MODULE_NAMES = {
 }
 
 
-def _raise_non_ignored(e: ModuleNotFoundError):
+def raise_non_ignored(e: ModuleNotFoundError):
     msg = str(e)
     if msg.startswith(_NO_MODULE_NAMED):
         module_name = msg[len(_NO_MODULE_NAMED):-1]

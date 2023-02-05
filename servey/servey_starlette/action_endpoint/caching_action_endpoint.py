@@ -42,10 +42,10 @@ class CachingActionEndpoint(ActionEndpointABC):
         cache_header = self.get_action().cache_control.get_cache_header_from_content(
             response.body
         )
-        if_match = request.headers.get("If-Match")
+        if_none_match = request.headers.get("If-None-Match")
         if_modified_since = request.headers.get("If-Modified-Since")
-        if if_match and cache_header.etag:
-            if cache_header.etag == if_match:
+        if if_none_match and cache_header.etag:
+            if cache_header.etag == if_none_match:
                 response = Response(None, 304)
         elif if_modified_since and cache_header.updated_at:
             if_modified_since_date = parsedate_to_datetime(if_modified_since)
