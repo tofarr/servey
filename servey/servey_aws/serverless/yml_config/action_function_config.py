@@ -34,15 +34,20 @@ class ActionFunctionConfig(YmlConfigABC):
         trigger_handlers = [h() for h in get_impls(TriggerHandlerABC)]
         connection_table_name = get_servey_main() + "_connection"
         for action in find_actions():
-            # noinspection PyUnresolvedReferences
+            if '<locals>' in action.fn.__qualname__:
+                environment = dict(SERVEY_ACTION_NAME=action.name)
+            else:
+                # noinspection PyUnresolvedReferences
+                environment = dict(
+                    SERVEY_ACTION_MODULE=action.fn.__module__,
+                    SERVEY_ACTION_FUNCTION_NAME=action.fn.__qualname__,
+                    CONNECTION_TABLE_NAME=connection_table_name
+                )
+
             lambda_definition = lambda_definitions[action.name] = dict(
                 handler=f"servey.servey_aws.lambda_invoker.invoke",
                 timeout=action.timeout,
-                environment=dict(
-                    SERVEY_ACTION_MODULE=action.fn.__module__,
-                    SERVEY_ACTION_FUNCTION_NAME=action.fn.__qualname__,
-                    CONNECTION_TABLE_NAME=connection_table_name,
-                ),
+                environment=environment,
             )
             if action.description:
                 lambda_definition["description"] = action.description.strip()

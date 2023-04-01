@@ -3,6 +3,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from servey.action.action import action, get_action
+from servey.servey_direct.__main__ import main
 
 
 class TestServeyDirect(TestCase):
@@ -18,11 +19,11 @@ class TestServeyDirect(TestCase):
         with (
             patch("sys.argv", ["servey", "--run=action", "--action=my_action"]),
             patch(
-                "servey.finder.action_finder_abc.find_actions",
+                "servey.servey_direct.__main__.find_actions",
                 return_value=[get_action(my_action)],
             ),
         ):
-            _reload_module()
+            main()
         self.assertTrue(was_run)
 
     def test_servey_direct_no_action(self):
@@ -33,22 +34,9 @@ class TestServeyDirect(TestCase):
         with (
             patch("sys.argv", ["servey", "--run=action", "--action=does_not_exist"]),
             patch(
-                "servey.finder.action_finder_abc.find_actions",
+                "servey.servey_direct.__main__.find_actions",
                 return_value=[get_action(my_action)],
             ),
         ):
             with self.assertRaises(ValueError):
-                _reload_module()
-
-
-_module = None
-
-
-def _reload_module():
-    global _module
-    if _module:
-        importlib.reload(_module)
-    else:
-        from servey.servey_direct import __main__
-
-        _module = __main__
+                main()

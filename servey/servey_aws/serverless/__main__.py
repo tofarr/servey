@@ -25,9 +25,13 @@ def generate_serverless_scaffold(skip_configs: Set[str]):
     configure(main_serverless_yml_file, skip_configs)
 
 
-if __name__ == "__main__":  # pragma: no cover
+def main():
     parser = argparse.ArgumentParser(description="Servey")
     parser.add_argument("--run", default="sls")
     parser.add_argument("--skip-configs", nargs="+", default=[])
     args = parser.parse_args()
     generate_serverless_scaffold(set(args.skip_configs))
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()
