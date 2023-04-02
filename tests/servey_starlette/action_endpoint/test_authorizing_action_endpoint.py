@@ -1,20 +1,28 @@
 import asyncio
 import json
 import os
+from copy import deepcopy
 from unittest import TestCase
 from unittest.mock import patch
 
+import marshy
+from schemey import schema_from_type
+from starlette.routing import Route
+
 from servey.action.action import action, get_action
+from servey.action.util import get_marshaller_for_params, get_schema_for_params
 from servey.security.access_control.scope_access_control import ScopeAccessControl
 from servey.security.authorization import Authorization, ROOT
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
+from servey.servey_starlette.action_endpoint.action_endpoint import ActionEndpoint
+from servey.servey_starlette.action_endpoint.authorizing_action_endpoint import AuthorizingActionEndpoint
 from servey.servey_starlette.route_factory.action_route_factory import (
     ActionRouteFactory,
 )
 from servey.servey_starlette.route_factory.openapi_route_factory import (
     OpenapiRouteFactory,
 )
-from servey.trigger.web_trigger import WEB_GET
+from servey.trigger.web_trigger import WEB_GET, WebTriggerMethod
 from tests.servey_starlette.action_endpoint.test_action_endpoint import build_request
 
 
@@ -131,3 +139,36 @@ class TestAuthorizingActionEndpoint(TestCase):
     def test_non_debug(self):
         openapi_route_factory = OpenapiRouteFactory(debug=False)
         self.assertFalse(list(openapi_route_factory.create_routes()))
+
+    def test_to_openapi_schema_mismatch(self):
+
+        @action
+        def foo(bar: int) -> int:
+            """ Dummy"""
+
+        class BorkedActionEndpoint(ActionEndpoint):
+            def get_route(self) -> Route:
+                return Route(
+                    "/borked",
+                    name=self.action.name,
+                    endpoint=self.execute,
+                    methods=[m.value for m in self.methods],
+                )
+
+        endpoint = AuthorizingActionEndpoint(
+            BorkedActionEndpoint(
+                get_action(foo),
+                "/foo",
+                (WebTriggerMethod.GET,),
+                get_marshaller_for_params(foo, set()),
+                get_schema_for_params(foo, set()),
+                marshy.get_default_context().get_marshaller(int),
+                schema_from_type(int)
+            ),
+            None,
+            "authorization"
+        )
+
+        schema = {"components": {}, "paths": {}}
+        endpoint.to_openapi_schema(schema)
+        self.assertIn("/foo", schema['paths'])

@@ -50,6 +50,7 @@ def configure_asyncio_subscriptions(context: MarshallerContext):
         SubscriptionServiceFactoryABC, AsyncioSubscriptionServiceFactory, context
     )
 
+
 def configure_auth(context: MarshallerContext):
     from servey.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
     from servey.security.authorizer.jwt_authorizer_factory import JwtAuthorizerFactory
@@ -234,6 +235,15 @@ def configure_aws(context: MarshallerContext):
             context,
         )
 
+        from servey.servey_aws.router.router_abc import RouterABC
+        from servey.servey_aws.router.api_gateway_router import APIGatewayRouter
+        from servey.servey_aws.router.appsync_router import AppsyncRouter
+        from servey.servey_aws.router.router import Router
+
+        register_impl(RouterABC, APIGatewayRouter, context)
+        register_impl(RouterABC, AppsyncRouter, context)
+        register_impl(RouterABC, Router, context)
+
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
 
@@ -300,40 +310,48 @@ def configure_celery(context: MarshallerContext):
 def configure_jinja2(context: MarshallerContext):
     try:
         from jinja2 import Template
+        configure_web_page_action_endpoint_factory(context)
+        configure_web_page_event_handler(context)
+        configure_web_page_trigger_handler(context)
+    except ModuleNotFoundError as e:
+        raise_non_ignored(e)
 
-        try:
-            from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory_abc import (
-                ActionEndpointFactoryABC,
-            )
-            from servey.servey_web_page.web_page_action_endpoint_factory import (
-                WebPageActionEndpointFactory,
-            )
-            register_impl(ActionEndpointFactoryABC, WebPageActionEndpointFactory, context)
-        except ModuleNotFoundError as e:
-            raise_non_ignored(e)
 
-        try:
-            from servey.servey_aws.event_handler.event_handler_abc import (
-                EventHandlerFactoryABC,
-            )
-            from servey.servey_web_page.web_page_event_handler import (
-                WebPageEventHandlerFactory,
-            )
-            register_impl(EventHandlerFactoryABC, WebPageEventHandlerFactory, context)
-        except ModuleNotFoundError as e:
-            raise_non_ignored(e)
+def configure_web_page_action_endpoint_factory(context: MarshallerContext):
+    try:
+        from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory_abc import (
+            ActionEndpointFactoryABC,
+        )
+        from servey.servey_web_page.web_page_action_endpoint_factory import (
+            WebPageActionEndpointFactory,
+        )
+        register_impl(ActionEndpointFactoryABC, WebPageActionEndpointFactory, context)
+    except ModuleNotFoundError as e:
+        raise_non_ignored(e)
 
-        try:
-            from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
-                TriggerHandlerABC,
-            )
-            from servey.servey_web_page.web_page_trigger_handler import (
-                WebPageTriggerHandler,
-            )
-            register_impl(TriggerHandlerABC, WebPageTriggerHandler, context)
-        except ModuleNotFoundError as e:
-            raise_non_ignored(e)
 
+def configure_web_page_event_handler(context: MarshallerContext):
+    try:
+        from servey.servey_aws.event_handler.event_handler_abc import (
+            EventHandlerFactoryABC,
+        )
+        from servey.servey_web_page.web_page_event_handler import (
+            WebPageEventHandlerFactory,
+        )
+        register_impl(EventHandlerFactoryABC, WebPageEventHandlerFactory, context)
+    except ModuleNotFoundError as e:
+        raise_non_ignored(e)
+
+
+def configure_web_page_trigger_handler(context: MarshallerContext):
+    try:
+        from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
+            TriggerHandlerABC,
+        )
+        from servey.servey_web_page.web_page_trigger_handler import (
+            WebPageTriggerHandler,
+        )
+        register_impl(TriggerHandlerABC, WebPageTriggerHandler, context)
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
 

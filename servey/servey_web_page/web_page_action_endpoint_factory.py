@@ -10,9 +10,6 @@ from schemey import SchemaContext, get_default_schema_context
 from servey.action.action import Action
 from servey.action.util import get_marshaller_for_params, get_schema_for_params
 from servey.errors import ServeyError
-from servey.servey_starlette.action_endpoint.action_endpoint_abc import (
-    ActionEndpointABC,
-)
 from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory_abc import (
     ActionEndpointFactoryABC,
 )
@@ -37,7 +34,7 @@ class WebPageActionEndpointFactory(ActionEndpointFactoryABC):
         action: Action,
         skip_args: Set[str],
         factories: List[ActionEndpointFactoryABC],
-    ) -> Optional[ActionEndpointABC]:
+    ) -> Optional[WebPageActionEndpoint]:
         triggers = [t for t in action.triggers if isinstance(t, WebPageTrigger)]
         if not triggers:
             return

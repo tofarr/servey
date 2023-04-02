@@ -1,6 +1,7 @@
 import asyncio
 import json
 from datetime import datetime
+from enum import Enum
 from typing import List, Optional
 from unittest import TestCase
 
@@ -14,7 +15,7 @@ from servey.action.example import Example
 # noinspection PyProtectedMember
 from servey.servey_starlette.action_endpoint.action_endpoint import (
     _get_nullable_schema,
-    _get_valid_openapi_param_schema,
+    _get_valid_openapi_param_schema, _fix_strings,
 )
 from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory import (
     ActionEndpointFactory,
@@ -580,6 +581,56 @@ class TestActionEndpoint(TestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(17, json.loads(response.body))
 
+    def test_get_with_enum_param(self):
+
+        class Category(Enum):
+            GAMES = 'games'
+            THEORY = 'theory'
+
+        # noinspection PyUnusedLocal
+        @action(triggers=WEB_GET,)
+        def count(category: Category) -> int:
+            """Dummy"""
+            return 17
+
+        endpoint = ActionEndpointFactory().create(get_action(count), set(), [])
+        schema = {"paths": {}, "components": {}}
+        endpoint.to_openapi_schema(schema)
+        expected_schema = {
+            "components": {},
+            "paths": {
+                "/actions/count": {
+                    "get": {
+                        "operationId": "count",
+                        "parameters": [
+                            {
+                                "in": "query",
+                                "name": "category",
+                                "required": True,
+                                "schema": {"name": "Category", "enum": ["games", "theory"]},
+                            }
+                        ],
+                        "responses": {
+                            "200": {
+                                "content": {
+                                    "application/json": {"schema": {"type": "integer"}}
+                                },
+                                "description": "Successful " "Response",
+                            },
+                            "422": {"description": "Validation " "Error"},
+                        },
+                        "summary": "Dummy",
+                    }
+                }
+            },
+        }
+        self.assertEqual(expected_schema, schema)
+        request = build_request(query_string="category=games")
+        loop = asyncio.get_event_loop()
+        response = loop.run_until_complete(endpoint.execute(request))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(17, json.loads(response.body))
+
     def test_post_with_path_params(self):
         # noinspection PyUnusedLocal
         @action(triggers=(WebTrigger(WebTriggerMethod.POST, "/find/{key}"),))
@@ -641,6 +692,14 @@ class TestActionEndpoint(TestCase):
         response = loop.run_until_complete(endpoint.execute(request))
         self.assertEqual(200, response.status_code)
         self.assertEqual(7, json.loads(response.body))
+
+    def test_fix_strings(self):
+        schema = {"anyOf": [
+            {"type": "null"},
+            {"type": "array", "items": {"type": "string"}}
+        ]}
+        result = _fix_strings([10], schema)
+        self.assertEqual(["10"], result)
 
 
 def build_request(

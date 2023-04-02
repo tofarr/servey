@@ -12,7 +12,6 @@ from strawberry.dataloader import DataLoader, AbstractCache
 from servey.action.action import Action, get_action
 from servey.action.batch_invoker import BatchInvoker
 from servey.cache_control.cache_control_abc import CacheControlABC
-from servey.cache_control.ttl_cache_control import TtlCacheControl
 from servey.servey_strawberry.entity_factory.entity_factory_abc import (
     EntityFactoryABC,
 )

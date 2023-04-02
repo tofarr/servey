@@ -18,10 +18,7 @@ from servey.servey_aws.event_handler.api_gateway_event_handler import (
     ApiGatewayEventHandler,
 )
 from servey.servey_aws.event_handler.event_handler import separate_auth_kwarg
-from servey.servey_aws.event_handler.event_handler_abc import (
-    EventHandlerABC,
-    EventHandlerFactoryABC,
-)
+from servey.servey_aws.event_handler.event_handler_abc import EventHandlerFactoryABC
 from servey.servey_web_page.redirect import Redirect
 from servey.servey_web_page.web_page_trigger import WebPageTrigger, get_environment
 
@@ -76,7 +73,7 @@ class WebPageEventHandlerFactory(EventHandlerFactoryABC):
     validate_output: bool = True
     priority: int = 110
 
-    def create(self, action: Action) -> Optional[EventHandlerABC]:
+    def create(self, action: Action) -> Optional[WebPageEventHandler]:
         trigger = next(
             (t for t in action.triggers if isinstance(t, WebPageTrigger)), None
         )
