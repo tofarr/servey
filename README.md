@@ -419,3 +419,48 @@ python setup.py sdist bdist_wheel
 pip install twine
 python -m twine upload dist/*
 ```
+
+## Dynamic / Generated Actions
+
+There are cases where actions must be dynamically generated, and servey supports this.
+Consider the following example from an `actions.py`, which will create 3 dynamically
+generated actions:
+
+```
+
+def _generate(action_name: str):
+    @action(name=action_name, triggers=WEB_GET)
+    def my_action() -> str:
+        return f"action_name was {action_name}"
+    return my_action
+
+
+generated_1 = _generate('generated_1')
+generated_2 = _generate('generated_2')
+generated_3 = _generate('generated_3')
+
+```
+
+These are handles in the AWS Lambda environment slightly differently
+from regular actions - they share a lambda rather than each action having
+their own. (Though you can specify this behaviour for regular actions too
+by setting the `SERVEY_AWS_ROUTER_FOR_ALL` to `1` when running 
+`python -m servey --run=sls`)
+```
+servey_router:
+  handler: servey.servey_aws.lambda_router.invoke
+  timeout: 900
+  events:
+  - http:
+      path: /actions/generated-1
+      method: get
+      cors: true
+  - http:
+      path: /actions/generated-2
+      method: get
+      cors: true
+  - http:
+      path: /actions/generated-3
+      method: get
+      cors: true
+```

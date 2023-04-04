@@ -25,11 +25,6 @@ def invoke(event: ExternalItemType, context) -> ExternalType:
 
 def find_action():
     """ If we don't have a module and name, maybe we can use an ACTION_NAME """
-    action_name = os.environ.get("SERVEY_ACTION_NAME")
-    if action_name:
-        from servey.finder.action_finder_abc import find_actions
-        action = next(a for a in find_actions() if a.name == action_name)
-        return action
     action_module = importlib.import_module(os.environ["SERVEY_ACTION_MODULE"])
     action_function_name = os.environ["SERVEY_ACTION_FUNCTION_NAME"]
     if "." in action_function_name:

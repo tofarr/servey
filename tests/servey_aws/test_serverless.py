@@ -6,10 +6,11 @@ from pathlib import Path
 from typing import Dict
 from unittest import TestCase
 from unittest.mock import patch
+from uuid import UUID
 
-from servey.action.action import get_action
+from servey.action.action import get_action, action
 from servey.errors import ServeyError
-from servey.servey_aws.serverless.__main__ import generate_serverless_scaffold
+from servey.servey_aws.serverless.__main__ import generate_serverless_scaffold, main
 from servey.servey_aws.serverless.trigger_handler.fixed_rate_trigger_handler import (
     FixedRateTriggerHandler,
 )
@@ -17,7 +18,9 @@ from servey.servey_aws.serverless.yml_config.subscription_function_config import
     SubscriptionFunctionConfig,
 )
 from servey.servey_aws.serverless.yml_config.yml_config_abc import ensure_ref_in_file
+from servey.subscription.subscription import subscription
 from servey.trigger.fixed_rate_trigger import FixedRateTrigger
+from servey.trigger.web_trigger import WEB_GET
 from tests.specs.number_spec.actions import integer_stats_publisher
 
 
@@ -34,7 +37,7 @@ class TestServerless(TestCase):
         ):
             generate_serverless_scaffold(set())
 
-    def test_generate(self):
+    def test_generate_2(self):
         mock_file_system = MockFileSystem()
         # noinspection SpellCheckingInspection
         with (
@@ -181,6 +184,35 @@ foo:
             )
             value = mock_file_system.contents["main.yml"].getvalue()
             print(value)
+
+    def test_generate_merged_lambda(self):
+        @action(triggers=WEB_GET)
+        def ping(value: int) -> UUID:
+            """No implementation required"""
+
+        mock_file_system = MockFileSystem()
+        # noinspection SpellCheckingInspection
+        with (
+            patch("os.path.exists", mock_file_system.exists),
+            patch("builtins.open", mock_file_system.open),
+            patch("pathlib.PosixPath.mkdir", mock_file_system.mkdir),
+            patch.dict(os.environ, {"SERVEY_MAIN": "tests.specs.number_spec"}),
+            patch(
+                "servey.servey_aws.serverless.yml_config.action_function_config.find_actions",
+                return_value=[get_action(ping)],
+            ),
+            patch(
+                "servey.servey_aws.serverless.yml_config.action_function_config.find_subscriptions",
+                return_value=[subscription(
+                    event_type=int,
+                    name="on_ping",
+                    action_subscribers=[get_action(ping)]
+                )],
+            ),
+            patch("sys.argv", ["servey", "--run=sls"]),
+        ):
+            main()
+            # generate_serverless_scaffold(set())
 
 
 _open = open

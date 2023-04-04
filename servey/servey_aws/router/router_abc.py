@@ -21,16 +21,17 @@ class RouterABC(ABC):
     @property
     def web_trigger_actions(self) -> Tuple[Tuple[Action, WebTrigger], ...]:
         web_trigger_actions = getattr(self, '_web_trigger_actions', None)
-        if web_trigger_actions:
+        if web_trigger_actions is None:
             web_trigger_actions = list(find_actions_with_trigger_type(WebTrigger))
-            web_trigger_actions.sort(key=lambda n: len(n[1].path), reverse=True)
+            web_trigger_actions.sort(key=lambda n: len(n[1].path or f"/actions/{n[0].name}"), reverse=True)
             web_trigger_actions = tuple(web_trigger_actions)
             setattr(self, '_web_trigger_actions', web_trigger_actions)
         return web_trigger_actions
 
     def find_action_for_path(self, path: str) -> Optional[Action]:
         for action, trigger in self.web_trigger_actions:
-            if trigger.path == path:
+            action_path = trigger.path or f"/actions/{action.name}"
+            if action_path == path:
                 return action
 
 
