@@ -392,34 +392,6 @@ Note: We currently do not automatically deploy static files to AWS - it is assum
 resources to your serverless definition manually, as there is a lot of variability in how you may want to set this up. We 
 do however include an example that includes S3, Route53 and cloudfront (here)[examples/b_end_2_end]
 
-## Command line tools
-
-Produce an openapi schema in `openapi.json`:
-
-`python -m servey --run=openapi`
-
-Produce a graphql schema in `servey_schema.graphql`:
-
-`python -m servey --run=graphql-schema`
-
-## Pluggability
-
-We use marshy for pluggable components. See (marshy_config_servey)[marshy_config_servey/__init__.py]
-
-## Deployment Patterns
-
-* API in ApiGateway / AppSync, SPA hosted on S3 and cloudfront out in front, Deployment of all via serverless.
-* Docker Image containing Nginx / Starlette app deployed to Heroku / Linode.
-
-## Deploying new versions of this Servey to Pypi
-
-```
-pip install setuptools wheel
-python setup.py sdist bdist_wheel
-pip install twine
-python -m twine upload dist/*
-```
-
 ## Dynamic / Generated Actions
 
 There are cases where actions must be dynamically generated, and servey supports this.
@@ -463,4 +435,32 @@ servey_router:
       path: /actions/generated-3
       method: get
       cors: true
+```
+
+## Command line tools
+
+Produce an openapi schema in `openapi.json`:
+
+`python -m servey --run=openapi`
+
+Produce a graphql schema in `servey_schema.graphql`:
+
+`python -m servey --run=graphql-schema`
+
+## Pluggability
+
+We use marshy for pluggable components. See (marshy_config_servey)[marshy_config_servey/__init__.py]
+
+## Deployment Patterns
+
+* API in ApiGateway / AppSync, SPA hosted on S3 and cloudfront out in front, Deployment of all via serverless.
+* Docker Image containing Nginx / Starlette app deployed to Heroku / Linode.
+
+## Deploying new versions of this Servey to Pypi
+
+```
+pip install setuptools wheel
+python setup.py sdist bdist_wheel
+pip install twine
+python -m twine upload dist/*
 ```
