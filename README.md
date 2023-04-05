@@ -437,6 +437,8 @@ servey_router:
       cors: true
 ```
 
+An example deployment for this is located at [examples/c_generated](examples/c_generated)
+
 ## Command line tools
 
 Produce an openapi schema in `openapi.json`:

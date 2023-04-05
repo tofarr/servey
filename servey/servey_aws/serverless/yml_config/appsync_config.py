@@ -70,6 +70,9 @@ class AppsyncConfig(YmlConfigABC):
             "authentication": {
                 "type": "API_KEY",
             },
+            "apiKeys": [{
+                "name": f"{get_servey_main()}Key",
+            }],
             "defaultMappingTemplates": {"request": False, "response": False},
             "resolvers": {},
             "dataSources": {},

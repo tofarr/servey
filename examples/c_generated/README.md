@@ -18,7 +18,7 @@ already have an AWS accounts set up with suitable permissions, with credentials 
 
 ### Generate serverless definitions with:
 
-`python -m main --run=sls`
+`dotenv run -- python -m servey`
 
 This will generate a serverless.yml for you if you don't already have one, and
 create and inject various resources from `/serverless_servey` into it.
