@@ -9,6 +9,6 @@ def say_hello(name: str) -> str:
     return f"Hello {name}!"
 
 
-@action(triggers=WebPageTrigger(path='/'))
+@action(triggers=WebPageTrigger(path="/"))
 def index() -> IndexModel:
     return IndexModel()

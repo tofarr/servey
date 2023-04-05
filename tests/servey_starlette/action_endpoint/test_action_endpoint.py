@@ -15,7 +15,8 @@ from servey.action.example import Example
 # noinspection PyProtectedMember
 from servey.servey_starlette.action_endpoint.action_endpoint import (
     _get_nullable_schema,
-    _get_valid_openapi_param_schema, _fix_strings,
+    _get_valid_openapi_param_schema,
+    _fix_strings,
 )
 from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory import (
     ActionEndpointFactory,
@@ -582,13 +583,14 @@ class TestActionEndpoint(TestCase):
         self.assertEqual(17, json.loads(response.body))
 
     def test_get_with_enum_param(self):
-
         class Category(Enum):
-            GAMES = 'games'
-            THEORY = 'theory'
+            GAMES = "games"
+            THEORY = "theory"
 
         # noinspection PyUnusedLocal
-        @action(triggers=WEB_GET,)
+        @action(
+            triggers=WEB_GET,
+        )
         def count(category: Category) -> int:
             """Dummy"""
             return 17
@@ -607,7 +609,10 @@ class TestActionEndpoint(TestCase):
                                 "in": "query",
                                 "name": "category",
                                 "required": True,
-                                "schema": {"name": "Category", "enum": ["games", "theory"]},
+                                "schema": {
+                                    "name": "Category",
+                                    "enum": ["games", "theory"],
+                                },
                             }
                         ],
                         "responses": {
@@ -694,10 +699,9 @@ class TestActionEndpoint(TestCase):
         self.assertEqual(7, json.loads(response.body))
 
     def test_fix_strings(self):
-        schema = {"anyOf": [
-            {"type": "null"},
-            {"type": "array", "items": {"type": "string"}}
-        ]}
+        schema = {
+            "anyOf": [{"type": "null"}, {"type": "array", "items": {"type": "string"}}]
+        }
         result = _fix_strings([10], schema)
         self.assertEqual(["10"], result)
 

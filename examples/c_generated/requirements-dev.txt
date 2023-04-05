@@ -1,2 +1,2 @@
 python-dotenv
-servey[server,serverless]
+servey[aws,server,serverless]

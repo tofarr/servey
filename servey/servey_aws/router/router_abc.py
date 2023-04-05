@@ -11,26 +11,29 @@ from servey.trigger.web_trigger import WebTrigger
 
 
 class RouterABC(ABC):
-    """ A router will attempt to create an event handler given a specific lambda event """
+    """A router will attempt to create an event handler given a specific lambda event"""
+
     priority: int = 100
 
     @abstractmethod
     def create_handler(self, event: ExternalItemType, context) -> EventHandlerABC:
-        """ Create a handler for the event given """
+        """Create a handler for the event given"""
 
     @property
     def web_trigger_actions(self) -> Tuple[Tuple[Action, WebTrigger], ...]:
-        web_trigger_actions = getattr(self, '_web_trigger_actions', None)
+        web_trigger_actions = getattr(self, "_web_trigger_actions", None)
         if web_trigger_actions is None:
             web_trigger_actions = list(find_actions_with_trigger_type(WebTrigger))
-            web_trigger_actions.sort(key=lambda n: len(n[1].path or f"/actions/{n[0].name}"), reverse=True)
+            web_trigger_actions.sort(
+                key=lambda n: len(n[1].path or f"/actions/{n[0].name}"), reverse=True
+            )
             web_trigger_actions = tuple(web_trigger_actions)
-            setattr(self, '_web_trigger_actions', web_trigger_actions)
+            setattr(self, "_web_trigger_actions", web_trigger_actions)
         return web_trigger_actions
 
     def find_action_for_path(self, path: str) -> Optional[Action]:
         for action, trigger in self.web_trigger_actions:
-            action_path = trigger.path or f"/actions/{action.name}"
+            action_path = trigger.path or f"/actions/{action.name.replace('_', '-')}"
             if action_path == path:
                 return action
 

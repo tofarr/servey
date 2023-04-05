@@ -27,7 +27,8 @@ class ActionFunctionConfig(YmlConfigABC):
 
     actions_yml_file: str = "serverless_servey/actions.yml"
     use_router_for_all: bool = field(
-        default_factory=lambda: int(os.environ.get("SERVEY_AWS_ROUTER_FOR_ALL", "0")) == 1
+        default_factory=lambda: int(os.environ.get("SERVEY_AWS_ROUTER_FOR_ALL", "0"))
+        == 1
     )
     router_name: str = "servey_router"
 
@@ -43,7 +44,7 @@ class ActionFunctionConfig(YmlConfigABC):
         trigger_handlers = [h() for h in get_impls(TriggerHandlerABC)]
         connection_table_name = get_servey_main() + "_connection"
         for action in find_actions():
-            use_router = self.use_router_for_all or '<locals>' in action.fn.__qualname__
+            use_router = self.use_router_for_all or "<locals>" in action.fn.__qualname__
             if use_router:
                 lambda_name = self.router_name
                 lambda_definition = lambda_definitions.get(lambda_name)
@@ -54,16 +55,20 @@ class ActionFunctionConfig(YmlConfigABC):
                     )
             else:
                 # noinspection PyUnresolvedReferences
-                lambda_definition = lambda_definitions[action.name] = filter_none(dict(
-                    handler="servey.servey_aws.lambda_invoker.invoke",
-                    description=action.description.strip() if action.description else None,
-                    timeout=action.timeout,
-                    environment=dict(
-                        SERVEY_ACTION_MODULE=action.fn.__module__,
-                        SERVEY_ACTION_FUNCTION_NAME=action.fn.__qualname__,
-                        CONNECTION_TABLE_NAME=connection_table_name
+                lambda_definition = lambda_definitions[action.name] = filter_none(
+                    dict(
+                        handler="servey.servey_aws.lambda_invoker.invoke",
+                        description=action.description.strip()
+                        if action.description
+                        else None,
+                        timeout=action.timeout,
+                        environment=dict(
+                            SERVEY_ACTION_MODULE=action.fn.__module__,
+                            SERVEY_ACTION_FUNCTION_NAME=action.fn.__qualname__,
+                            CONNECTION_TABLE_NAME=connection_table_name,
+                        ),
                     )
-                ))
+                )
             for trigger in action.triggers:
                 for handler in trigger_handlers:
                     handler.handle_trigger(action, trigger, lambda_definition)

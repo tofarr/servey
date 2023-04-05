@@ -25,7 +25,6 @@ from tests.specs.number_spec.actions import integer_stats_publisher
 
 
 class TestServerless(TestCase):
-
     def test_generate(self):
         mock_file_system = MockFileSystem()
         # noinspection SpellCheckingInspection
@@ -102,7 +101,7 @@ class TestServerless(TestCase):
         FixedRateTriggerHandler().handle_trigger(
             get_action(integer_stats_publisher), FixedRateTrigger(60), result
         )
-        expected = {'events': [{'schedule': {'rate': 'rate(1 minute)'}}]}
+        expected = {"events": [{"schedule": {"rate": "rate(1 minute)"}}]}
         self.assertEqual(expected, result)
 
     def test_fixed_rate_trigger_handler_rate_too_high(self):
@@ -203,11 +202,13 @@ foo:
             ),
             patch(
                 "servey.servey_aws.serverless.yml_config.action_function_config.find_subscriptions",
-                return_value=[subscription(
-                    event_type=int,
-                    name="on_ping",
-                    action_subscribers=[get_action(ping)]
-                )],
+                return_value=[
+                    subscription(
+                        event_type=int,
+                        name="on_ping",
+                        action_subscribers=[get_action(ping)],
+                    )
+                ],
             ),
             patch("sys.argv", ["servey", "--run=sls"]),
         ):

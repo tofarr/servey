@@ -15,7 +15,9 @@ from servey.security.access_control.scope_access_control import ScopeAccessContr
 from servey.security.authorization import Authorization, ROOT
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
 from servey.servey_starlette.action_endpoint.action_endpoint import ActionEndpoint
-from servey.servey_starlette.action_endpoint.authorizing_action_endpoint import AuthorizingActionEndpoint
+from servey.servey_starlette.action_endpoint.authorizing_action_endpoint import (
+    AuthorizingActionEndpoint,
+)
 from servey.servey_starlette.route_factory.action_route_factory import (
     ActionRouteFactory,
 )
@@ -141,10 +143,9 @@ class TestAuthorizingActionEndpoint(TestCase):
         self.assertFalse(list(openapi_route_factory.create_routes()))
 
     def test_to_openapi_schema_mismatch(self):
-
         @action
         def foo(bar: int) -> int:
-            """ Dummy"""
+            """Dummy"""
 
         class BorkedActionEndpoint(ActionEndpoint):
             def get_route(self) -> Route:
@@ -163,12 +164,12 @@ class TestAuthorizingActionEndpoint(TestCase):
                 get_marshaller_for_params(foo, set()),
                 get_schema_for_params(foo, set()),
                 marshy.get_default_context().get_marshaller(int),
-                schema_from_type(int)
+                schema_from_type(int),
             ),
             None,
-            "authorization"
+            "authorization",
         )
 
         schema = {"components": {}, "paths": {}}
         endpoint.to_openapi_schema(schema)
-        self.assertIn("/foo", schema['paths'])
+        self.assertIn("/foo", schema["paths"])

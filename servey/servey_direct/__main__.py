@@ -36,4 +36,4 @@ def main():
         print(result_str)
 
 
-main() if __name__ == '__main__' else 0  # Weird syntax for coverage
+main() if __name__ == "__main__" else 0  # Weird syntax for coverage

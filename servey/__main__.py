@@ -69,6 +69,7 @@ def main():
     if args.run == "sls":
         # noinspection PyUnresolvedReferences
         from servey.servey_aws.serverless.__main__ import main
+
         main()
     elif args.run == "openapi":
         generate_openapi_schema()
@@ -77,6 +78,7 @@ def main():
     elif args.run == "action":
         # noinspection PyUnresolvedReferences
         from servey.servey_direct.__main__ import main
+
         main()
     elif args.run == "server":
         start_scheduler()

@@ -45,9 +45,7 @@ class WebPageEventHandler(ApiGatewayEventHandler):
         if isinstance(result, Redirect):
             return {
                 "statusCode": result.status_code,
-                "headers": {
-                    "Location": result.url
-                }
+                "headers": {"Location": result.url},
             }
 
         dumped = self.result_marshaller.dump(result)
@@ -109,5 +107,5 @@ class WebPageEventHandlerFactory(EventHandlerFactoryABC):
             authorizer=authorizer,
             priority=self.priority,
             template_name=trigger.template_name or f"{action.name}.j2",
-            content_type=mimetypes.guess_type(action.name or '')[0] or 'text/html'
+            content_type=mimetypes.guess_type(action.name or "")[0] or "text/html",
         )

@@ -11,7 +11,9 @@ class TestCacheHeader(TestCase):
 
     def test_cache_control_str_must_revalidate(self):
         cache_header = CacheHeader(etag="etag", must_revalidate=True)
-        self.assertEqual("private,must-revalidate", cache_header.get_cache_control_str())
+        self.assertEqual(
+            "private,must-revalidate", cache_header.get_cache_control_str()
+        )
 
     def test_combine_with(self):
         a = CacheHeader(

@@ -31,16 +31,16 @@ class CacheHeader:
         )
 
     def get_cache_control_str(self):
-        directives = ['private' if self.private else 'public']
+        directives = ["private" if self.private else "public"]
         if self.expire_at is not None:
             max_age = (self.expire_at - datetime.now()).seconds
             if max_age > 0:
                 directives.append(f"max-age={max_age}")
         if self.must_revalidate:
-            directives.append('must-revalidate')
+            directives.append("must-revalidate")
         if len(directives) == 1:
             return "no-storage"
-        return ','.join(directives)
+        return ",".join(directives)
 
     def combine_with(self, cache_headers: Iterator["CacheHeader"]) -> "CacheHeader":
         keys = [self.etag]

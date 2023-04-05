@@ -15,8 +15,9 @@ class WebPageActionEndpoint(ActionEndpoint):
     """
     Wrapper that combines an action with a template
     """
+
     template_name: Optional[str] = None
-    content_type: str = 'text/html'
+    content_type: str = "text/html"
 
     def __post_init__(self):
         if not self.template_name:

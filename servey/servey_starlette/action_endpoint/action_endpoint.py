@@ -254,7 +254,7 @@ def _get_valid_openapi_param_schema(schema: ExternalItemType):
     if nullable_schema:
         sub_schema = _get_valid_openapi_param_schema(nullable_schema)
         return nullable_schema if sub_schema else None
-    enum = schema.get('enum')
+    enum = schema.get("enum")
     if enum:
         return schema
     type_ = schema.get("type")
@@ -295,7 +295,7 @@ def _fix_strings(param: ExternalType, schema: ExternalItemType):
         if len(items) == 1:
             schema = items[0]
     if isinstance(param, dict):
-        properties_schema: Dict = schema.get('properties')
+        properties_schema: Dict = schema.get("properties")
         if properties_schema:
             result = {}
             for k, v in param.items():
@@ -306,10 +306,10 @@ def _fix_strings(param: ExternalType, schema: ExternalItemType):
             param = result
         return param
     elif isinstance(param, list):
-        item_schema = schema.get('items')
+        item_schema = schema.get("items")
         if item_schema:
             param = [_fix_strings(i, item_schema) for i in param]
         return param
-    if schema.get('type') == 'string':
+    if schema.get("type") == "string":
         return str(param)
     return param

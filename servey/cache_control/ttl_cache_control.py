@@ -30,5 +30,5 @@ class TtlCacheControl(CacheControlABC):
             updated_at=cache_header.updated_at,
             expire_at=expire_at,
             private=cache_header.private,
-            must_revalidate=self.must_revalidate
+            must_revalidate=self.must_revalidate,
         )

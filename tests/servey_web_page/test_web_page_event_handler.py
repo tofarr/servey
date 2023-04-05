@@ -10,7 +10,6 @@ from servey.servey_web_page.web_page_trigger import WebPageTrigger
 
 
 class TestWebPageEventHandler(TestCase):
-
     def test_event_handler(self):
         @action(triggers=WebPageTrigger())
         def add(a: int, b: int) -> int:
@@ -18,7 +17,7 @@ class TestWebPageEventHandler(TestCase):
 
         with patch(
             "servey.servey_web_page.web_page_trigger.get_servey_main",
-            return_value="tests.servey_web_page"
+            return_value="tests.servey_web_page",
         ):
             factory = WebPageEventHandlerFactory()
             handler = factory.create(get_action(add))
@@ -27,9 +26,9 @@ class TestWebPageEventHandler(TestCase):
             self.assertTrue(handler.is_usable(event, context))
             result = handler.handle(event, context)
             expected = {
-                'statusCode': 200,
-                'headers': {'Content-Type': 'text/html'},
-                'body': 'The result was 8'
+                "statusCode": 200,
+                "headers": {"Content-Type": "text/html"},
+                "body": "The result was 8",
             }
             self.assertEqual(expected, result)
 
@@ -40,7 +39,7 @@ class TestWebPageEventHandler(TestCase):
 
         with patch(
             "servey.servey_web_page.web_page_trigger.get_servey_main",
-            return_value="tests.servey_web_page"
+            return_value="tests.servey_web_page",
         ):
             factory = WebPageEventHandlerFactory()
             handler = factory.create(get_action(add))
@@ -49,9 +48,9 @@ class TestWebPageEventHandler(TestCase):
             self.assertTrue(handler.is_usable(event, context))
             result = handler.handle(event, context)
             expected = {
-                'statusCode': 200,
-                'headers': {'Content-Type': 'text/html'},
-                'body': 'The result was 8'
+                "statusCode": 200,
+                "headers": {"Content-Type": "text/html"},
+                "body": "The result was 8",
             }
             self.assertEqual(expected, result)
 
@@ -66,8 +65,5 @@ class TestWebPageEventHandler(TestCase):
         context = {}
         self.assertTrue(handler.is_usable(event, context))
         result = handler.handle(event, context)
-        expected = {
-            'statusCode': 307,
-            'headers': {'Location': 'https://foobar.com/8'}
-        }
+        expected = {"statusCode": 307, "headers": {"Location": "https://foobar.com/8"}}
         self.assertEqual(expected, result)

@@ -6,7 +6,6 @@ from servey.servey_web_page.web_page_trigger_handler import WebPageTriggerHandle
 
 
 class TestWebPageTriggerHandler(TestCase):
-
     def test_event_handler(self):
         @action(triggers=WebPageTrigger())
         def add(a: int, b: int) -> int:
@@ -17,12 +16,6 @@ class TestWebPageTriggerHandler(TestCase):
         action_ = get_action(add)
         handler.handle_trigger(action_, action_.triggers[0], lambda_definition)
         expected = {
-            'events': [{
-                'http': {
-                    'cors': True,
-                    'method': 'get',
-                    'path': '/add'
-                }
-            }]
+            "events": [{"http": {"cors": True, "method": "get", "path": "/add"}}]
         }
         self.assertEqual(expected, lambda_definition)

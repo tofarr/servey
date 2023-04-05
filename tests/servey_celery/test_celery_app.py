@@ -5,7 +5,9 @@ from unittest.mock import patch
 from uuid import UUID
 
 from servey.action.action import action, get_action
-from servey.servey_celery.celery_config.fixed_rate_trigger_config import FixedRateTriggerConfig
+from servey.servey_celery.celery_config.fixed_rate_trigger_config import (
+    FixedRateTriggerConfig,
+)
 from servey.subscription.subscription import subscription
 from servey.trigger.fixed_rate_trigger import FixedRateTrigger
 
@@ -66,7 +68,9 @@ class TestCeleryApp(TestCase):
             _reload_module()
             # noinspection PyUnresolvedReferences
             app = _module.app
-            self.assertIsNone(next((t for t in app.tasks if t.endswith("test_celery_app.pong")), None))
+            self.assertIsNone(
+                next((t for t in app.tasks if t.endswith("test_celery_app.pong")), None)
+            )
 
     def test_on_after_connect(self):
         @action(triggers=(FixedRateTrigger(10),))
@@ -74,7 +78,6 @@ class TestCeleryApp(TestCase):
             """No implementation required"""
 
         class MockOnAfterConfigure:
-
             def __init__(self):
                 self.fn = None
 
@@ -91,7 +94,6 @@ class TestCeleryApp(TestCase):
                 return "foobar"
 
         class MockCeleryApp:
-
             def __init__(self):
                 self.task_called = 0
                 self.periodic_called = 0
@@ -107,11 +109,9 @@ class TestCeleryApp(TestCase):
                 assert interval == 10
                 assert s == "foobar"
 
-        with (
-            patch(
-                "servey.servey_celery.celery_config.fixed_rate_trigger_config.find_actions_with_trigger_type",
-                return_value=[(get_action(ping), FixedRateTrigger(10))],
-            )
+        with patch(
+            "servey.servey_celery.celery_config.fixed_rate_trigger_config.find_actions_with_trigger_type",
+            return_value=[(get_action(ping), FixedRateTrigger(10))],
         ):
             app = MockCeleryApp()
             config = FixedRateTriggerConfig()

@@ -310,6 +310,7 @@ def configure_celery(context: MarshallerContext):
 def configure_jinja2(context: MarshallerContext):
     try:
         from jinja2 import Template
+
         configure_web_page_action_endpoint_factory(context)
         configure_web_page_event_handler(context)
         configure_web_page_trigger_handler(context)
@@ -325,6 +326,7 @@ def configure_web_page_action_endpoint_factory(context: MarshallerContext):
         from servey.servey_web_page.web_page_action_endpoint_factory import (
             WebPageActionEndpointFactory,
         )
+
         register_impl(ActionEndpointFactoryABC, WebPageActionEndpointFactory, context)
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
@@ -338,6 +340,7 @@ def configure_web_page_event_handler(context: MarshallerContext):
         from servey.servey_web_page.web_page_event_handler import (
             WebPageEventHandlerFactory,
         )
+
         register_impl(EventHandlerFactoryABC, WebPageEventHandlerFactory, context)
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
@@ -351,6 +354,7 @@ def configure_web_page_trigger_handler(context: MarshallerContext):
         from servey.servey_web_page.web_page_trigger_handler import (
             WebPageTriggerHandler,
         )
+
         register_impl(TriggerHandlerABC, WebPageTriggerHandler, context)
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
@@ -359,21 +363,21 @@ def configure_web_page_trigger_handler(context: MarshallerContext):
 # Due to the use of extras, certain modules may not be present, but that's okay
 _NO_MODULE_NAMED = "No module named '"
 _IGNORABLE_MISSING_MODULE_NAMES = {
-    'celery',
-    'requests',
-    'jinja2',
-    'ruamel',
-    'ruamel.yaml',
-    'boto3',
-    'starlette',
-    'strawberry',
+    "celery",
+    "requests",
+    "jinja2",
+    "ruamel",
+    "ruamel.yaml",
+    "boto3",
+    "starlette",
+    "strawberry",
 }
 
 
 def raise_non_ignored(e: ModuleNotFoundError):
     msg = str(e)
     if msg.startswith(_NO_MODULE_NAMED):
-        module_name = msg[len(_NO_MODULE_NAMED):-1]
+        module_name = msg[len(_NO_MODULE_NAMED) : -1]
         if module_name in _IGNORABLE_MISSING_MODULE_NAMES:
             LOGGER.debug(msg)
             return

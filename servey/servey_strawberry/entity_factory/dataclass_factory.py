@@ -110,19 +110,23 @@ def build_resolvable_field(
 
     fn = action.fn
     if action.batch_invoker:
-        fn = _wrap_fn_in_data_loader(action.fn, action.batch_invoker, action.cache_control)
+        fn = _wrap_fn_in_data_loader(
+            action.fn, action.batch_invoker, action.cache_control
+        )
     sig = inspect.signature(fn)
     return_type = schema_factory.get_type(sig.return_annotation)
     params["__annotations__"][key] = return_type
     params[key] = strawberry.field(resolver=fn)
 
 
-def _wrap_fn_in_data_loader(fn: Callable, batch_invoker: BatchInvoker, cache_control: CacheControlABC):
-    ttl = cache_control.ttl if hasattr(cache_control, 'ttl') else 10
+def _wrap_fn_in_data_loader(
+    fn: Callable, batch_invoker: BatchInvoker, cache_control: CacheControlABC
+):
+    ttl = cache_control.ttl if hasattr(cache_control, "ttl") else 10
     data_loader = DataLoader(
         load_fn=batch_invoker.fn,
         max_batch_size=batch_invoker.max_batch_size,
-        cache_map=_UserCache(relativedelta(seconds=ttl))
+        cache_map=_UserCache(relativedelta(seconds=ttl)),
     )
 
     sig = inspect.signature(fn)
@@ -152,7 +156,9 @@ class _UserCache(AbstractCache):
             return entry.value
 
     def set(self, key: Any, value: Any) -> None:
-        self.cache[key] = _UserCacheEntry(value, datetime.now() + self.expire_in)  # store data in the cache
+        self.cache[key] = _UserCacheEntry(
+            value, datetime.now() + self.expire_in
+        )  # store data in the cache
 
     def delete(self, key: Any) -> None:
         del self.cache[key]  # delete key from the cache
