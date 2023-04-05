@@ -6,6 +6,7 @@ from datetime import datetime
 from marshy.types import ExternalItemType
 from ruamel.yaml import YAML
 
+from servey.action.action import Action
 from servey.finder.action_finder_abc import find_actions_with_trigger_type, find_actions
 from servey.trigger.web_trigger import WebTrigger, WebTriggerMethod
 from servey.servey_aws.serverless.yml_config.yml_config_abc import (
@@ -86,22 +87,7 @@ class AppsyncConfig(YmlConfigABC):
                 "Query" if trigger.method == WebTriggerMethod.GET else "Mutation"
             )
             resolver_name = resolver_type + "." + field_[0].lower() + field_[1:]
-            # data source may be
-            use_router = self.use_router_for_all or "<locals>" in action.fn.__qualname__
-            data_source_name = "servey_router" if use_router else action.name
-            appsync_definitions["resolvers"][resolver_name] = {
-                "kind": "UNIT",
-                "dataSource": data_source_name,
-            }
-            data_source = {
-                "type": "AWS_LAMBDA",
-                "config": {
-                    "functionName": data_source_name,
-                },
-            }
-            if action.description and not use_router:
-                data_source["description"] = action.description.strip()
-            appsync_definitions["dataSources"][data_source_name] = data_source
+            self.add_field(action, appsync_definitions, resolver_name)
 
         for action in find_actions():
             sig = inspect.signature(action.fn)
@@ -109,36 +95,25 @@ class AppsyncConfig(YmlConfigABC):
             if params and params[0].name == "self":
                 type_name, field_name = action.fn.__qualname__.split(".")
                 field_name = field_name[0] + field_name.title()[1:].replace("_", "")
-                mapping_template = {
-                    "dataSource": action.name,
-                    "type": type_name,
-                    "field": field_name
-                    # caching:
-                    #    keys:  # array. A list of VTL variables to use as cache key.
-                    #        - '$context.identity.sub'
-                    #        - '$context.arguments.id'
-                    #    ttl: 1000  # override the ttl for this resolver. (default comes from global config)
-                }
-                appsync_definitions["mappingTemplates"].append(mapping_template)
-                # noinspection PyTypeChecker
-                data_source = next(
-                    (
-                        d
-                        for d in appsync_definitions["dataSources"]
-                        if d["name"] == action.name
-                    ),
-                    None,
-                )
-                if not data_source:
-                    data_source = {
-                        "name": action.name,
-                        "type": "AWS_LAMBDA",
-                        "config": {
-                            "functionName": action.name,
-                        },
-                    }
-                    if action.description:
-                        data_source["description"] = action.description.strip()
-                    appsync_definitions["dataSources"].append(data_source)
+                resolver_name = type_name + '.' + field_name
+                self.add_field(action, appsync_definitions, resolver_name)
 
         return appsync_definitions
+
+    def add_field(self, action: Action, appsync_definitions: ExternalItemType, resolver_name: str):
+        # data source may be
+        use_router = self.use_router_for_all or "<locals>" in action.fn.__qualname__
+        data_source_name = "servey_router" if use_router else action.name
+        appsync_definitions["resolvers"][resolver_name] = {
+            "kind": "UNIT",
+            "dataSource": data_source_name,
+        }
+        data_source = {
+            "type": "AWS_LAMBDA",
+            "config": {
+                "functionName": data_source_name,
+            },
+        }
+        if action.description and not use_router:
+            data_source["description"] = action.description.strip()
+        appsync_definitions["dataSources"][data_source_name] = data_source

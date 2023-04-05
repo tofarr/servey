@@ -57,7 +57,7 @@ class TestLambdaInvoker(TestCase):
             "servey.finder.action_finder_abc.find_actions",
             return_value=[get_action(echo_get)],
         ):
-            event = dict(path="/actions/echo_get", params=dict(val="foo"))
+            event = dict(path="/actions/echo-get", params=dict(val="foo"))
             result = invoke(event, None)
             expected_result = "foo"
             self.assertEqual(expected_result, result)
@@ -74,7 +74,7 @@ class TestLambdaInvoker(TestCase):
             "servey.finder.action_finder_abc.find_actions",
             return_value=[get_action(echo_get)],
         ):
-            event = dict(path="/actions/echo_get", params=dict(val="foo"))
+            event = dict(path="/actions/echo-get", params=dict(val="foo"))
             result = invoke(event, None)
             expected_result = "foo"
             self.assertEqual(expected_result, result)
