@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Optional
+from typing import Tuple
 
 from marshy.factory.impl_marshaller_factory import get_impls
 from marshy.types import ExternalItemType
@@ -30,12 +30,6 @@ class RouterABC(ABC):
             web_trigger_actions = tuple(web_trigger_actions)
             setattr(self, "_web_trigger_actions", web_trigger_actions)
         return web_trigger_actions
-
-    def find_action_for_path(self, path: str) -> Optional[Action]:
-        for action, trigger in self.web_trigger_actions:
-            action_path = trigger.path or f"/actions/{action.name.replace('_', '-')}"
-            if action_path == path:
-                return action
 
 
 def find_routers() -> Tuple[RouterABC]:

@@ -15,7 +15,6 @@ from servey.servey_aws.serverless.yml_config.yml_config_abc import (
     ensure_ref_in_file,
     create_yml_file,
 )
-from servey.trigger.web_trigger import WebTriggerMethod
 from servey.util import get_servey_main
 
 

@@ -84,10 +84,10 @@ class NumberStats:
         This demonstrates a resolvable field, lazily resolved (Usually by graphql)
         """
         result = 1
-        index = self.value
-        while index > 1:
-            result *= index
-            index -= 1
+        index_ = self.value
+        while index_ > 1:
+            result *= index_
+            index_ -= 1
         return result
 
 

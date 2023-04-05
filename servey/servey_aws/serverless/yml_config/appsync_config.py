@@ -81,11 +81,11 @@ class AppsyncConfig(YmlConfigABC):
             #    type: 'T2_SMALL'  # Cache instance size. Optional. Default: 'T2_SMALL'
         }
         for action, trigger in find_actions_with_trigger_type(WebTrigger):
-            field = action.name.title().replace("_", "")
+            field_ = action.name.title().replace("_", "")
             resolver_type = (
                 "Query" if trigger.method == WebTriggerMethod.GET else "Mutation"
             )
-            resolver_name = resolver_type + "." + field[0].lower() + field[1:]
+            resolver_name = resolver_type + "." + field_[0].lower() + field_[1:]
             # data source may be
             use_router = self.use_router_for_all or "<locals>" in action.fn.__qualname__
             data_source_name = "servey_router" if use_router else action.name

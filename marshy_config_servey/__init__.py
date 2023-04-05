@@ -377,7 +377,7 @@ _IGNORABLE_MISSING_MODULE_NAMES = {
 def raise_non_ignored(e: ModuleNotFoundError):
     msg = str(e)
     if msg.startswith(_NO_MODULE_NAMED):
-        module_name = msg[len(_NO_MODULE_NAMED) : -1]
+        module_name = msg[len(_NO_MODULE_NAMED): -1]
         if module_name in _IGNORABLE_MISSING_MODULE_NAMES:
             LOGGER.debug(msg)
             return

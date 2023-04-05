@@ -1,5 +1,8 @@
+from typing import Optional
+
 from marshy.types import ExternalItemType
 
+from servey.action.action import Action
 from servey.errors import ServeyError
 from servey.servey_aws.event_handler.event_handler_abc import (
     get_event_handlers,
@@ -22,3 +25,9 @@ class APIGatewayRouter(RouterABC):
         for handler in handlers:
             if handler.is_usable(event, context):
                 return handler
+
+    def find_action_for_path(self, path: str) -> Optional[Action]:
+        for action, trigger in self.web_trigger_actions:
+            action_path = trigger.path or f"/actions/{action.name.replace('_', '-')}"
+            if action_path == path:
+                return action
