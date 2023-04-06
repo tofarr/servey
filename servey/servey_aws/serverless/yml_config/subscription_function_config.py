@@ -135,8 +135,9 @@ class SubscriptionFunctionConfig(YmlConfigABC):
         return resource_definitions
 
     def build_role_statement_yml(self) -> ExternalItemType:
-        role_statements = [
-            {
+        role_statements = []
+        if self.has_websocket_subscriptions:
+            role_statements.append({
                 "Effect": "Allow",
                 "Action": [
                     "dynamodb:BatchWriteItem",
@@ -170,8 +171,9 @@ class SubscriptionFunctionConfig(YmlConfigABC):
                         ]
                     },
                 ],
-            },
-            {
+            })
+        if next((True for s in self.subscriptions if s.action_subscribers), False):
+            role_statements.append({
                 "Effect": "Allow",
                 "Action": [
                     "sqs:SendMessage",
@@ -184,7 +186,6 @@ class SubscriptionFunctionConfig(YmlConfigABC):
                     for s in self.subscriptions
                     if s.action_subscribers
                 ],
-            },
-        ]
+            })
         subscription_policy = {"iamRoleStatements": role_statements}
         return subscription_policy

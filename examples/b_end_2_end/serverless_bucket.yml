@@ -23,7 +23,11 @@ Resources:
           - Sid: AllowCloudFrontServicePrincipalReadOnly
             Effect: Allow
             Principal:
-              Service: "cloudfront.amazonaws.com"
+              "AWS":
+                Fn::Join:
+                  - ""
+                  - - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity "
+                    - Ref: OriginAccessIdentity
             Action:
             - s3:GetObject
             Resource:
@@ -32,12 +36,3 @@ Resources:
                 - - "arn:aws:s3:::"
                   - Ref: "StaticBucket"
                   - "/*"
-            Condition:
-              StringEquals:
-                "AWS:SourceArn":
-                  Fn::Join:
-                      - ""
-                      - - "arn:aws:cloudfront::"
-                        - Ref: "AWS::AccountId"
-                        - ":distribution/"
-                        - Ref: OriginAccessIdentity

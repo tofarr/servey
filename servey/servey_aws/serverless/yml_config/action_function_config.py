@@ -50,7 +50,7 @@ class ActionFunctionConfig(YmlConfigABC):
                 if not lambda_definition:
                     lambda_definition = lambda_definitions[lambda_name] = dict(
                         handler="servey.servey_aws.lambda_router.invoke",
-                        timeout=900,
+                        timeout=30,
                     )
             else:
                 # noinspection PyUnresolvedReferences

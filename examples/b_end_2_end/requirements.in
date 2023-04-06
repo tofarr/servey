@@ -1,1 +1,1 @@
-servey[web_page]==2.4.0
+servey[web_page,serverless]~=2.6

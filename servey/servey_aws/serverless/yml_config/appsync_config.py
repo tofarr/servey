@@ -57,8 +57,9 @@ class AppsyncConfig(YmlConfigABC):
 
             # noinspection SpellCheckingInspection
             schema = schema.replace(
-                '\n"""Date with time (isoformat)"""\nscalar DateTime\n', ""
+                '"""Date with time (isoformat)"""\nscalar DateTime\n', ""
             )
+            schema = schema.replace("scalar UUID\n", "")
             # Ugly AWS variable substitution
             schema = schema.replace(": DateTime", ": AWSDateTime")
             schema = schema.replace(": UUID", ": ID")
@@ -73,7 +74,6 @@ class AppsyncConfig(YmlConfigABC):
             "apiKeys": [{
                 "name": f"{get_servey_main()}Key",
             }],
-            "defaultMappingTemplates": {"request": False, "response": False},
             "resolvers": {},
             "dataSources": {},
             "schema": self.servey_appsync_schema_file,

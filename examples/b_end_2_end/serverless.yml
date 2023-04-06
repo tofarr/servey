@@ -39,11 +39,12 @@ custom:
   appSync:
   - ${file(serverless_servey/appsync.yml)}
   s3Sync:
-    - bucketName: ${self:custom.staticBucket}
-      localDir: static_site
+  - bucketName: ${self:custom.staticBucket}
+    localDir: static_site
 functions:
 - ${file(serverless_servey/actions.yml)}
 resources:
-  - ${file(serverless_servey/kms_resource.yml)}
-  - ${file(serverless_bucket.yml)}
-  - ${file(serverless_cloudfront.yml)}
+- ${file(serverless_servey/kms_resource.yml)}
+- ${file(serverless_bucket.yml)}
+- ${file(serverless_cloudfront.yml)}
+appSync: ${file(serverless_servey/appsync.yml)}
