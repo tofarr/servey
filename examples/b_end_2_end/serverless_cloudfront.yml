@@ -76,24 +76,27 @@ Resources:
             PathPattern: graphql
           Origins:
             - DomainName:
-              Fn::Join:
-                - ""
-                - - Ref: ApiGatewayRestApi
-                  - ".execute-api.${self:provider.region}.amazonaws.com"
+                Fn::Join:
+                  - ""
+                  - - Ref: ApiGatewayRestApi
+                    - ".execute-api.${self:provider.region}.amazonaws.com"
               Id: apiGatewayAPIOrigin
               OriginPath: /${self:provider.stage}
               CustomOriginConfig:
                 OriginProtocolPolicy: https-only
             - DomainName:
-              Fn::Join:
-                - ""
-                - - "arn:aws:appsync:${self:provider.region}:${aws:accountId}:apis/"
-                  - Fn::GetAtt:
-                    - GraphQlApi
-                    - ApiId
-                  - "/*"
+                Fn::Select:
+                  - 0
+                  - Fn::Split:
+                    - "/graphql"
+                    - Fn::Select:
+                      - 1
+                      - Fn::Split:
+                        - "https://"
+                        - Fn::GetAtt:
+                          - GraphQlApi
+                          - GraphQLUrl
               Id: appsyncAPIOrigin
-              OriginPath: /
               CustomOriginConfig:
                 OriginProtocolPolicy: https-only
             # Here's the origin from S3...
