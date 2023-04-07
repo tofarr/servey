@@ -36,7 +36,7 @@ Resources:
             MinTTL: "0"
             MaxTTL: "0"
             DefaultTTL: "0"
-            TargetOriginId: myS3Origin
+            TargetOriginId: s3Origin
             ForwardedValues:
               QueryString: "false"
             ViewerProtocolPolicy: redirect-to-https
@@ -50,9 +50,9 @@ Resources:
             - GET
             - HEAD
             - OPTIONS
-            TargetOriginId: myAPIOrigin
+            TargetOriginId: apiGatewayAPIOrigin
             ForwardedValues:
-              QueryString: 'true'
+              QueryString: true
               Cookies:
                 Forward: all
             ViewerProtocolPolicy: https-only
@@ -60,22 +60,47 @@ Resources:
             MaxTTL: "6"
             DefaultTTL: "3"
             PathPattern: actions/*
-          # Here we define the API origin
+          - AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+            TargetOriginId: appsyncAPIOrigin
+            ForwardedValues:
+              QueryString: false
+              Cookies:
+                Forward: all
+            ViewerProtocolPolicy: https-only
+            MinTTL: "0"
+            MaxTTL: "6"
+            DefaultTTL: "3"
+            PathPattern: graphql
           Origins:
             - DomainName:
-               Fn::Join:
+              Fn::Join:
                 - ""
                 - - Ref: ApiGatewayRestApi
                   - ".execute-api.${self:provider.region}.amazonaws.com"
-              Id: myAPIOrigin
+              Id: apiGatewayAPIOrigin
               OriginPath: /${self:provider.stage}
+              CustomOriginConfig:
+                OriginProtocolPolicy: https-only
+            - DomainName:
+              Fn::Join:
+                - ""
+                - - "arn:aws:appsync:${self:provider.region}:${aws:accountId}:apis/"
+                  - Fn::GetAtt:
+                    - GraphQlApi
+                    - ApiId
+                  - "/*"
+              Id: appsyncAPIOrigin
+              OriginPath: /
               CustomOriginConfig:
                 OriginProtocolPolicy: https-only
             # Here's the origin from S3...
             - DomainName: ${self:custom.staticBucket}.s3.amazonaws.com
               #OriginPath: /
               ## An identifier for the origin which must be unique within the distribution
-              Id: myS3Origin
+              Id: s3Origin
               # Dont need this because of permissive bucket policy
               S3OriginConfig:
                 OriginAccessIdentity:
