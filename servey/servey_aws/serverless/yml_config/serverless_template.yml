@@ -9,6 +9,8 @@ package:
 provider:
   name: aws
   runtime: python3.9
+  region: us-east-1
+  stage: dev
   environment:
     LOG_LEVEL: INFO
     KMS_KEY_ID: serveyKmsKey
