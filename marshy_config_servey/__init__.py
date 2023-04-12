@@ -259,19 +259,11 @@ def configure_serverless(context: MarshallerContext):
         from servey.servey_aws.serverless.yml_config.subscription_function_config import (
             SubscriptionFunctionConfig,
         )
-        from servey.servey_aws.serverless.yml_config.cloudfront_config import (
-            CloudfrontConfig
-        )
-        from servey.servey_aws.serverless.yml_config.static_site_bucket_config import (
-            StaticSiteBucketConfig
-        )
 
         register_impl(YmlConfigABC, ActionFunctionConfig, context)
         register_impl(YmlConfigABC, AppsyncConfig, context)
         register_impl(YmlConfigABC, KmsKeyConfig, context)
         register_impl(YmlConfigABC, SubscriptionFunctionConfig, context)
-        register_impl(YmlConfigABC, CloudfrontConfig, context)
-        register_impl(YmlConfigABC, StaticSiteBucketConfig, context)
 
         from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
             TriggerHandlerABC,
@@ -285,6 +277,16 @@ def configure_serverless(context: MarshallerContext):
 
         register_impl(TriggerHandlerABC, WebTriggerHandler, context)
         register_impl(TriggerHandlerABC, FixedRateTriggerHandler, context)
+
+        from servey.servey_aws.serverless.yml_config.cloudfront_config import (
+            CloudfrontConfig
+        )
+        from servey.servey_aws.serverless.yml_config.static_site_bucket_config import (
+            StaticSiteBucketConfig
+        )
+
+        register_impl(YmlConfigABC, CloudfrontConfig, context)
+        register_impl(YmlConfigABC, StaticSiteBucketConfig, context)
 
     except ModuleNotFoundError as e:
         raise_non_ignored(e)

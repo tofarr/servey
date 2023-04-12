@@ -21,7 +21,11 @@ class CloudfrontConfig(YmlConfigABC):
 
     def configure(self, main_serverless_yml_file: str):
         has_static_site = self.static_site_directory.exists()
-        has_web_page = next((True for _ in find_actions_with_trigger_type(WebPageTrigger)), False)
+        has_web_page = False
+        try:
+            has_web_page = next((True for _ in find_actions_with_trigger_type(WebPageTrigger)), False)
+        except ImportError:
+            pass
         if not has_static_site and not has_web_page:
             return
         # If there is a static site
