@@ -9,7 +9,6 @@ from servey.servey_aws.serverless.yml_config.yml_config_abc import (
     ensure_ref_in_file,
     create_yml_file,
 )
-from servey.servey_web_page.web_page_trigger import WebPageTrigger
 
 
 class CloudfrontConfig(YmlConfigABC):
@@ -23,6 +22,7 @@ class CloudfrontConfig(YmlConfigABC):
         has_static_site = self.static_site_directory.exists()
         has_web_page = False
         try:
+            from servey.servey_web_page.web_page_trigger import WebPageTrigger
             has_web_page = next((True for _ in find_actions_with_trigger_type(WebPageTrigger)), False)
         except ImportError:
             pass
