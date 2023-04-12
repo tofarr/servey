@@ -45,6 +45,6 @@ functions:
 - ${file(serverless_servey/actions.yml)}
 resources:
 - ${file(serverless_servey/kms_resource.yml)}
-- ${file(serverless_bucket.yml)}
-- ${file(serverless_cloudfront.yml)}
+- ${file(serverless_servey/cloudfront_resource.yml)}
+- ${file(serverless_servey/static_site_bucket_resource.yml)}
 appSync: ${file(serverless_servey/appsync.yml)}
