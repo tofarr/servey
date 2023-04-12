@@ -11,7 +11,7 @@ from servey.servey_aws.serverless.yml_config.yml_config_abc import (
     create_yml_file,
 )
 
-ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz'
 
 
 class StaticSiteBucketConfig(YmlConfigABC):
@@ -45,7 +45,7 @@ class StaticSiteBucketConfig(YmlConfigABC):
             static_bucket = custom.get('staticBucket')
             if static_bucket:
                 return static_bucket
-        static_bucket = ''.join(ALPHABET[randint(0, 35)] for _ in range(10))
+        static_bucket = 'b' + ''.join(ALPHABET[randint(0, 35)] for _ in range(10))
         custom['staticBucket'] = static_bucket
         with open(main_serverless_yml_file, "w") as writer:
             yaml.dump(root, writer)
