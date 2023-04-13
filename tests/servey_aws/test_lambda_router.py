@@ -1,9 +1,11 @@
+from dataclasses import dataclass
 from unittest import TestCase
 from unittest.mock import patch
 
 from servey.action.action import action, get_action
 from servey.errors import ServeyError
 from servey.servey_aws.lambda_router import invoke
+from servey.servey_aws.router.appsync_router import AppsyncRouter
 from servey.trigger.web_trigger import WEB_GET
 
 
@@ -78,3 +80,47 @@ class TestLambdaInvoker(TestCase):
             result = invoke(event, None)
             expected_result = "foo"
             self.assertEqual(expected_result, result)
+
+    def test_nested_router_appsync(self):
+
+        @dataclass
+        class NumberStats:
+            int_value: int
+
+            @action
+            def factorial(self) -> int:
+                result = 1
+                value = self.int_value
+                while value > 1:
+                    result *= value
+                    value -= 1
+                return result
+
+        @action(triggers=WEB_GET)
+        def number_stats(int_value: int) -> NumberStats:
+            return NumberStats(int_value)
+
+        event = {
+            "arguments": {},
+            "identity": None,
+            "source": {
+                "intValue": 5,
+            },
+            "prev": None,
+            "info": {
+                "selectionSetList": [],
+                "selectionSetGraphQL": "{}",
+                "fieldName": "factorial",
+                "parentTypeName": "NumberStats",
+                "variables": {
+                    "pageKey": None
+                }
+            },
+            "stash": {}
+        }
+        action_ = get_action(number_stats)
+        router = AppsyncRouter()
+        setattr(router, '_web_trigger_actions', ((action_, action_.triggers[0]),))
+        handler = router.create_handler(event, None)
+        result = handler.handle(event, None)
+        self.assertEqual(120, result)

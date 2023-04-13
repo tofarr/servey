@@ -19,10 +19,10 @@ class AppsyncEventHandler(EventHandler):
 
     def parse_kwargs(self, event: ExternalItemType):
         arguments = dict(**event["arguments"])
-        arguments = attrs_to_snake_case(arguments)
         source = event.get("source")
         if source is not None:
             arguments["self"] = source
+        arguments = attrs_to_snake_case(arguments)
         if self.param_schema:
             self.param_schema.validate(arguments)
         kwargs = self.param_marshaller.load(arguments)

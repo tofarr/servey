@@ -1,3 +1,5 @@
+import dataclasses
+import inspect
 from typing import Optional
 
 from marshy.types import ExternalItemType
@@ -9,6 +11,7 @@ from servey.servey_aws.event_handler.event_handler_abc import (
     EventHandlerABC,
 )
 from servey.servey_aws.router.router_abc import RouterABC
+from servey.util import to_snake_case
 
 
 class AppsyncRouter(RouterABC):
@@ -19,13 +22,37 @@ class AppsyncRouter(RouterABC):
         if info is None:
             return
         field_name = info["fieldName"]
-        action = self.find_action_for_field_name(field_name)
+        source = event.get('source')
+        if source:
+            action = self.find_action_for_parent_type(info['parentTypeName'], field_name)
+        else:
+            action = self.find_action_for_field_name(field_name)
         if action is None:
             raise ServeyError(f"unknown_field_name:{field_name}")
         handlers = get_event_handlers(action)
         for handler in handlers:
             if handler.is_usable(event, context):
                 return handler
+
+    def find_action_for_parent_type(self, parent_type_name: str, field_name: str):
+        field_name = to_snake_case(field_name)
+        for action, trigger in self.web_trigger_actions:
+            sig = inspect.signature(action.fn)
+            parent_type = sig.return_annotation
+            if getattr(parent_type, '__name__', None) == parent_type_name:
+                fn = getattr(parent_type, field_name)
+                sig = inspect.signature(fn)
+                parameters = list(sig.parameters.values())
+                parameters[0] = parameters[0].replace(annotation=parent_type)
+                sig = sig.replace(parameters=parameters)
+
+                def wrapper(*args, **kwargs):
+                    return fn(*args, **kwargs)
+
+                wrapper.__signature__ = sig
+                action = dataclasses.replace(action, fn=wrapper)
+                wrapper.__servey_action__ = action
+                return action
 
     def find_action_for_field_name(self, field_name: str) -> Optional[Action]:
         for action, trigger in self.web_trigger_actions:

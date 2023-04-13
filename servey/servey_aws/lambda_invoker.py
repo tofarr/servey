@@ -28,6 +28,10 @@ def find_action():
     action_module = importlib.import_module(os.environ["SERVEY_ACTION_MODULE"])
     action_function_name = os.environ["SERVEY_ACTION_FUNCTION_NAME"]
     if "." in action_function_name:
+
+        # If there is a parentTypeName, we grab from that
+
+
         action_class_name, action_function_name = action_function_name.split(".")
         action_class = getattr(action_module, action_class_name)
         action_function = getattr(action_class, action_function_name)
