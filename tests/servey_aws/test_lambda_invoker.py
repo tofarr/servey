@@ -59,7 +59,7 @@ class TestLambdaInvoker(TestCase):
         invoker = get_invoker(get_node)
         event = dict(arguments=dict(name="foo"))
         result = invoker(event, None)
-        expected_result = {"child_nodes": [], "name": "foo"}
+        expected_result = {"childNodes": [], "name": "foo"}
         self.assertEqual(expected_result, result)
 
     def test_appsync_post(self):
@@ -202,10 +202,10 @@ class TestLambdaInvoker(TestCase):
         result = invoker(event, None)
         self.assertEqual(
             {
-                "subject_id": None,
+                "subjectId": None,
                 "scopes": ["root"],
-                "not_before": None,
-                "expire_at": None,
+                "notBefore": None,
+                "expireAt": None,
             },
             result,
         )

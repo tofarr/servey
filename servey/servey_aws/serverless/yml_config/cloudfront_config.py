@@ -101,9 +101,13 @@ class CloudfrontConfig(YmlConfigABC):
                             "CacheBehaviors": [
                                 {
                                     "AllowedMethods": [
-                                        "GET",
                                         "HEAD",
-                                        "OPTIONS"
+                                        "DELETE",
+                                        "POST",
+                                        "GET",
+                                        "OPTIONS",
+                                        "PUT",
+                                        "PATCH"
                                     ],
                                     "TargetOriginId": "apiGatewayAPIOrigin",
                                     "ForwardedValues": {
@@ -120,9 +124,13 @@ class CloudfrontConfig(YmlConfigABC):
                                 },
                                 {
                                     "AllowedMethods": [
-                                        "GET",
                                         "HEAD",
-                                        "OPTIONS"
+                                        "DELETE",
+                                        "POST",
+                                        "GET",
+                                        "OPTIONS",
+                                        "PUT",
+                                        "PATCH"
                                     ],
                                     "TargetOriginId": "appsyncAPIOrigin",
                                     "ForwardedValues": {

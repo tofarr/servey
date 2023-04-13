@@ -36,8 +36,7 @@ class StaticSiteBucketConfig(YmlConfigABC):
             self.static_site_bucket_resource_yml_file, static_site_bucket_resource_yml
         )
 
-    @staticmethod
-    def add_custom_bucket_yml(main_serverless_yml_file: str):
+    def add_custom_bucket_yml(self, main_serverless_yml_file: str):
         yaml = YAML()
         with open(main_serverless_yml_file, "r") as reader:
             root = yaml.load(reader)
@@ -47,6 +46,11 @@ class StaticSiteBucketConfig(YmlConfigABC):
                 return static_bucket
         static_bucket = 'b' + ''.join(ALPHABET[randint(0, 35)] for _ in range(10))
         custom['staticBucket'] = static_bucket
+        custom['s3Sync'] = [{
+            'bucketName': '${self: custom.staticBucket}',
+            'localDir': self.static_site_directory
+        }]
+        root['plugins'].append('serverless-s3-sync')
         with open(main_serverless_yml_file, "w") as writer:
             yaml.dump(root, writer)
         return static_bucket

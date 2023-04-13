@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import Type
+from typing import Type, Any
 
-from marshy.types import ExternalItemType
+from marshy.types import ExternalItemType, ExternalType
 
 from servey.security.access_control.allow_all import ALLOW_ALL
 from servey.security.authorization import AuthorizationError
@@ -10,6 +10,7 @@ from servey.servey_aws.event_handler.event_handler import (
     EventHandlerFactory,
 )
 from servey.servey_aws.event_handler.event_handler_abc import EventHandlerABC
+from servey.util import to_snake_case, attr_camel_case
 
 
 class AppsyncEventHandler(EventHandler):
@@ -18,6 +19,7 @@ class AppsyncEventHandler(EventHandler):
 
     def parse_kwargs(self, event: ExternalItemType):
         arguments = dict(**event["arguments"])
+        arguments = attrs_to_snake_case(arguments)
         source = event.get("source")
         if source is not None:
             arguments["self"] = source
@@ -41,8 +43,46 @@ class AppsyncEventHandler(EventHandler):
                 kwargs[self.auth_kwarg_name] = authorization
         return kwargs
 
+    def render_result(self, result: Any) -> ExternalType:
+        result = super().render_result(result)
+        result = attrs_to_camel_case(result)
+        return result
 
 @dataclass
 class AppsyncEventHandlerFactory(EventHandlerFactory):
     priority: int = 100
     event_handler_type: Type[EventHandlerABC] = AppsyncEventHandler
+
+
+def attrs_to_snake_case(arguments: ExternalType) -> ExternalType:
+    if isinstance(arguments, dict):
+        result = {
+            to_snake_case(k): attrs_to_snake_case(v)
+            for k, v in arguments.items()
+        }
+        return result
+    elif isinstance(arguments, list):
+        result = [
+            attrs_to_snake_case(a)
+            for a in arguments
+        ]
+        return result
+    else:
+        return arguments
+
+
+def attrs_to_camel_case(result: ExternalType) -> ExternalType:
+    if isinstance(result, dict):
+        result = {
+            attr_camel_case(k): attrs_to_camel_case(v)
+            for k, v in result.items()
+        }
+        return result
+    elif isinstance(result, list):
+        result = [
+            attrs_to_camel_case(a)
+            for a in result
+        ]
+        return result
+    else:
+        return result
