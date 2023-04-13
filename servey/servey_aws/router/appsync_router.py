@@ -2,6 +2,7 @@ import dataclasses
 import inspect
 from typing import Optional
 
+from marshy.factory.optional_marshaller_factory import get_optional_type
 from marshy.types import ExternalItemType
 
 from servey.action.action import Action
@@ -39,6 +40,7 @@ class AppsyncRouter(RouterABC):
         for action, trigger in self.web_trigger_actions:
             sig = inspect.signature(action.fn)
             parent_type = sig.return_annotation
+            parent_type = get_optional_type(parent_type) or parent_type
             if getattr(parent_type, '__name__', None) == parent_type_name:
                 fn = getattr(parent_type, field_name)
                 sig = inspect.signature(fn)
