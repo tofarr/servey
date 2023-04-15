@@ -8,6 +8,7 @@ from typing import Optional, Any, Awaitable
 from marshy import get_default_context, ExternalType
 from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType
+from marshy.utils import resolve_forward_refs
 from schemey import get_default_schema_context, SchemaContext
 
 from servey.action.action import Action
@@ -120,7 +121,7 @@ class ApiGatewayEventHandlerFactory(EventHandlerFactoryABC):
             )
             if self.validate_output:
                 result_schema = self.schema_context.schema_from_type(
-                    sig.return_annotation
+                    resolve_forward_refs(sig.return_annotation)
                 )
         authorizer = (
             get_default_authorizer()

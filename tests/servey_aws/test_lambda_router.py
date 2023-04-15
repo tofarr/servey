@@ -89,12 +89,12 @@ class TestLambdaInvoker(TestCase):
 
             @action
             def factorial(self) -> int:
-                result = 1
+                result_ = 1
                 value = self.int_value
                 while value > 1:
-                    result *= value
+                    result_ *= value
                     value -= 1
-                return result
+                return result_
 
         @action(triggers=WEB_GET)
         def number_stats(int_value: int) -> NumberStats:

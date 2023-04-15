@@ -48,6 +48,7 @@ class AppsyncEventHandler(EventHandler):
         result = attrs_to_camel_case(result)
         return result
 
+
 @dataclass
 class AppsyncEventHandlerFactory(EventHandlerFactory):
     priority: int = 100

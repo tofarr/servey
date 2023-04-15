@@ -1,8 +1,8 @@
-from enum import EnumMeta
 from unittest import TestCase
 
 from dateutil.relativedelta import relativedelta
 
+# noinspection PyProtectedMember
 from servey.servey_strawberry.entity_factory.dataclass_factory import _UserCache
 
 

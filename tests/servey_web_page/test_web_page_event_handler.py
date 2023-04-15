@@ -1,8 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch
 
-from jinja2 import Environment, PackageLoader
-
 from servey.action.action import action, get_action
 from servey.servey_web_page.redirect import Redirect
 from servey.servey_web_page.web_page_event_handler import WebPageEventHandlerFactory

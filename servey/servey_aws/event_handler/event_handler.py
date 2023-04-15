@@ -7,6 +7,7 @@ from marshy import get_default_context, ExternalType
 from marshy.marshaller.marshaller_abc import MarshallerABC
 from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType
+from marshy.utils import resolve_forward_refs
 from schemey import get_default_schema_context, SchemaContext, Schema
 
 from servey.action.action import Action
@@ -102,7 +103,7 @@ class EventHandlerFactory(EventHandlerFactoryABC):
             )
             if self.validate_output:
                 result_schema = self.schema_context.schema_from_type(
-                    sig.return_annotation
+                    resolve_forward_refs(sig.return_annotation)
                 )
         return self.event_handler_type(
             action=action,
