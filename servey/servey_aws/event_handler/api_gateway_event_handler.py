@@ -82,7 +82,7 @@ class ApiGatewayEventHandler(EventHandler):
             if_none_match = headers.get("If-None-Match")
             if_modified_since = headers.get("If-Modified-Since")
             cache_header = self.action.cache_control.get_cache_header_from_content(
-                response["body"]
+                response["body"].encode("UTF-8")
             )
             response["headers"].update(cache_header.get_http_headers())
             if if_none_match and cache_header.etag:
