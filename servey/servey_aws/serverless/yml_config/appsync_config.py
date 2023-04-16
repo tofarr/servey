@@ -1,20 +1,23 @@
+import dataclasses
 import inspect
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Type, Set
 
+from marshy.factory.optional_marshaller_factory import get_optional_type
 from marshy.types import ExternalItemType
 from ruamel.yaml import YAML
 
-from servey.action.action import Action
-from servey.finder.action_finder_abc import find_actions_with_trigger_type, find_actions
+from servey.action.action import Action, get_action
+from servey.finder.action_finder_abc import find_actions_with_trigger_type
 from servey.trigger.web_trigger import WebTrigger, WebTriggerMethod
 from servey.servey_aws.serverless.yml_config.yml_config_abc import (
     YmlConfigABC,
     GENERATED_HEADER,
     create_yml_file,
 )
-from servey.util import get_servey_main
+from servey.util import get_servey_main, attr_camel_case
 
 
 @dataclass
@@ -84,22 +87,14 @@ class AppsyncConfig(YmlConfigABC):
             #    transitEncryption:  # Bool, Optional. Enable transit encryption. disabled by default.
             #    type: 'T2_SMALL'  # Cache instance size. Optional. Default: 'T2_SMALL'
         }
+        processed_dataclasses = set()
         for action, trigger in find_actions_with_trigger_type(WebTrigger):
-            field_ = action.name.title().replace("_", "")
             resolver_type = (
                 "Query" if trigger.method == WebTriggerMethod.GET else "Mutation"
             )
-            resolver_name = resolver_type + "." + field_[0].lower() + field_[1:]
+            resolver_name = resolver_type + "." + attr_camel_case(action.name)
             self.add_field(action, appsync_definitions, resolver_name)
-
-        for action in find_actions():
-            sig = inspect.signature(action.fn)
-            params = list(sig.parameters.values())
-            if params and params[0].name == "self":
-                type_name, field_name = action.fn.__qualname__.split(".")
-                field_name = field_name[0] + field_name.title()[1:].replace("_", "")
-                resolver_name = type_name + '.' + field_name
-                self.add_field(action, appsync_definitions, resolver_name)
+            self.build_nested_resolvers(action, appsync_definitions, processed_dataclasses)
 
         return appsync_definitions
 
@@ -120,3 +115,23 @@ class AppsyncConfig(YmlConfigABC):
         if action.description and not use_router:
             data_source["description"] = action.description.strip()
         appsync_definitions["dataSources"][data_source_name] = data_source
+
+    def build_nested_resolvers(
+        self,
+        action: Action,
+        appsync_definitions: ExternalItemType,
+        processed_dataclasses: Set[Type]
+    ):
+        sig = inspect.signature(action.fn)
+        type_ = sig.return_annotation
+        type_ = get_optional_type(type_) or type_
+        if not dataclasses.is_dataclass(type_) or type_ in processed_dataclasses:
+            return
+        processed_dataclasses.add(type_)
+        members = inspect.getmembers(type_)
+        for name, member in members:
+            nested_action = get_action(member)
+            if nested_action:
+                resolver_name = type_.__name__ + '.' + attr_camel_case(name)
+                self.add_field(nested_action, appsync_definitions, resolver_name)
+                self.build_nested_resolvers(nested_action, appsync_definitions, processed_dataclasses)
