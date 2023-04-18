@@ -49,8 +49,8 @@ setuptools.setup(
     package_data={"": ["*.html", "*.js", "*.css", "*.yml"]},
     include_package_data=True,
     install_requires=[
-        "marshy~=3.0",
-        "schemey~=5.7",
+        "marshy~=4.0",
+        "schemey~=6.0",
         "json-urley~=1.0",
         "pyjwt~=2.4",
         "cryptography~=37.0",
