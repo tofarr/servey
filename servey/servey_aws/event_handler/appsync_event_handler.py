@@ -52,7 +52,7 @@ class AppsyncEventHandler(EventHandler):
 
     def handle_batch(self, events: List[ExternalItemType]) -> List[ExternalType]:
         results = super().handle_batch(events)
-        results = [{"data": r for r in results}]
+        results = [{"data": r} for r in results]
         return results
 
 
