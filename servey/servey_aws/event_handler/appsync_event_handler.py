@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Type, Any
+from typing import Type, Any, List
 
 from marshy.types import ExternalItemType, ExternalType
 
@@ -49,6 +49,11 @@ class AppsyncEventHandler(EventHandler):
         result = super().render_result(result)
         result = attrs_to_camel_case(result)
         return result
+
+    def handle_batch(self, events: List[ExternalItemType]) -> List[ExternalType]:
+        results = super().handle_batch(events)
+        results = [{"data": r for r in results}]
+        return results
 
 
 @dataclass
