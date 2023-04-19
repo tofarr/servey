@@ -3,9 +3,9 @@ import inspect
 from typing import Optional
 
 from marshy.factory.optional_marshaller_factory import get_optional_type
-from marshy.types import ExternalItemType
+from marshy.types import ExternalItemType, ExternalType
 
-from servey.action.action import Action
+from servey.action.action import Action, get_action
 from servey.errors import ServeyError
 from servey.servey_aws.event_handler.event_handler_abc import (
     get_event_handlers,
@@ -18,7 +18,9 @@ from servey.util import to_snake_case
 class AppsyncRouter(RouterABC):
     priority: int = 110
 
-    def create_handler(self, event: ExternalItemType, context) -> EventHandlerABC:
+    def create_handler(self, event: ExternalType, context) -> EventHandlerABC:
+        if isinstance(event, list):
+            event = event[0]
         info = event.get("info", None)  # Diff appsync events
         if info is None:
             return
@@ -43,6 +45,7 @@ class AppsyncRouter(RouterABC):
             parent_type = get_optional_type(parent_type) or parent_type
             if getattr(parent_type, '__name__', None) == parent_type_name:
                 fn = getattr(parent_type, field_name)
+                nested_action = get_action(fn)
                 sig = inspect.signature(fn)
                 parameters = list(sig.parameters.values())
                 parameters[0] = parameters[0].replace(annotation=parent_type)
@@ -52,9 +55,9 @@ class AppsyncRouter(RouterABC):
                     return fn(*args, **kwargs)
 
                 wrapper.__signature__ = sig
-                action = dataclasses.replace(action, fn=wrapper)
-                wrapper.__servey_action__ = action
-                return action
+                nested_action = dataclasses.replace(nested_action, fn=wrapper)
+                wrapper.__servey_action__ = nested_action
+                return nested_action
 
     def find_action_for_field_name(self, field_name: str) -> Optional[Action]:
         for action, trigger in self.web_trigger_actions:

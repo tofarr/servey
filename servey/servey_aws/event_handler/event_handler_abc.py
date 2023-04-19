@@ -11,11 +11,11 @@ class EventHandlerABC(ABC):
     priority: int = 100
 
     @abstractmethod
-    def is_usable(self, event: ExternalItemType, context) -> bool:
+    def is_usable(self, event: ExternalType, context) -> bool:
         """Determine if this handler is usable for the event and context given"""
 
     @abstractmethod
-    def handle(self, event: ExternalItemType, context) -> ExternalType:
+    def handle(self, event: ExternalType, context) -> ExternalType:
         """Handle the event given and return a result"""
 
 

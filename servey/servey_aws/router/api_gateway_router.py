@@ -15,6 +15,8 @@ class APIGatewayRouter(RouterABC):
     priority: int = 120
 
     def create_handler(self, event: ExternalItemType, context) -> EventHandlerABC:
+        if not isinstance(event, dict):
+            return
         path = event.get("path", None)
         if path is None:
             return

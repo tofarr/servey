@@ -14,7 +14,9 @@ from servey.util import to_snake_case, attr_camel_case
 
 
 class AppsyncEventHandler(EventHandler):
-    def is_usable(self, event: ExternalItemType, context) -> bool:
+    def is_usable(self, event: ExternalType, context) -> bool:
+        if isinstance(event, list):
+            event = event[0]
         return "arguments" in event
 
     def parse_kwargs(self, event: ExternalItemType):

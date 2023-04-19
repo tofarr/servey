@@ -28,8 +28,8 @@ from servey.servey_aws.event_handler.event_handler_abc import (
 
 
 class ApiGatewayEventHandler(EventHandler):
-    def is_usable(self, event: ExternalItemType, context) -> bool:
-        return "httpMethod" in event
+    def is_usable(self, event: ExternalType, context) -> bool:
+        return isinstance(event, dict) and "httpMethod" in event
 
     def parse_kwargs(self, event: ExternalItemType) -> ExternalType:
         if event.get("httpMethod") in ("POST", "PATCH", "PUT"):

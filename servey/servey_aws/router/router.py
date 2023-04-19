@@ -1,4 +1,4 @@
-from marshy.types import ExternalItemType
+from marshy.types import ExternalItemType, ExternalType
 
 from servey.finder.action_finder_abc import find_actions
 from servey.servey_aws.event_handler.event_handler_abc import (
@@ -9,7 +9,9 @@ from servey.servey_aws.router.router_abc import RouterABC
 
 
 class Router(RouterABC):
-    def create_handler(self, event: ExternalItemType, context) -> EventHandlerABC:
+    def create_handler(self, event: ExternalType, context) -> EventHandlerABC:
+        if isinstance(event, list):
+            event = event[0]
         action_name = event.get("action_name", None)
         if action_name is None:
             return

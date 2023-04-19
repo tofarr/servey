@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 
 from marshy.factory.impl_marshaller_factory import get_impls
-from marshy.types import ExternalItemType
+from marshy.types import ExternalItemType, ExternalType
 
 from servey.action.action import Action
 from servey.finder.action_finder_abc import find_actions_with_trigger_type
@@ -16,7 +16,7 @@ class RouterABC(ABC):
     priority: int = 100
 
     @abstractmethod
-    def create_handler(self, event: ExternalItemType, context) -> EventHandlerABC:
+    def create_handler(self, event: ExternalType, context) -> EventHandlerABC:
         """Create a handler for the event given"""
 
     @property

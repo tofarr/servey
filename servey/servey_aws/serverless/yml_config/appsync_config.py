@@ -102,10 +102,13 @@ class AppsyncConfig(YmlConfigABC):
         # data source may be
         use_router = self.use_router_for_all or "<locals>" in action.fn.__qualname__
         data_source_name = "servey_router" if use_router else action.name
-        appsync_definitions["resolvers"][resolver_name] = {
+        resolver = {
             "kind": "UNIT",
             "dataSource": data_source_name,
         }
+        if action.batch_invoker:
+            resolver['maxBatchSize'] = action.batch_invoker.max_batch_size
+        appsync_definitions["resolvers"][resolver_name] = resolver
         data_source = {
             "type": "AWS_LAMBDA",
             "config": {

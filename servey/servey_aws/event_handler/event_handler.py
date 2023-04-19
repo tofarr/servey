@@ -1,7 +1,7 @@
 import asyncio
 import inspect
 from dataclasses import field, dataclass
-from typing import Optional, Tuple, Callable, Any, Type, Awaitable
+from typing import Optional, Tuple, Callable, Any, Type, Awaitable, List
 
 from marshy import get_default_context, ExternalType
 from marshy.marshaller.marshaller_abc import MarshallerABC
@@ -38,10 +38,34 @@ class EventHandler(EventHandlerABC):
     authorizer: Optional[AuthorizerABC] = None
     priority: int = 50
 
-    def is_usable(self, event: ExternalItemType, context) -> bool:
+    def is_usable(self, event: ExternalType, context) -> bool:
+        if isinstance(event, list):
+            if not self.action.batch_invoker:
+                return False
+            event = event[0]
         return "params" in event
 
-    def handle(self, event: ExternalItemType, context) -> ExternalType:
+    def handle(self, event: ExternalType, context) -> ExternalType:
+        if isinstance(event, list):
+            return self.handle_batch(event)
+        else:
+            return self.handle_event(event)
+
+    def handle_batch(self, events: List[ExternalItemType]) -> List[ExternalType]:
+        if not events:
+            return []
+        kwarg_list = [self.parse_kwargs(e) for e in events]
+        arg_extractor = self.action.batch_invoker.arg_extractor
+        key_list = [arg_extractor(a['self'])[0] for a in kwarg_list]
+        authorization = kwarg_list[0]['authorization']
+        results = self.action.batch_invoker.fn(key_list, authorization)
+        if isinstance(results, Awaitable):
+            loop = asyncio.get_event_loop()
+            results = loop.run_until_complete(results)
+        results = [self.render_result(result) for result in results]
+        return results
+
+    def handle_event(self, event: ExternalItemType) -> ExternalType:
         kwargs = self.parse_kwargs(event)
         result = self.action.fn(**kwargs)
         if isinstance(result, Awaitable):
