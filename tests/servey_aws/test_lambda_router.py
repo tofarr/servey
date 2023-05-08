@@ -82,7 +82,6 @@ class TestLambdaInvoker(TestCase):
             self.assertEqual(expected_result, result)
 
     def test_nested_router_appsync(self):
-
         @dataclass
         class NumberStats:
             int_value: int
@@ -112,15 +111,13 @@ class TestLambdaInvoker(TestCase):
                 "selectionSetGraphQL": "{}",
                 "fieldName": "factorial",
                 "parentTypeName": "NumberStats",
-                "variables": {
-                    "pageKey": None
-                }
+                "variables": {"pageKey": None},
             },
-            "stash": {}
+            "stash": {},
         }
         action_ = get_action(number_stats)
         router = AppsyncRouter()
-        setattr(router, '_web_trigger_actions', ((action_, action_.triggers[0]),))
+        setattr(router, "_web_trigger_actions", ((action_, action_.triggers[0]),))
         handler = router.create_handler(event, None)
         result = handler.handle(event, None)
         self.assertEqual(120, result)

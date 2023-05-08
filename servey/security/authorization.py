@@ -45,7 +45,7 @@ class Authorization:
 
     def check_valid_for_timestamp(self, ts: Optional[datetime] = None):
         if not self.is_valid_for_timestamp(ts):
-            raise AuthorizationError(f"authorization_expired")
+            raise AuthorizationError("authorization_expired")
 
     def check_scope(self, scope: str):
         if not self.has_scope(scope):

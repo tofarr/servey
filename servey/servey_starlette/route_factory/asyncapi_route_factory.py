@@ -39,6 +39,7 @@ class AsyncapiRouteFactory(RouteFactoryABC):
             )
         # There is no "async-docs" endpoint - maybe there should be?
 
+    # pylint: disable=W0613
     # noinspection PyUnusedLocal
     def endpoint(self, request: Request) -> Response:
         schema = self.asyncapi_schema()

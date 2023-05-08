@@ -74,18 +74,14 @@ class AppsyncConfig(YmlConfigABC):
             "authentication": {
                 "type": "API_KEY",
             },
-            "apiKeys": [{
-                "name": f"{get_servey_main()}Key",
-            }],
+            "apiKeys": [
+                {
+                    "name": f"{get_servey_main()}Key",
+                }
+            ],
             "resolvers": {},
             "dataSources": {},
             "schema": self.servey_appsync_schema_file,
-            # caching:
-            #    behavior: FULL_REQUEST_CACHING  # or PER_RESOLVER_CACHING. Required
-            #    ttl: 3600  # The TTL of the cache. Optional. Default: 3600
-            #    atRestEncryption:  # Bool, Optional. Enable at rest encryption. disabled by default.
-            #    transitEncryption:  # Bool, Optional. Enable transit encryption. disabled by default.
-            #    type: 'T2_SMALL'  # Cache instance size. Optional. Default: 'T2_SMALL'
         }
         processed_dataclasses = set()
         for action, trigger in find_actions_with_trigger_type(WebTrigger):
@@ -94,11 +90,15 @@ class AppsyncConfig(YmlConfigABC):
             )
             resolver_name = resolver_type + "." + attr_camel_case(action.name)
             self.add_field(action, appsync_definitions, resolver_name)
-            self.build_nested_resolvers(action, appsync_definitions, processed_dataclasses)
+            self.build_nested_resolvers(
+                action, appsync_definitions, processed_dataclasses
+            )
 
         return appsync_definitions
 
-    def add_field(self, action: Action, appsync_definitions: ExternalItemType, resolver_name: str):
+    def add_field(
+        self, action: Action, appsync_definitions: ExternalItemType, resolver_name: str
+    ):
         # data source may be
         use_router = self.use_router_for_all or "<locals>" in action.fn.__qualname__
         data_source_name = "servey_router" if use_router else action.name
@@ -107,7 +107,7 @@ class AppsyncConfig(YmlConfigABC):
             "dataSource": data_source_name,
         }
         if action.batch_invoker:
-            resolver['maxBatchSize'] = action.batch_invoker.max_batch_size
+            resolver["maxBatchSize"] = action.batch_invoker.max_batch_size
         appsync_definitions["resolvers"][resolver_name] = resolver
         data_source = {
             "type": "AWS_LAMBDA",
@@ -123,7 +123,7 @@ class AppsyncConfig(YmlConfigABC):
         self,
         action: Action,
         appsync_definitions: ExternalItemType,
-        processed_dataclasses: Set[Type]
+        processed_dataclasses: Set[Type],
     ):
         sig = inspect.signature(action.fn)
         type_ = sig.return_annotation
@@ -135,6 +135,8 @@ class AppsyncConfig(YmlConfigABC):
         for name, member in members:
             nested_action = get_action(member)
             if nested_action:
-                resolver_name = type_.__name__ + '.' + attr_camel_case(name)
+                resolver_name = type_.__name__ + "." + attr_camel_case(name)
                 self.add_field(nested_action, appsync_definitions, resolver_name)
-                self.build_nested_resolvers(nested_action, appsync_definitions, processed_dataclasses)
+                self.build_nested_resolvers(
+                    nested_action, appsync_definitions, processed_dataclasses
+                )

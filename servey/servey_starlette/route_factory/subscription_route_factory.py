@@ -120,6 +120,7 @@ _SUBSCRIPTION_CONNECTIONS_BY_NAME: Optional[Dict[str, _SubscriptionConnections]]
 _CONNECTIONS_BY_ID: Dict[str, _Connection] = {}
 
 
+# pylint: disable=W0603
 def _get_subscription_connections_by_name() -> Dict[str, _SubscriptionConnections]:
     global _SUBSCRIPTION_CONNECTIONS_BY_NAME
     if _SUBSCRIPTION_CONNECTIONS_BY_NAME is None:
@@ -136,6 +137,7 @@ def _get_connections_by_id() -> Dict[str, _Connection]:
 
 
 class _StarletteSubscriptionService(SubscriptionServiceABC):
+    # pylint: disable=W0718
     def publish(self, subscription: Subscription[T], event: T):
         subscription_connections = _get_subscription_connections_by_name().get(
             subscription.name

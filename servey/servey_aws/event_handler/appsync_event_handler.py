@@ -20,7 +20,7 @@ class AppsyncEventHandler(EventHandler):
         return "arguments" in event
 
     def parse_kwargs(self, event: ExternalItemType):
-        arguments = dict(**event["arguments"])
+        arguments = {**event["arguments"]}
         source = event.get("source")
         if source is not None:
             arguments["self"] = source
@@ -64,33 +64,17 @@ class AppsyncEventHandlerFactory(EventHandlerFactory):
 
 def attrs_to_snake_case(arguments: ExternalType) -> ExternalType:
     if isinstance(arguments, dict):
-        result = {
-            to_snake_case(k): attrs_to_snake_case(v)
-            for k, v in arguments.items()
+        arguments = {
+            to_snake_case(k): attrs_to_snake_case(v) for k, v in arguments.items()
         }
-        return result
-    elif isinstance(arguments, list):
-        result = [
-            attrs_to_snake_case(a)
-            for a in arguments
-        ]
-        return result
-    else:
-        return arguments
+    if isinstance(arguments, list):
+        arguments = [attrs_to_snake_case(a) for a in arguments]
+    return arguments
 
 
 def attrs_to_camel_case(result: ExternalType) -> ExternalType:
     if isinstance(result, dict):
-        result = {
-            attr_camel_case(k): attrs_to_camel_case(v)
-            for k, v in result.items()
-        }
-        return result
-    elif isinstance(result, list):
-        result = [
-            attrs_to_camel_case(a)
-            for a in result
-        ]
-        return result
-    else:
-        return result
+        result = {attr_camel_case(k): attrs_to_camel_case(v) for k, v in result.items()}
+    if isinstance(result, list):
+        result = [attrs_to_camel_case(a) for a in result]
+    return result

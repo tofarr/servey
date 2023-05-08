@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from typing import List, Optional
 
 from marshy.factory.impl_marshaller_factory import get_impls
-from marshy.types import ExternalItemType, ExternalType
+from marshy.types import ExternalType
 
 from servey.action.action import Action
 

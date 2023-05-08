@@ -1,18 +1,3 @@
-Example with s3 probably makes the most sense unless you want to put together a full template engine with jinja2.
-Maybe this is wanted.
-Maybe we make it an extra. How would it work?
-
-WebpageTrigger...
-
-On App Load, We execute an action, and then render a result using a Jinja Template.
-WebPageTrigger(
-  path= # defaults to /action_name
-  method= # The method to invoke
-  template= # defaults to /templates/action_name.html
-)
-
-Gives us an efficient way to mount websites as an alternative to s3
-
 # Servey - A Flexible Action Framework For Python
 
 This project specifying metadata for python functions (In a manner similar to FastAPI) which is then used to
@@ -458,11 +443,17 @@ We use marshy for pluggable components. See (marshy_config_servey)[marshy_config
 * API in ApiGateway / AppSync, SPA hosted on S3 and cloudfront out in front, Deployment of all via serverless.
 * Docker Image containing Nginx / Starlette app deployed to Heroku / Linode.
 
-## Deploying new versions of this Servey to Pypi
+## Installing local development dependencies
 
 ```
-pip install setuptools wheel
-python setup.py sdist bdist_wheel
-pip install twine
-python -m twine upload dist/*
+python setup.py install easy_install "servey[dev]"
 ```
+
+## Release Procedure
+
+![status](https://github.com/tofarr/servey/actions/workflows/quality.yml/badge.svg?branch=main)
+
+The typical process here is:
+* Create a PR with changes. Merge these to main (The `Quality` workflows make sure that your PR
+  meets the styling, linting, and code coverage standards).
+* New releases created in github are automatically uploaded to pypi

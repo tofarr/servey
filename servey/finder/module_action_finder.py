@@ -31,12 +31,13 @@ class ModuleActionFinder(ActionFinderABC):
 
 
 def _find_actions_in_module(module) -> Iterator[Action]:
-    for name, value in module.__dict__.items():
+    for value in module.__dict__.values():
         action = get_action(value)
         if action:
             yield action
+        # pylint: disable=C0123
         if type(value) == type and is_dataclass(value):
-            for param_name, param_value in value.__dict__.items():
+            for param_value in value.__dict__.values():
                 action = get_action(param_value)
                 if action:
                     yield action

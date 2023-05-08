@@ -48,25 +48,25 @@ class ActionFunctionConfig(YmlConfigABC):
                 lambda_name = self.router_name
                 lambda_definition = lambda_definitions.get(lambda_name)
                 if not lambda_definition:
-                    lambda_definition = lambda_definitions[lambda_name] = dict(
-                        handler="servey.servey_aws.lambda_router.invoke",
-                        timeout=30,
-                    )
+                    lambda_definition = lambda_definitions[lambda_name] = {
+                        "handler": "servey.servey_aws.lambda_router.invoke",
+                        "timeout": 30,
+                    }
             else:
                 # noinspection PyUnresolvedReferences
                 lambda_definition = lambda_definitions[action.name] = filter_none(
-                    dict(
-                        handler="servey.servey_aws.lambda_invoker.invoke",
-                        description=action.description.strip()
+                    {
+                        "handler": "servey.servey_aws.lambda_invoker.invoke",
+                        "description": action.description.strip()
                         if action.description
                         else None,
-                        timeout=action.timeout,
-                        environment=dict(
-                            SERVEY_ACTION_MODULE=action.fn.__module__,
-                            SERVEY_ACTION_FUNCTION_NAME=action.fn.__qualname__,
-                            CONNECTION_TABLE_NAME=connection_table_name,
-                        ),
-                    )
+                        "timeout": action.timeout,
+                        "environment": {
+                            "SERVEY_ACTION_MODULE": action.fn.__module__,
+                            "SERVEY_ACTION_FUNCTION_NAME": action.fn.__qualname__,
+                            "CONNECTION_TABLE_NAME": connection_table_name,
+                        },
+                    }
                 )
             for trigger in action.triggers:
                 for handler in trigger_handlers:

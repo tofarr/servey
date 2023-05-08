@@ -137,55 +137,59 @@ class SubscriptionFunctionConfig(YmlConfigABC):
     def build_role_statement_yml(self) -> ExternalItemType:
         role_statements = []
         if self.has_websocket_subscriptions:
-            role_statements.append({
-                "Effect": "Allow",
-                "Action": [
-                    "dynamodb:BatchWriteItem",
-                    "dynamodb:DeleteItem",
-                    "dynamodb:GetItem",
-                    "dynamodb:PutItem",
-                    "dynamodb:Query",
-                ],
-                "Resource": [
-                    {
-                        "Fn::GetAtt": [
-                            self.connection_table_name.title().replace("_", ""),
-                            "Arn",
-                        ]
-                    },
-                    {
-                        "Fn::Join": [
-                            "/",
-                            [
-                                {
-                                    "Fn::GetAtt": [
-                                        self.connection_table_name.title().replace(
-                                            "_", ""
-                                        ),
-                                        "Arn",
-                                    ]
-                                },
-                                "index",
-                                "gsi__subscription_name__connection_id",
-                            ],
-                        ]
-                    },
-                ],
-            })
+            role_statements.append(
+                {
+                    "Effect": "Allow",
+                    "Action": [
+                        "dynamodb:BatchWriteItem",
+                        "dynamodb:DeleteItem",
+                        "dynamodb:GetItem",
+                        "dynamodb:PutItem",
+                        "dynamodb:Query",
+                    ],
+                    "Resource": [
+                        {
+                            "Fn::GetAtt": [
+                                self.connection_table_name.title().replace("_", ""),
+                                "Arn",
+                            ]
+                        },
+                        {
+                            "Fn::Join": [
+                                "/",
+                                [
+                                    {
+                                        "Fn::GetAtt": [
+                                            self.connection_table_name.title().replace(
+                                                "_", ""
+                                            ),
+                                            "Arn",
+                                        ]
+                                    },
+                                    "index",
+                                    "gsi__subscription_name__connection_id",
+                                ],
+                            ]
+                        },
+                    ],
+                }
+            )
         if next((True for s in self.subscriptions if s.action_subscribers), False):
-            role_statements.append({
-                "Effect": "Allow",
-                "Action": [
-                    "sqs:SendMessage",
-                    "sqs:ReceiveMessage",
-                    "sqs:DeleteMessage",
-                    "sqs:GetQueueUrl",
-                ],
-                "Resource": [
-                    {"Fn::GetAtt": [s.name.title().replace("_", "") + "SQS", "Arn"]}
-                    for s in self.subscriptions
-                    if s.action_subscribers
-                ],
-            })
+            role_statements.append(
+                {
+                    "Effect": "Allow",
+                    "Action": [
+                        "sqs:SendMessage",
+                        "sqs:ReceiveMessage",
+                        "sqs:DeleteMessage",
+                        "sqs:GetQueueUrl",
+                    ],
+                    "Resource": [
+                        {"Fn::GetAtt": [s.name.title().replace("_", "") + "SQS", "Arn"]}
+                        for s in self.subscriptions
+                        if s.action_subscribers
+                    ],
+                }
+            )
         subscription_policy = {"iamRoleStatements": role_statements}
         return subscription_policy

@@ -23,9 +23,10 @@ _AUTH_MARSHALLER = get_default_context().get_marshaller(Optional[Authorization])
 _AUTHORIZER = get_default_authorizer()
 
 
+# pylint: disable=W0613
 # noinspection PyUnusedLocal
 def lambda_handler(event: ExternalItemType, context) -> ExternalType:
-    _LOGGER.info(json.dumps(dict(lambda_event=event)))
+    _LOGGER.info(json.dumps({"lambda_event": event}))
     request_context = event.get("requestContext") or {}
     route_key = request_context.get("routeKey")
     connection_id = request_context.get("connectionId")
@@ -64,22 +65,22 @@ def lambda_handler(event: ExternalItemType, context) -> ExternalType:
 
 def connect(connection_id: str, user_authorization: Authorization):
     _DYNAMODB_TABLE.put_item(
-        Item=dict(
-            connection_id=connection_id,
-            subscription_name=" ",
-            user_authorization=_AUTH_MARSHALLER.dump(user_authorization),
-            updated_at=datetime.now().isoformat(),
-        )
+        Item={
+            "connection_id": connection_id,
+            "subscription_name": " ",
+            "user_authorization": _AUTH_MARSHALLER.dump(user_authorization),
+            "updated_at": datetime.now().isoformat(),
+        }
     )
 
 
 def disconnect(connection_id: str):
     keys = []
-    kwargs = dict(
-        Select="SPECIFIC_ATTRIBUTES",
-        ProjectionExpression="connection_id,subscription_name",
-        KeyConditionExpression=Key("connection_id").eq(connection_id),
-    )
+    kwargs = {
+        "Select": "SPECIFIC_ATTRIBUTES",
+        "ProjectionExpression": "connection_id,subscription_name",
+        "KeyConditionExpression": Key("connection_id").eq(connection_id),
+    }
     while True:
         response = _DYNAMODB_TABLE.query(**kwargs)
         keys.extend(response["Items"])
@@ -94,19 +95,19 @@ def disconnect(connection_id: str):
 
 def subscribe(connection_id: str, subscription_name: str, endpoint_url: str):
     item = _DYNAMODB_TABLE.get_item(
-        Key=dict(connection_id=connection_id, subscription_name=" ")
+        Key={"connection_id": connection_id, "subscription_name": " "}
     )
     _DYNAMODB_TABLE.put_item(
-        Item=dict(
-            connection_id=connection_id,
-            subscription_name=subscription_name,
-            endpoint_url=endpoint_url,
-            user_authorization=item.get("user_authorization"),
-            updated_at=datetime.now().isoformat(),
-        )
+        Item={
+            "connection_id": connection_id,
+            "subscription_name": subscription_name,
+            "endpoint_url": endpoint_url,
+            "user_authorization": item.get("user_authorization"),
+            "updated_at": datetime.now().isoformat(),
+        }
     )
 
 
 def unsubscribe(connection_id: str, subscription_name: str):
-    key = dict(connection_id=connection_id, subscription_name=subscription_name)
+    key = {"connection_id": connection_id, "subscription_name": subscription_name}
     _DYNAMODB_TABLE.delete_item(Key=key)

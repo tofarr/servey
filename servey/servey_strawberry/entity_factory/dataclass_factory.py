@@ -74,13 +74,8 @@ class DataclassFactory(EntityFactoryABC):
             type_ = f.type
             if f.default is not MISSING:
                 type_ = Optional[type_]
-                if (
-                    f.default is None
-                    or isinstance(f.default, str)
-                    or isinstance(f.default, int)
-                    or isinstance(f.default, bool)
-                    or isinstance(f.default, float)
-                    or isinstance(f.default, Decimal)
+                if f.default is None or isinstance(
+                    f.default, (str, int, bool, float, Decimal)
                 ):
                     params[f.name] = f.default
             elif f.default_factory is not MISSING:

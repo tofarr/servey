@@ -14,21 +14,21 @@ def to_snake_case(name: str) -> str:
 
 
 def entity_to_camel_case(name: str) -> str:
-    parts = name.split('_')
+    parts = name.split("_")
     result = []
     for part in parts:
         result.append(part[0].upper())
         result.append(part[1:].lower())
-    return ''.join(result)
+    return "".join(result)
 
 
 def attr_camel_case(name: str) -> str:
-    parts = name.split('_')
+    parts = name.split("_")
     result = [parts[0].lower()]
     for part in parts[1:]:
         result.append(part[0].upper())
         result.append(part[1:].lower())
-    return ''.join(result)
+    return "".join(result)
 
 
 def secure_hash(item: ExternalType) -> str:

@@ -15,8 +15,13 @@ class CloudfrontConfig(YmlConfigABC):
     """
     Set up some aspect of the serverless environment yml files. (For example, functions, resources, etc...)
     """
-    static_site_directory: Path = Path(os.environ.get("SERVEY_STATIC_SITE_DIR") or "static_site")
-    static_site_bucket_resource_yml_file: str = "serverless_servey/cloudfront_resource.yml"
+
+    static_site_directory: Path = Path(
+        os.environ.get("SERVEY_STATIC_SITE_DIR") or "static_site"
+    )
+    static_site_bucket_resource_yml_file: str = (
+        "serverless_servey/cloudfront_resource.yml"
+    )
 
     def configure(self, main_serverless_yml_file: str):
         has_static_site = self.static_site_directory.exists()
@@ -24,7 +29,10 @@ class CloudfrontConfig(YmlConfigABC):
         try:
             # noinspection PyUnresolvedReferences
             from servey.servey_web_page.web_page_trigger import WebPageTrigger
-            has_web_page = next((True for _ in find_actions_with_trigger_type(WebPageTrigger)), False)
+
+            has_web_page = next(
+                (True for _ in find_actions_with_trigger_type(WebPageTrigger)), False
+            )
         except ImportError:
             pass
         if not has_static_site and not has_web_page:
@@ -51,25 +59,27 @@ class CloudfrontConfig(YmlConfigABC):
                         "AutoPublish": True,
                         "FunctionConfig": {
                             "Comment": "Add index.html when path ends with /",
-                            "Runtime": "cloudfront-js-1.0"
+                            "Runtime": "cloudfront-js-1.0",
                         },
-                        "FunctionCode": "\n".join((
-                            "function handler(event) {",
-                            "    var request = event.request;",
-                            "    var uri = request.uri;",
-                            "",
-                            "    if (uri.endsWith('/')) {",
-                            "        request.uri += 'index.html';",
-                            "    }",
-                            "    else if (!uri.includes('.')) {",
-                            "        request.uri += '/index.html';",
-                            "    }",
-                            "",
-                            "    return request;",
-                            "}",
-                            ""
-                        ))
-                    }
+                        "FunctionCode": "\n".join(
+                            (
+                                "function handler(event) {",
+                                "    var request = event.request;",
+                                "    var uri = request.uri;",
+                                "",
+                                "    if (uri.endsWith('/')) {",
+                                "        request.uri += 'index.html';",
+                                "    }",
+                                "    else if (!uri.includes('.')) {",
+                                "        request.uri += '/index.html';",
+                                "    }",
+                                "",
+                                "    return request;",
+                                "}",
+                                "",
+                            )
+                        ),
+                    },
                 },
                 "End2EndDistribution": {
                     "Type": "AWS::CloudFront::Distribution",
@@ -78,26 +88,19 @@ class CloudfrontConfig(YmlConfigABC):
                             "Enabled": "true",
                             "DefaultRootObject": "/",
                             "DefaultCacheBehavior": {
-                                "AllowedMethods": [
-                                    "GET",
-                                    "HEAD"
-                                ],
+                                "AllowedMethods": ["GET", "HEAD"],
                                 "MinTTL": "0",
                                 "MaxTTL": "0",
                                 "DefaultTTL": "0",
                                 "TargetOriginId": "s3Origin",
-                                "ForwardedValues": {
-                                    "QueryString": "false"
-                                },
+                                "ForwardedValues": {"QueryString": "false"},
                                 "ViewerProtocolPolicy": "redirect-to-https",
                                 "FunctionAssociations": [
                                     {
                                         "EventType": "viewer-request",
-                                        "FunctionARN": {
-                                            "Ref": "End2EndIndexFn"
-                                        }
+                                        "FunctionARN": {"Ref": "End2EndIndexFn"},
                                     }
-                                ]
+                                ],
                             },
                             "CacheBehaviors": [
                                 {
@@ -108,20 +111,18 @@ class CloudfrontConfig(YmlConfigABC):
                                         "GET",
                                         "OPTIONS",
                                         "PUT",
-                                        "PATCH"
+                                        "PATCH",
                                     ],
                                     "TargetOriginId": "apiGatewayAPIOrigin",
                                     "ForwardedValues": {
                                         "QueryString": True,
-                                        "Cookies": {
-                                            "Forward": "all"
-                                        }
+                                        "Cookies": {"Forward": "all"},
                                     },
                                     "ViewerProtocolPolicy": "https-only",
                                     "MinTTL": "0",
                                     "MaxTTL": "6",
                                     "DefaultTTL": "3",
-                                    "PathPattern": "actions/*"
+                                    "PathPattern": "actions/*",
                                 },
                                 {
                                     "AllowedMethods": [
@@ -131,21 +132,19 @@ class CloudfrontConfig(YmlConfigABC):
                                         "GET",
                                         "OPTIONS",
                                         "PUT",
-                                        "PATCH"
+                                        "PATCH",
                                     ],
                                     "TargetOriginId": "appsyncAPIOrigin",
                                     "ForwardedValues": {
                                         "QueryString": False,
-                                        "Cookies": {
-                                            "Forward": "all"
-                                        }
+                                        "Cookies": {"Forward": "all"},
                                     },
                                     "ViewerProtocolPolicy": "https-only",
                                     "MinTTL": "0",
                                     "MaxTTL": "6",
                                     "DefaultTTL": "3",
-                                    "PathPattern": "graphql"
-                                }
+                                    "PathPattern": "graphql",
+                                },
                             ],
                             "Origins": [
                                 {
@@ -153,18 +152,16 @@ class CloudfrontConfig(YmlConfigABC):
                                         "Fn::Join": [
                                             "",
                                             [
-                                                {
-                                                    "Ref": "ApiGatewayRestApi"
-                                                },
-                                                ".execute-api.${self:provider.region}.amazonaws.com"
-                                            ]
+                                                {"Ref": "ApiGatewayRestApi"},
+                                                ".execute-api.${self:provider.region}.amazonaws.com",
+                                            ],
                                         ]
                                     },
                                     "Id": "apiGatewayAPIOrigin",
                                     "OriginPath": "/${self:provider.stage}",
                                     "CustomOriginConfig": {
                                         "OriginProtocolPolicy": "https-only"
-                                    }
+                                    },
                                 },
                                 {
                                     "DomainName": {
@@ -182,21 +179,21 @@ class CloudfrontConfig(YmlConfigABC):
                                                                     {
                                                                         "Fn::GetAtt": [
                                                                             "GraphQlApi",
-                                                                            "GraphQLUrl"
+                                                                            "GraphQLUrl",
                                                                         ]
-                                                                    }
+                                                                    },
                                                                 ]
-                                                            }
+                                                            },
                                                         ]
-                                                    }
+                                                    },
                                                 ]
-                                            }
+                                            },
                                         ]
                                     },
                                     "Id": "appsyncAPIOrigin",
                                     "CustomOriginConfig": {
                                         "OriginProtocolPolicy": "https-only"
-                                    }
+                                    },
                                 },
                                 {
                                     "DomainName": "${self:custom.staticBucket}.s3.amazonaws.com",
@@ -207,18 +204,16 @@ class CloudfrontConfig(YmlConfigABC):
                                                 "",
                                                 [
                                                     "origin-access-identity/cloudfront/",
-                                                    {
-                                                        "Ref": "OriginAccessIdentity"
-                                                    }
-                                                ]
+                                                    {"Ref": "OriginAccessIdentity"},
+                                                ],
                                             ]
                                         }
-                                    }
-                                }
-                            ]
+                                    },
+                                },
+                            ],
                         }
-                    }
-                }
+                    },
+                },
             }
         }
         return static_site_bucket_resource

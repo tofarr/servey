@@ -26,23 +26,23 @@ class JwtAuthorizer(AuthorizerABC):
     aud: Optional[str] = None
 
     def encode(self, authorization: Authorization) -> str:
-        headers = filter_none(dict(kid=self.kid))
+        headers = filter_none({"kid": self.kid})
         encoded = jwt.encode(
             headers=headers,
             payload=filter_none(
-                dict(
-                    iss=self.iss,
-                    sub=authorization.subject_id,
-                    aud=self.aud,
-                    exp=int(authorization.expire_at.timestamp())
+                {
+                    "iss": self.iss,
+                    "sub": authorization.subject_id,
+                    "aud": self.aud,
+                    "exp": int(authorization.expire_at.timestamp())
                     if authorization.expire_at
                     else None,
-                    nbf=int(authorization.not_before.timestamp())
+                    "nbf": int(authorization.not_before.timestamp())
                     if authorization.not_before
                     else None,
-                    iat=int(datetime.now().timestamp()),
-                    scope=" ".join(authorization.scopes),
-                )
+                    "iat": int(datetime.now().timestamp()),
+                    "scope": " ".join(authorization.scopes),
+                }
             ),
             key=self.private_key,
             algorithm=self.algorithm,
@@ -72,7 +72,7 @@ class JwtAuthorizer(AuthorizerABC):
             )
             return authorization
         except InvalidTokenError as e:
-            raise AuthorizationError(e)
+            raise AuthorizationError(e) from e
 
 
 def date_from_jwt(decoded: ExternalItemType, key: str) -> Optional[datetime]:

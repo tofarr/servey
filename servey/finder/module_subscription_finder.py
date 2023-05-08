@@ -31,7 +31,7 @@ class ModuleSubscriptionFinder(SubscriptionFinderABC):
 
 
 def _find_subscriptions_in_module(module) -> Iterator[Subscription]:
-    for name, value in module.__dict__.items():
+    for value in module.__dict__.values():
         if isinstance(value, Subscription):
             yield value
     if not hasattr(module, "__path__"):

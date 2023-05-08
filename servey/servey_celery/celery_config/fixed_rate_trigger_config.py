@@ -18,6 +18,7 @@ class FixedRateTriggerConfig(CeleryConfigABC):
         if not has_triggers:
             return
 
+        # pylint: disable=W0613
         # noinspection PyUnusedLocal
         @app.on_after_configure.connect
         def setup_periodic_tasks(sender, **kwargs):

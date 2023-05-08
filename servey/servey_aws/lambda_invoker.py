@@ -16,7 +16,7 @@ from servey.servey_aws.event_handler.event_handler_abc import get_event_handlers
 
 
 def invoke(event: ExternalItemType, context) -> ExternalType:
-    _LOGGER.info(json.dumps(dict(lambda_event=event)))
+    _LOGGER.info(json.dumps({"lambda_event": event}))
     for handler in _EVENT_HANDLERS:
         if handler.is_usable(event, context):
             return handler.handle(event, context)
@@ -48,10 +48,10 @@ def find_action():
         wrapper.__signature__ = sig
         action_ = dataclasses.replace(action_, fn=wrapper)
         return action_
-    else:
-        action_function = getattr(action_module, action_function_name)
-        action_ = get_action(action_function)
-        return action_
+
+    action_function = getattr(action_module, action_function_name)
+    action_ = get_action(action_function)
+    return action_
 
 
 _ACTION = find_action()

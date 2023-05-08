@@ -26,6 +26,7 @@ from servey.servey_strawberry.handler_filter.handler_filter_abc import (
 LOGGER = logging.getLogger(__name__)
 
 
+# pylint: disable=R0902
 @dataclass
 class SchemaFactory:
     """
@@ -78,6 +79,7 @@ class SchemaFactory:
         else:
             self.query[f.name] = f
 
+    # pylint: disable=R0911
     def _resolve_type_futures(self, type_, resolved: Set):
         if isinstance(type_, str):
             type_ = self.types[type_]
@@ -104,26 +106,27 @@ class SchemaFactory:
             )
             if origin is list:
                 return List[args]
-            else:
-                return origin[args]
-        if is_dataclass(type_):
-            if type_.__name__ in resolved:
-                return type_
-            resolved.add(type_.__name__)
-            # noinspection PyDataclass
-            for f in fields(type_):
-                if isinstance(f, StrawberryField):
-                    if f.type is UNRESOLVED:
-                        resolver = f.base_resolver
-                        field_type = resolver.signature.return_annotation
-                        field_type = self._resolve_type_futures(field_type, resolved)
-                        resolver_override = StrawberryResolver(
-                            resolver.wrapped_func, type_override=field_type
-                        )
-                        f.base_resolver = resolver_override
-                else:
-                    f.type = self._resolve_type_futures(f.type, resolved)
+            return origin[args]
+        self._resolve_type_futures_for_dataclass(type_, resolved)
         return type_
+
+    def _resolve_type_futures_for_dataclass(self, type_, resolved: Set):
+        if not is_dataclass(type_) or type_.__name__ in resolved:
+            return
+        resolved.add(type_.__name__)
+        # noinspection PyDataclass
+        for f in fields(type_):
+            if isinstance(f, StrawberryField):
+                if f.type is UNRESOLVED:
+                    resolver = f.base_resolver
+                    field_type = resolver.signature.return_annotation
+                    field_type = self._resolve_type_futures(field_type, resolved)
+                    resolver_override = StrawberryResolver(
+                        resolver.wrapped_func, type_override=field_type
+                    )
+                    f.base_resolver = resolver_override
+            else:
+                f.type = self._resolve_type_futures(f.type, resolved)
 
     def create_schema(self):
         resolved = set()

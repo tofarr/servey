@@ -41,12 +41,12 @@ class AWSWebsocketSubscriptionService(SubscriptionServiceABC):
 
     def publish(self, subscription: Subscription[T], event: T):
         data = json.dumps(subscription.event_marshaller.dump(event)).encode("utf-8")
-        kwargs = dict(
-            Select="SPECIFIC_ATTRIBUTES",
-            ProjectionExpression="connection_id,endpoint_url,user_authorization",
-            IndexName="gsi__subscription_name__connection_id",
-            KeyConditionExpression=Key("subscription_name").eq(subscription.name),
-        )
+        kwargs = {
+            "Select": "SPECIFIC_ATTRIBUTES",
+            "ProjectionExpression": "connection_id,endpoint_url,user_authorization",
+            "IndexName": "gsi__subscription_name__connection_id",
+            "KeyConditionExpression": Key("subscription_name").eq(subscription.name),
+        }
         while True:
             response = self.connection_table.query(**kwargs)
             items = response.get("Items") or []

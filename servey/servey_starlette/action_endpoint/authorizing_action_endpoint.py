@@ -43,7 +43,7 @@ class AuthorizingActionEndpoint(ActionEndpointABC):
     ) -> Response:
         authorization = parse_authorization(self.authorizer, request)
         if not self.get_action().access_control.is_executable(authorization):
-            return JSONResponse(dict(error="unauthorized"), 401)
+            return JSONResponse({"error": "unauthorized"}, 401)
         if self.auth_kwarg_name:
             context[self.auth_kwarg_name] = authorization
         response = await self.action_endpoint.execute_with_context(request, context)
@@ -79,7 +79,7 @@ class AuthorizingActionEndpoint(ActionEndpointABC):
                 "description": "unauthorized",
                 "content": {
                     "application/json": {
-                        "schema": {"$ref": f"#components/ErrorResponse"}
+                        "schema": {"$ref": "#components/ErrorResponse"}
                     }
                 },
             }

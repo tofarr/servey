@@ -1,4 +1,4 @@
-from marshy.types import ExternalItemType, ExternalType
+from marshy.types import ExternalType
 
 from servey.finder.action_finder_abc import find_actions
 from servey.servey_aws.event_handler.event_handler_abc import (

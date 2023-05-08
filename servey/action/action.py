@@ -11,6 +11,7 @@ from servey.security.access_control.allow_all import ALLOW_ALL
 from servey.trigger.trigger_abc import TriggerABC
 
 
+# pylint: disable=R0902
 @dataclass(frozen=True)
 class Action:
     """
@@ -30,6 +31,7 @@ class Action:
     batch_invoker: Optional[BatchInvoker] = None
 
 
+# pylint: disable=R0913
 def action(
     fn: Optional[Callable] = None,
     access_control: AccessControlABC = Action.access_control,

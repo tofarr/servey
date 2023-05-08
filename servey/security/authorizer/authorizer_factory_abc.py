@@ -33,6 +33,7 @@ def create_authorizer():
 _default_authorizer = None
 
 
+# pylint: disable=W0603
 def get_default_authorizer():
     global _default_authorizer
     if not _default_authorizer:

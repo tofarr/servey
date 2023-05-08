@@ -26,6 +26,7 @@ from servey.trigger.web_trigger import WebTriggerMethod, BODY_METHODS
 LOGGER = logging.getLogger(__name__)
 
 
+# pylint: disable=R0902
 @dataclass
 class ActionEndpoint(ActionEndpointABC):
     """
@@ -90,9 +91,9 @@ class ActionEndpoint(ActionEndpointABC):
                 json_obj = _fix_strings(json_obj, self.params_schema.schema)
                 self.params_schema.validate(json_obj)
                 kwargs = self.params_marshaller.load(json_obj)
-            except Exception:
+            except Exception as exc:
                 LOGGER.exception("invalid_input")
-                raise HTTPException(422, "invalid_input")
+                raise HTTPException(422, "invalid_input") from exc
         return kwargs
 
     def render_response(self, result: Any):
@@ -162,7 +163,7 @@ class ActionEndpoint(ActionEndpointABC):
         }
         if self.action.examples:
             content["examples"] = {
-                e.name: filter_none(dict(summary=e.description, value=e.params))
+                e.name: filter_none({"summary": e.description, "value": e.params})
                 for e in self.action.examples
                 if e.include_in_schema
             }
@@ -194,7 +195,7 @@ class ActionEndpoint(ActionEndpointABC):
         content = {"schema": schema}
         if self.action.examples:
             content["examples"] = {
-                e.name: filter_none(dict(summary=e.description, value=e.result))
+                e.name: filter_none({"summary": e.description, "value": e.result})
                 for e in self.action.examples
                 if e.include_in_schema
             }
@@ -232,7 +233,7 @@ def _object_schema_to_json_urley_parameters(
                     if example_value is None:
                         break
                 if example_value is not None:
-                    example_schema = dict(value=example_value)
+                    example_schema = {"value": example_value}
                     if example.description:
                         example_schema["summary"] = example.description
                     example_schemas[example.name] = example_schema
@@ -291,7 +292,7 @@ def _fix_strings(param: ExternalType, schema: ExternalItemType):
     """
     any_of = schema.get("anyOf")
     if any_of:
-        items = [a for a in any_of if a != dict(type="null")]
+        items = [a for a in any_of if a != {"type": "null"}]
         if len(items) == 1:
             schema = items[0]
     if isinstance(param, dict):
@@ -305,7 +306,7 @@ def _fix_strings(param: ExternalType, schema: ExternalItemType):
                 result[k] = v
             param = result
         return param
-    elif isinstance(param, list):
+    if isinstance(param, list):
         item_schema = schema.get("items")
         if item_schema:
             param = [_fix_strings(i, item_schema) for i in param]

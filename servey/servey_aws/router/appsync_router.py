@@ -3,7 +3,7 @@ import inspect
 from typing import Optional
 
 from marshy.factory.optional_marshaller_factory import get_optional_type
-from marshy.types import ExternalItemType, ExternalType
+from marshy.types import ExternalType
 
 from servey.action.action import Action, get_action
 from servey.errors import ServeyError
@@ -25,9 +25,11 @@ class AppsyncRouter(RouterABC):
         if info is None:
             return
         field_name = info["fieldName"]
-        source = event.get('source')
+        source = event.get("source")
         if source:
-            action = self.find_action_for_parent_type(info['parentTypeName'], field_name)
+            action = self.find_action_for_parent_type(
+                info["parentTypeName"], field_name
+            )
         else:
             action = self.find_action_for_field_name(field_name)
         if action is None:
@@ -39,11 +41,11 @@ class AppsyncRouter(RouterABC):
 
     def find_action_for_parent_type(self, parent_type_name: str, field_name: str):
         field_name = to_snake_case(field_name)
-        for action, trigger in self.web_trigger_actions:
+        for action, _ in self.web_trigger_actions:
             sig = inspect.signature(action.fn)
             parent_type = sig.return_annotation
             parent_type = get_optional_type(parent_type) or parent_type
-            if getattr(parent_type, '__name__', None) == parent_type_name:
+            if getattr(parent_type, "__name__", None) == parent_type_name:
                 fn = getattr(parent_type, field_name)
                 nested_action = get_action(fn)
                 sig = inspect.signature(fn)
@@ -51,6 +53,7 @@ class AppsyncRouter(RouterABC):
                 parameters[0] = parameters[0].replace(annotation=parent_type)
                 sig = sig.replace(parameters=parameters)
 
+                # pylint: disable=W0640
                 def wrapper(*args, **kwargs):
                     return fn(*args, **kwargs)
 
@@ -60,7 +63,7 @@ class AppsyncRouter(RouterABC):
                 return nested_action
 
     def find_action_for_field_name(self, field_name: str) -> Optional[Action]:
-        for action, trigger in self.web_trigger_actions:
+        for action, _ in self.web_trigger_actions:
             action_field_name = action.name[0] + action.name.title()[1:].replace(
                 "_", ""
             )

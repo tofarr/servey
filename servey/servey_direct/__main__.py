@@ -36,4 +36,5 @@ def main():
         print(result_str)
 
 
+# pylint: disable=W0106
 main() if __name__ == "__main__" else 0  # Weird syntax for coverage

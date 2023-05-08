@@ -26,6 +26,7 @@ from servey.servey_aws.event_handler.event_handler_abc import (
 )
 
 
+# pylint: disable=R0902
 @dataclass
 class EventHandler(EventHandlerABC):
     action: Action
@@ -48,16 +49,15 @@ class EventHandler(EventHandlerABC):
     def handle(self, event: ExternalType, context) -> ExternalType:
         if isinstance(event, list):
             return self.handle_batch(event)
-        else:
-            return self.handle_event(event)
+        return self.handle_event(event)
 
     def handle_batch(self, events: List[ExternalItemType]) -> List[ExternalType]:
         if not events:
             return []
         kwarg_list = [self.parse_kwargs(e) for e in events]
         arg_extractor = self.action.batch_invoker.arg_extractor
-        key_list = [arg_extractor(a['self'])[0] for a in kwarg_list]
-        authorization = kwarg_list[0]['authorization']
+        key_list = [arg_extractor(a["self"])[0] for a in kwarg_list]
+        authorization = kwarg_list[0]["authorization"]
         results = self.action.batch_invoker.fn(key_list, authorization)
         if isinstance(results, Awaitable):
             loop = asyncio.get_event_loop()

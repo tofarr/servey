@@ -254,6 +254,8 @@ def configure_serverless(context: MarshallerContext):
         from servey.servey_aws.serverless.yml_config.action_function_config import (
             ActionFunctionConfig,
         )
+
+        # pylint: disable=E0001
         from servey.servey_aws.serverless.yml_config.appsync_config import AppsyncConfig
         from servey.servey_aws.serverless.yml_config.kms_key_config import KmsKeyConfig
         from servey.servey_aws.serverless.yml_config.subscription_function_config import (
@@ -279,10 +281,10 @@ def configure_serverless(context: MarshallerContext):
         register_impl(TriggerHandlerABC, FixedRateTriggerHandler, context)
 
         from servey.servey_aws.serverless.yml_config.cloudfront_config import (
-            CloudfrontConfig
+            CloudfrontConfig,
         )
         from servey.servey_aws.serverless.yml_config.static_site_bucket_config import (
-            StaticSiteBucketConfig
+            StaticSiteBucketConfig,
         )
 
         register_impl(YmlConfigABC, CloudfrontConfig, context)
@@ -319,6 +321,8 @@ def configure_celery(context: MarshallerContext):
 
 def configure_jinja2(context: MarshallerContext):
     try:
+        # We import Template to test that jinja2 is actually present
+        # pylint: disable=W0611
         from jinja2 import Template
 
         configure_web_page_action_endpoint_factory(context)
@@ -387,7 +391,7 @@ _IGNORABLE_MISSING_MODULE_NAMES = {
 def raise_non_ignored(e: ModuleNotFoundError):
     msg = str(e)
     if msg.startswith(_NO_MODULE_NAMED):
-        module_name = msg[len(_NO_MODULE_NAMED): -1]
+        module_name = msg[len(_NO_MODULE_NAMED) : -1]
         if module_name in _IGNORABLE_MISSING_MODULE_NAMES:
             LOGGER.debug(msg)
             return

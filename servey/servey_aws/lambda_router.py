@@ -12,7 +12,7 @@ from servey.servey_aws.router.router_abc import find_routers
 
 
 def invoke(event: ExternalItemType, context) -> ExternalType:
-    _LOGGER.info(json.dumps(dict(lambda_event=event)))
+    _LOGGER.info(json.dumps({"lambda_event": event}))
     for router in _ROUTERS:
         handler = router.create_handler(event, context)
         if handler:

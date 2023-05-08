@@ -32,6 +32,7 @@ def start_http_server():
     )
 
 
+# pylint: disable=W0611
 def start_scheduler():
     if CELERY_BROKER:
         # noinspection PyUnresolvedReferences
@@ -68,18 +69,18 @@ def main():
     args, _ = parser.parse_known_args()
     if args.run == "sls":
         # noinspection PyUnresolvedReferences
-        from servey.servey_aws.serverless.__main__ import main
+        from servey.servey_aws.serverless.__main__ import main as sls_main
 
-        main()
+        sls_main()
     elif args.run == "openapi":
         generate_openapi_schema()
     elif args.run == "graphql-schema":
         generate_graphql_schema()
     elif args.run == "action":
         # noinspection PyUnresolvedReferences
-        from servey.servey_direct.__main__ import main
+        from servey.servey_direct.__main__ import main as direct_main
 
-        main()
+        direct_main()
     elif args.run == "server":
         start_scheduler()
         start_http_server()

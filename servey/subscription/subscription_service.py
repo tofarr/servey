@@ -4,6 +4,8 @@ from typing import Optional, Tuple, List
 from marshy.factory.impl_marshaller_factory import get_impls
 
 from servey.finder.subscription_finder_abc import find_subscriptions
+
+# pylint: disable=R0401
 from servey.subscription.subscription import Subscription, T
 
 
@@ -34,6 +36,7 @@ class SubscriptionServiceFactoryABC(ABC):
 _SUBSCRIPTION_SERVICES = None
 
 
+# pylint: disable=W0603
 def get_subscription_services() -> Tuple[SubscriptionServiceABC, ...]:
     global _SUBSCRIPTION_SERVICES
     if _SUBSCRIPTION_SERVICES is None:

@@ -3,7 +3,7 @@ import inspect
 import json
 from dataclasses import field, dataclass
 from email.utils import parsedate_to_datetime
-from typing import Optional, Any, Awaitable
+from typing import Optional, Awaitable
 
 from marshy import get_default_context, ExternalType
 from marshy.marshaller_context import MarshallerContext
@@ -61,7 +61,7 @@ class ApiGatewayEventHandler(EventHandler):
         token = token[7:]
         return self.authorizer.authorize(token)
 
-    def handle(self, event: ExternalItemType, result: Any) -> ExternalItemType:
+    def handle(self, event: ExternalItemType, context) -> ExternalItemType:
         kwargs = self.parse_kwargs(event)
         result = self.action.fn(**kwargs)
         if isinstance(result, Awaitable):

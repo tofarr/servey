@@ -26,6 +26,7 @@ class Subscription(Generic[T]):
         """
         Publish an event to subscribers
         """
+        # pylint: disable=R0401
         from servey.subscription.subscription_service import get_subscription_services
 
         for subscription_service in get_subscription_services():

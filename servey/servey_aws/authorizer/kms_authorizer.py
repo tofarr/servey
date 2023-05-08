@@ -42,24 +42,24 @@ class KmsAuthorizer(AuthorizerABC):
 
     def encode(self, authorization: Authorization) -> str:
         header = urlsafe_b64encode(
-            json.dumps(dict(typ="JWT", alg="RS256", kid=self.key_id)).encode()
+            json.dumps({"typ": "JWT", "alg": "RS256", "kid": self.key_id}).encode()
         )
         payload = urlsafe_b64encode(
             json.dumps(
                 filter_none(
-                    dict(
-                        iss=self.iss,
-                        sub=authorization.subject_id,
-                        aud=self.aud,
-                        exp=int(authorization.expire_at.timestamp())
+                    {
+                        "iss": self.iss,
+                        "sub": authorization.subject_id,
+                        "aud": self.aud,
+                        "exp": int(authorization.expire_at.timestamp())
                         if authorization.expire_at
                         else None,
-                        nbf=int(authorization.not_before.timestamp())
+                        "nbf": int(authorization.not_before.timestamp())
                         if authorization.not_before
                         else None,
-                        iat=int(datetime.now().timestamp()),
-                        scope=" ".join(authorization.scopes),
-                    )
+                        "iat": int(datetime.now().timestamp()),
+                        "scope": " ".join(authorization.scopes),
+                    }
                 )
             ).encode()
         )
@@ -115,4 +115,4 @@ class KmsAuthorizer(AuthorizerABC):
             )
             return authorization
         except DecodeError as e:
-            raise AuthorizationError(e)
+            raise AuthorizationError(e) from e

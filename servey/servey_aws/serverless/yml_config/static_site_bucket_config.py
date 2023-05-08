@@ -1,4 +1,5 @@
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from random import randint
 
@@ -11,15 +12,21 @@ from servey.servey_aws.serverless.yml_config.yml_config_abc import (
     create_yml_file,
 )
 
-ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz'
+ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz"
 
 
+@dataclass
 class StaticSiteBucketConfig(YmlConfigABC):
     """
     Set up some aspect of the serverless environment yml files. (For example, functions, resources, etc...)
     """
-    static_site_directory: Path = Path(os.environ.get("SERVEY_STATIC_SITE_DIR") or "static_site")
-    static_site_bucket_resource_yml_file: str = "serverless_servey/static_site_bucket_resource.yml"
+
+    static_site_directory: Path = Path(
+        os.environ.get("SERVEY_STATIC_SITE_DIR") or "static_site"
+    )
+    static_site_bucket_resource_yml_file: str = (
+        "serverless_servey/static_site_bucket_resource.yml"
+    )
 
     def configure(self, main_serverless_yml_file: str):
         if not self.static_site_directory.exists():
@@ -40,17 +47,19 @@ class StaticSiteBucketConfig(YmlConfigABC):
         yaml = YAML()
         with open(main_serverless_yml_file, "r") as reader:
             root = yaml.load(reader)
-            custom = root.get('custom')
-            static_bucket = custom.get('staticBucket')
+            custom = root.get("custom")
+            static_bucket = custom.get("staticBucket")
             if static_bucket:
                 return static_bucket
-        static_bucket = 'b' + ''.join(ALPHABET[randint(0, 35)] for _ in range(10))
-        custom['staticBucket'] = static_bucket
-        custom['s3Sync'] = [{
-            'bucketName': '${self: custom.staticBucket}',
-            'localDir': self.static_site_directory
-        }]
-        root['plugins'].append('serverless-s3-sync')
+        static_bucket = "b" + "".join(ALPHABET[randint(0, 35)] for _ in range(10))
+        custom["staticBucket"] = static_bucket
+        custom["s3Sync"] = [
+            {
+                "bucketName": "${self: custom.staticBucket}",
+                "localDir": str(self.static_site_directory),
+            }
+        ]
+        root["plugins"].append("serverless-s3-sync")
         with open(main_serverless_yml_file, "w") as writer:
             yaml.dump(root, writer)
         return static_bucket
@@ -65,24 +74,20 @@ class StaticSiteBucketConfig(YmlConfigABC):
                         "CloudFrontOriginAccessIdentityConfig": {
                             "Comment": "Allow cloudfront to access the static bucket"
                         }
-                    }
+                    },
                 },
                 "StaticBucket": {
                     "Type": "AWS::S3::Bucket",
                     "Properties": {
                         "AccessControl": "Private",
                         "BucketName": "${self:custom.staticBucket}",
-                        "WebsiteConfiguration": {
-                            "IndexDocument": "index.html"
-                        }
-                    }
+                        "WebsiteConfiguration": {"IndexDocument": "index.html"},
+                    },
                 },
                 "StaticSiteS3BucketPolicy": {
                     "Type": "AWS::S3::BucketPolicy",
                     "Properties": {
-                        "Bucket": {
-                            "Ref": "StaticBucket"
-                        },
+                        "Bucket": {"Ref": "StaticBucket"},
                         "PolicyDocument": {
                             "Statement": [
                                 {
@@ -94,33 +99,27 @@ class StaticSiteBucketConfig(YmlConfigABC):
                                                 "",
                                                 [
                                                     "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ",
-                                                    {
-                                                        "Ref": "OriginAccessIdentity"
-                                                    }
-                                                ]
+                                                    {"Ref": "OriginAccessIdentity"},
+                                                ],
                                             ]
                                         }
                                     },
-                                    "Action": [
-                                        "s3:GetObject"
-                                    ],
+                                    "Action": ["s3:GetObject"],
                                     "Resource": {
                                         "Fn::Join": [
                                             "",
                                             [
                                                 "arn:aws:s3:::",
-                                                {
-                                                    "Ref": "StaticBucket"
-                                                },
-                                                "/*"
-                                            ]
+                                                {"Ref": "StaticBucket"},
+                                                "/*",
+                                            ],
                                         ]
-                                    }
+                                    },
                                 }
                             ]
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             }
         }
         return static_site_bucket_resource

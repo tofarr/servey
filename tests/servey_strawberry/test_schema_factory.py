@@ -243,7 +243,7 @@ query{
     def test_default_value_inputs(self):
         schema_factory = create_schema_factory()
         schema_factory.create_field_for_action(
-            get_action(test_of_default_values), WEB_GET
+            get_action(action_with_default_values), WEB_GET
         )
         schema = schema_factory.create_schema()
         str_schema = str(schema).strip()
@@ -263,14 +263,14 @@ input ItemWithDefaultValuesInput {
 }
 
 type Query {
-  testOfDefaultValues(tester: ItemWithDefaultValuesInput!): ItemWithDefaultValues!
+  actionWithDefaultValues(tester: ItemWithDefaultValuesInput!): ItemWithDefaultValues!
 }
         """.strip()
         self.assertEqual(expected_schema, str_schema)
         future = schema.execute(
             """
 query{
-  testOfDefaultValues(tester: {}) {
+  actionWithDefaultValues(tester: {}) {
     a
     b
     c
@@ -282,7 +282,7 @@ query{
         loop = asyncio.get_event_loop()
         result = loop.run_until_complete(future)
         expected_result = {
-            "testOfDefaultValues": {"a": 10, "b": 1.5, "c": True, "d": None}
+            "actionWithDefaultValues": {"a": 10, "b": 1.5, "c": True, "d": None}
         }
         self.assertEqual(expected_result, result.data)
 
@@ -375,5 +375,5 @@ class ItemWithDefaultValues:
 
 
 @action(triggers=(WEB_GET,))
-def test_of_default_values(tester: ItemWithDefaultValues) -> ItemWithDefaultValues:
+def action_with_default_values(tester: ItemWithDefaultValues) -> ItemWithDefaultValues:
     return tester

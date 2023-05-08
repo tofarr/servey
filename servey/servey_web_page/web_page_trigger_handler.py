@@ -19,5 +19,5 @@ class WebPageTriggerHandler(TriggerHandlerABC):
             events = lambda_definition["events"] = []
         path = trigger.path or f"/{action.name.replace('_', '-')}"
         events.append(
-            dict(http=dict(path=path, method=trigger.method.value, cors=True))
+            {"http": {"path": path, "method": trigger.method.value, "cors": True}}
         )

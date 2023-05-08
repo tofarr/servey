@@ -19,7 +19,7 @@ def get_schema_for_params(
     properties = {}
     required = []
     params = list(sig.parameters.values())
-    for i, p in enumerate(params):
+    for p in params:
         if p.name in skip_args:
             continue
         if p.annotation is inspect.Parameter.empty:
@@ -66,12 +66,9 @@ def _remap_references(to_path: str, schema: ExternalType) -> ExternalType:
         if ref and ref.startswith("#"):
             return {"$ref": to_path + ref[1:]}
         schema = {k: _remap_references(to_path, v) for k, v in schema.items()}
-        return schema
-    elif isinstance(schema, list):
+    if isinstance(schema, list):
         schema = [_remap_references(to_path, i) for i in schema]
-        return schema
-    else:
-        return schema
+    return schema
 
 
 def move_ref_items_to_components(
@@ -106,7 +103,7 @@ def move_ref_items_to_components(
             for k, v in current.items()
         }
         return schema
-    elif isinstance(current, list):
+    if isinstance(current, list):
         schema = [move_ref_items_to_components(root, i, components) for i in current]
         return schema
     return current

@@ -5,7 +5,7 @@ from os.path import exists
 from pathlib import Path
 from typing import Dict
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from uuid import UUID
 
 from servey.action.action import get_action, action
@@ -21,7 +21,12 @@ from servey.servey_aws.serverless.yml_config.yml_config_abc import ensure_ref_in
 from servey.subscription.subscription import subscription
 from servey.trigger.fixed_rate_trigger import FixedRateTrigger
 from servey.trigger.web_trigger import WEB_GET
-from tests.specs.number_spec.actions import integer_stats_publisher
+from tests.specs.number_spec.actions import (
+    integer_stats_publisher,
+    integer_stats,
+    integer_stats_consumer,
+)
+from tests.specs.number_spec.models import IntegerStats
 
 
 class TestServerless(TestCase):
@@ -214,6 +219,16 @@ foo:
         ):
             main()
             # generate_serverless_scaffold(set())
+
+    def test_specs(self):
+        self.assertEqual(IntegerStats(10), integer_stats(10))
+        stats = IntegerStats(2)
+        integer_stats_consumer(stats)
+        mock = MagicMock()
+        mock.return_value.publish.return_value = None
+        mock.return_value.publish.return_value = None
+        with patch("tests.specs.number_spec.subscriptions.integer_stats_queue", mock):
+            integer_stats_publisher()
 
 
 _open = open

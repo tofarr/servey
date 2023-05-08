@@ -30,6 +30,5 @@ class WebTriggerHandler(TriggerHandlerABC):
             action_name=action.name.replace("_", "-")
         )
         events.append(
-            dict(http=dict(path=path, method=trigger.method.value, cors=True))
-            # TODO: Add openapi documentation
+            {"http": {"path": path, "method": trigger.method.value, "cors": True}}
         )

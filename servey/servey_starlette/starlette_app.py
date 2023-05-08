@@ -12,6 +12,6 @@ for route_factory in sorted(
 ):
     routes.extend(route_factory().create_routes())
 for route in routes:
-    LOGGER.debug(f"starlette_path:%s", route.path)
+    LOGGER.debug("starlette_path:%s", route.path)
 
 app = Starlette(routes=routes)

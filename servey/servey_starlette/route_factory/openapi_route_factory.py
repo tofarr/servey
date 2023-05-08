@@ -43,6 +43,7 @@ class OpenapiRouteFactory(RouteFactoryABC):
             name="docs",
         )
 
+    # pylint: disable=W0613
     # noinspection PyUnusedLocal
     def endpoint(self, request: Request) -> Response:
         schema = self.openapi_schema()

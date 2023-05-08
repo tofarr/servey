@@ -2,7 +2,7 @@ import asyncio
 import inspect
 import mimetypes
 from dataclasses import field, dataclass
-from typing import Optional, Any, Awaitable
+from typing import Optional, Awaitable
 
 from marshy import get_default_context
 from marshy.marshaller_context import MarshallerContext
@@ -36,7 +36,7 @@ class WebPageEventHandler(ApiGatewayEventHandler):
             setattr(self, "_template", template)
         return template
 
-    def handle(self, event: ExternalItemType, result: Any) -> ExternalItemType:
+    def handle(self, event: ExternalItemType, context) -> ExternalItemType:
         kwargs = self.parse_kwargs(event)
         result = self.action.fn(**kwargs)
         if isinstance(result, Awaitable):

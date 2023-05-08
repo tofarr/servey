@@ -17,6 +17,7 @@ class SingletonABC(ABC):
     def __repr__(self):
         return self.__class__.__name__
 
+    # pylint: disable=W0613
     # noinspection PyUnusedLocal
     @classmethod
     def __marshaller_factory__(cls, marshaller_context):
