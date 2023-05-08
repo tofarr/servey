@@ -611,7 +611,7 @@ class TestActionEndpoint(TestCase):
                                 "required": True,
                                 "schema": {
                                     "name": "Category",
-                                    "enum": ["games", "theory"],
+                                    "enum": ["GAMES", "THEORY"],
                                 },
                             }
                         ],
@@ -630,7 +630,7 @@ class TestActionEndpoint(TestCase):
             },
         }
         self.assertEqual(expected_schema, schema)
-        request = build_request(query_string="category=games")
+        request = build_request(query_string="category=GAMES")
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(endpoint.execute(request))
         self.assertEqual(200, response.status_code)

@@ -6,6 +6,7 @@ with open("README.md", "r") as fh:
 extras_require = {
     "dev": [
         "black~=23.3",
+        "boto3~=1.26",
         "pytest~=7.2",
         "pytest-cov~=4.0",
         "pytest-xdist~=3.2",
