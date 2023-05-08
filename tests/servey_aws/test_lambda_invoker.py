@@ -119,7 +119,7 @@ class TestLambdaInvoker(TestCase):
         invoker = get_invoker(get_stored_item)
         event = {"httpMethod": "GET", "queryStringParameters": {"name": "foo"}}
         result = invoker(event, None)
-        etag = secure_hash({'name': 'foo', 'updated_at': '2020-01-01T07:00:00+00:00'})
+        etag = secure_hash({"name": "foo", "updated_at": "2020-01-01T07:00:00+00:00"})
         # noinspection PyTypeChecker,SpellCheckingInspection
         headers = {
             "Content-Type": "application/json",
