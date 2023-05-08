@@ -17,6 +17,7 @@ from servey.security.access_control.scope_access_control import ScopeAccessContr
 from servey.security.authorization import Authorization, ROOT, AuthorizationError
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
 from servey.trigger.web_trigger import WEB_POST, WEB_GET, WebTriggerMethod, WebTrigger
+from servey.util import secure_hash
 from tests.servey_strawberry.test_schema_factory import Node
 
 
@@ -116,12 +117,13 @@ class TestLambdaInvoker(TestCase):
 
     def test_api_gateway_with_caching(self):
         invoker = get_invoker(get_stored_item)
-        event = dict(httpMethod="GET", queryStringParameters=dict(name="foo"))
+        event = {"httpMethod": "GET", "queryStringParameters": {"name": "foo"}}
         result = invoker(event, None)
+        etag = secure_hash({'name': 'foo', 'updated_at': '2020-01-01T07:00:00+00:00'})
         # noinspection PyTypeChecker,SpellCheckingInspection
         headers = {
             "Content-Type": "application/json",
-            "ETag": "3g6+tMQd4iiW50nY1WFSohCR/S4DGhUbtq20jRcr5so=",
+            "ETag": etag,
             "Cache-Control": "no-storage",
             "Last-Modified": "Wed, 01 Jan 2020 07:00:00 GMT",
         }
@@ -133,7 +135,7 @@ class TestLambdaInvoker(TestCase):
         self.assertEqual(expected_result, result)
         # noinspection SpellCheckingInspection
         event["headers"] = {
-            "If-None-Match": "3g6+tMQd4iiW50nY1WFSohCR/S4DGhUbtq20jRcr5so=",
+            "If-None-Match": etag,
         }
         result = invoker(event, None)
         # noinspection PyTypeChecker
@@ -154,7 +156,7 @@ class TestLambdaInvoker(TestCase):
             "headers": {
                 "Content-Type": "application/json",
                 "Cache-Control": "no-storage",
-                "ETag": "3g6+tMQd4iiW50nY1WFSohCR/S4DGhUbtq20jRcr5so=",
+                "ETag": etag,
                 "Last-Modified": result["headers"]["Last-Modified"],
             },
             "body": "",

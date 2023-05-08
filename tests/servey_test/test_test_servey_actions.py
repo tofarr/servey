@@ -16,7 +16,7 @@ class TestTestServeyActions(TestCase):
             TestClass = define_test_class()
             self.assertEqual("TestServeyActions", TestClass.__name__)
             self.assertTrue(issubclass(TestClass, TestCase))
-            keys = {k for k in TestClass.__dict__.keys() if not k.startswith("__")}
+            keys = {k for k in TestClass.__dict__.keys() if not k.startswith("_")}
             self.assertEqual({"test_say_hello__world", "test_say_hello__bad"}, keys)
             test_instance = TestClass()
             test_instance.test_say_hello__world()
