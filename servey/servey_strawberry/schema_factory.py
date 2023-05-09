@@ -72,12 +72,6 @@ class SchemaFactory:
             if not continue_filtering:
                 break
 
-        if action.name == 'action_with_default_values':
-            debug_type = action.fn.__signature__.parameters['tester'].annotation
-            print(f"TRACE:create_field_for_action:1:{debug_type}")
-            weird_type = debug_type.__dict__['__annotations__']['b']
-            print(f"TRACE:create_field_for_action:2:{weird_type}")
-
         f = strawberry.field(resolver=action.fn)
         f.name = action.name
         if trigger.method in UPDATE_METHODS:

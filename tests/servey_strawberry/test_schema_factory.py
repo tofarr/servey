@@ -246,12 +246,6 @@ query{
             get_action(action_with_default_values), WEB_GET
         )
         schema = schema_factory.create_schema()
-
-        debug_type = schema.query.action_with_default_values.__signature__.parameters['tester'].annotation
-        print(f"TRACE:failing_on_github_but_not_locally:1:{debug_type}")
-        weird_type = debug_type.__dict__['__annotations__']['b']
-        print(f"TRACE:failing_on_github_but_not_locally:2:{weird_type}")
-
         str_schema = str(schema).strip()
         expected_schema = """
 type ItemWithDefaultValues {
@@ -380,13 +374,6 @@ class ItemWithDefaultValues:
     d: Optional[str] = None
 
 
-print(f"TRACE:test_schema_factory:1:{ItemWithDefaultValues}")
-weird_type = ItemWithDefaultValues.__dict__['__annotations__']['b']
-print(f"TRACE:test_schema_factory:2:{weird_type}")
-
-
 @action(triggers=(WEB_GET,))
 def action_with_default_values(tester: ItemWithDefaultValues) -> ItemWithDefaultValues:
-    weird_type = ItemWithDefaultValues.__dict__['__annotations__']['b']
-    print(f"TRACE:test_schema_factory:3:{weird_type}")
     return tester

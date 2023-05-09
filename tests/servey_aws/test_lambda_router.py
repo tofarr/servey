@@ -9,7 +9,7 @@ from servey.servey_aws.router.appsync_router import AppsyncRouter
 from servey.trigger.web_trigger import WEB_GET
 
 
-class TestLambdaInvoker(TestCase):
+class TestLambdaRouter(TestCase):
     def test_router(self):
         @action(triggers=WEB_GET)
         def echo_get(val: str) -> str:

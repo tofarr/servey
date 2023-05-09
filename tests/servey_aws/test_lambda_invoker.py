@@ -132,6 +132,8 @@ class TestLambdaInvoker(TestCase):
             "headers": headers,
             "body": '{"name": "foo", "updated_at": "2020-01-01T07:00:00+00:00"}',
         }
+        print(f"TRACE:test_api_gateway_with_caching:{expected_result['headers']['ETag']}")
+        print(f"TRACE:test_api_gateway_with_caching:{result['headers']['ETag']}")
         self.assertEqual(expected_result, result)
         # noinspection SpellCheckingInspection
         event["headers"] = {
