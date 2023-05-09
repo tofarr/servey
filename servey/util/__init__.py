@@ -38,7 +38,7 @@ def secure_hash(item: ExternalType) -> str:
 
 
 def secure_hash_content(content: bytes) -> str:
-    print(f"TRACE:secure_hash_content:1:({content})")
+    print(f"TRACE:secure_hash_content:1:({[c for c in content]})")
     sha = hashlib.sha256()
     sha.update(content)
     hash_bytes = sha.digest()
