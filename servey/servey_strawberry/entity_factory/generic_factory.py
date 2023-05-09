@@ -34,10 +34,8 @@ class GenericFactory(EntityFactoryABC):
         self, annotation: Type, schema_factory: SchemaFactory
     ) -> Optional[Type]:
         origin = typing_inspect.get_origin(annotation)
-        print(f"TRACE:generic_factory:1:{annotation}")
         if origin:
             origin = _TYPES_BY_ORIGIN.get(origin) or origin
-            print(f"TRACE:generic_factory:2:{typing_inspect.get_args(annotation)}")
             args = tuple(
                 schema_factory.get_input(a) for a in typing_inspect.get_args(annotation)
             )

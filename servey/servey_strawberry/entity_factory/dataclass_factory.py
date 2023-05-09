@@ -81,13 +81,7 @@ class DataclassFactory(EntityFactoryABC):
             elif f.default_factory is not MISSING:
                 type_ = Optional[type_]
                 params[f.name] = dataclasses.field(default_factory=f.default_factory)
-            if f.name == 'b':
-                print(f"TRACE:create_input:before:1:{type_}")
-                print(f"TRACE:create_input:before:2:{schema_factory.entity_factories}")
-
             annotations[f.name] = schema_factory.get_input(type_)
-            if f.name == 'b':
-                print(f"TRACE:create_input:after:{annotations[f.name]}")
 
         wrap_type = dataclass(type(name, tuple(), params))
         input_ = strawberry.input(wrap_type)

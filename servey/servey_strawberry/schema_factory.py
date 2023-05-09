@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass, field, fields, is_dataclass
-from typing import Type, Dict, List, Set, Optional
+from typing import Type, Dict, List, Set
 
 import strawberry
 import typing_inspect
@@ -43,25 +43,19 @@ class SchemaFactory:
     handler_filters: List[HandlerFilterABC] = field(default_factory=list)
 
     def get_input(self, annotation: Type) -> Type:
-        if hasattr(annotation, "__name__"):
+        if getattr(annotation, "__name__", None) not in (None, "Optional"):
             i = self.inputs.get(annotation.__name__)
             if i:
-                if annotation == Optional[float]:
-                    print(f"TRACE:schema_factory:1:{self.inputs}")
-                    print(f"TRACE:schema_factory:2:{i}")
                 return i
         for entity_factory in self.entity_factories:
             i = entity_factory.create_input(annotation, self)
             if i:
-                if annotation == Optional[float]:
-                    print(f"TRACE:schema_factory:3:{entity_factory}")
-                    print(f"TRACE:schema_factory:4:{i}")
                 if hasattr(annotation, "__name__"):
                     self.inputs[annotation.__name__] = i
                 return i
 
     def get_type(self, annotation: Type):
-        if hasattr(annotation, "__name__"):
+        if getattr(annotation, "__name__", None) not in (None, "Optional"):
             type_ = self.types.get(annotation.__name__)
             if type_:
                 return type_
