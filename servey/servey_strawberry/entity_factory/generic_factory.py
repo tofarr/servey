@@ -16,7 +16,7 @@ _TYPES_BY_ORIGIN = {
 
 
 class GenericFactory(EntityFactoryABC):
-    priority: int = 150
+    priority: int = 160
 
     def create_type(
         self, annotation: Type, schema_factory: SchemaFactory

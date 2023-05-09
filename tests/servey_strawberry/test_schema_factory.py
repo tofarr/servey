@@ -19,7 +19,7 @@ from servey.servey_strawberry.schema_factory import create_schema_factory, Schem
 from servey.trigger.web_trigger import WEB_GET, WEB_POST
 
 
-class TestEntityFactory(TestCase):
+class TestSchemaFactory(TestCase):
     def test_get_input(self):
         schema_factory = create_schema_factory()
         schema_factory.create_field_for_action(get_action(get_node), WEB_GET)

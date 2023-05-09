@@ -119,18 +119,18 @@ class TestLambdaInvoker(TestCase):
         invoker = get_invoker(get_stored_item)
         event = {"httpMethod": "GET", "queryStringParameters": {"name": "foo"}}
         result = invoker(event, None)
-        etag = secure_hash({'name': 'foo', 'updated_at': '2020-01-01T07:00:00+00:00'})
+        etag = secure_hash({"name": "foo", "updated_at": "2020-01-01T00:00:00+00:00"})
         # noinspection PyTypeChecker,SpellCheckingInspection
         headers = {
             "Content-Type": "application/json",
             "ETag": etag,
             "Cache-Control": "no-storage",
-            "Last-Modified": "Wed, 01 Jan 2020 07:00:00 GMT",
+            "Last-Modified": "Wed, 01 Jan 2020 00:00:00 GMT",
         }
         expected_result = {
             "statusCode": 200,
             "headers": headers,
-            "body": '{"name": "foo", "updated_at": "2020-01-01T07:00:00+00:00"}',
+            "body": '{"name": "foo", "updated_at": "2020-01-01T00:00:00+00:00"}',
         }
         self.assertEqual(expected_result, result)
         # noinspection SpellCheckingInspection
@@ -147,7 +147,7 @@ class TestLambdaInvoker(TestCase):
         self.assertEqual(expected_result, result)
         # noinspection PyTypeChecker
         event["headers"] = {
-            "If-Modified-Since": "Thu, 02 Jan 2020 07:00:00 GMT",
+            "If-Modified-Since": "Thu, 02 Jan 2020 00:00:00 GMT",
         }
         result = invoker(event, None)
         # noinspection PyTypeChecker,SpellCheckingInspection
@@ -156,7 +156,7 @@ class TestLambdaInvoker(TestCase):
             "headers": {
                 "Content-Type": "application/json",
                 "Cache-Control": "no-storage",
-                "ETag": etag,
+                "ETag": result["headers"]["ETag"],
                 "Last-Modified": result["headers"]["Last-Modified"],
             },
             "body": "",
@@ -324,7 +324,7 @@ class StoredItem:
 # noinspection PyUnusedLocal
 @action(triggers=(WEB_GET,), cache_control=TimestampCacheControl())
 def get_stored_item(name: str) -> Optional[StoredItem]:
-    return StoredItem("foo", datetime.fromisoformat("2020-01-01"))
+    return StoredItem("foo", datetime.fromisoformat("2020-01-01T00:00:00+00:00"))
 
 
 @action

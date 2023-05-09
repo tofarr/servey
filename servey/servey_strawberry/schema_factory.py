@@ -43,7 +43,7 @@ class SchemaFactory:
     handler_filters: List[HandlerFilterABC] = field(default_factory=list)
 
     def get_input(self, annotation: Type) -> Type:
-        if hasattr(annotation, "__name__"):
+        if getattr(annotation, "__name__", None) not in (None, "Optional"):
             i = self.inputs.get(annotation.__name__)
             if i:
                 return i
@@ -55,7 +55,7 @@ class SchemaFactory:
                 return i
 
     def get_type(self, annotation: Type):
-        if hasattr(annotation, "__name__"):
+        if getattr(annotation, "__name__", None) not in (None, "Optional"):
             type_ = self.types.get(annotation.__name__)
             if type_:
                 return type_
