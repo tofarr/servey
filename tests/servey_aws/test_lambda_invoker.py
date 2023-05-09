@@ -156,7 +156,7 @@ class TestLambdaInvoker(TestCase):
             "headers": {
                 "Content-Type": "application/json",
                 "Cache-Control": "no-storage",
-                "ETag": result['headers']['ETag'],
+                "ETag": result["headers"]["ETag"],
                 "Last-Modified": result["headers"]["Last-Modified"],
             },
             "body": "",
