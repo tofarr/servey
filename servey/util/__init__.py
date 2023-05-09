@@ -38,12 +38,13 @@ def secure_hash(item: ExternalType) -> str:
 
 
 def secure_hash_content(content: bytes) -> str:
-    print(f"TRACE:secure_hash_content:{content.decode('UTF-8')}")
+    print(f"TRACE:secure_hash_content:1:{content.decode('UTF-8')}")
     sha = hashlib.sha256()
     sha.update(content)
     hash_bytes = sha.digest()
     b64_bytes = base64.b64encode(hash_bytes)
     b64_str = b64_bytes.decode("utf-8")
+    print(f"TRACE:secure_hash_content:2:{b64_str}")
     return b64_str
 
 
