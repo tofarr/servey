@@ -19,7 +19,7 @@ from servey.servey_strawberry.schema_factory import create_schema_factory, Schem
 from servey.trigger.web_trigger import WEB_GET, WEB_POST
 
 
-class TestEntityFactory(TestCase):
+class TestSchemaFactory(TestCase):
     def test_get_input(self):
         schema_factory = create_schema_factory()
         schema_factory.create_field_for_action(get_action(get_node), WEB_GET)
@@ -246,6 +246,12 @@ query{
             get_action(action_with_default_values), WEB_GET
         )
         schema = schema_factory.create_schema()
+
+        debug_type = schema.query.action_with_default_values.__signature__.parameters['tester'].annotation
+        print(f"TRACE:failing_on_github_but_not_locally:1:{debug_type}")
+        weird_type = debug_type.__dict__['__annotations__']['b']
+        print(f"TRACE:failing_on_github_but_not_locally:2:{weird_type}")
+
         str_schema = str(schema).strip()
         expected_schema = """
 type ItemWithDefaultValues {
