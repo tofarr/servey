@@ -380,6 +380,11 @@ class ItemWithDefaultValues:
     d: Optional[str] = None
 
 
+print(f"TRACE:test_schema_factory:1:{ItemWithDefaultValues}")
+weird_type = ItemWithDefaultValues.__dict__['__annotations__']['b']
+print(f"TRACE:test_schema_factory:2:{weird_type}")
+
+
 @action(triggers=(WEB_GET,))
 def action_with_default_values(tester: ItemWithDefaultValues) -> ItemWithDefaultValues:
     return tester
