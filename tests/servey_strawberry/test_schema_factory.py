@@ -387,4 +387,6 @@ print(f"TRACE:test_schema_factory:2:{weird_type}")
 
 @action(triggers=(WEB_GET,))
 def action_with_default_values(tester: ItemWithDefaultValues) -> ItemWithDefaultValues:
+    weird_type = ItemWithDefaultValues.__dict__['__annotations__']['b']
+    print(f"TRACE:test_schema_factory:3:{weird_type}")
     return tester
