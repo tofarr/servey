@@ -168,7 +168,7 @@ query{
         # noinspection PyTypeChecker
         schema_factory.types["str"] = "bar"
         # noinspection PyTypeChecker
-        annotation = StrawberryOptional(Optional[bool])
+        annotation = StrawberryOptional(Optional[int])
         resolved_type = schema_factory._resolve_type_futures(annotation, set())
         self.assertEqual(annotation, resolved_type)
 
