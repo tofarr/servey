@@ -84,6 +84,7 @@ class DataclassFactory(EntityFactoryABC):
             if f.name == 'b':
                 print(f"TRACE:create_input:before:1:{type_}")
                 print(f"TRACE:create_input:before:2:{schema_factory.entity_factories}")
+
             annotations[f.name] = schema_factory.get_input(type_)
             if f.name == 'b':
                 print(f"TRACE:create_input:after:{annotations[f.name]}")

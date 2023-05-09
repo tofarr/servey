@@ -16,7 +16,7 @@ _TYPES_BY_ORIGIN = {
 
 
 class GenericFactory(EntityFactoryABC):
-    priority: int = 150
+    priority: int = 160
 
     def create_type(
         self, annotation: Type, schema_factory: SchemaFactory
@@ -36,6 +36,7 @@ class GenericFactory(EntityFactoryABC):
         origin = typing_inspect.get_origin(annotation)
         if origin:
             origin = _TYPES_BY_ORIGIN.get(origin) or origin
+            print(f"TRACE:create_input:{typing_inspect.get_args(annotation)}")
             args = tuple(
                 schema_factory.get_input(a) for a in typing_inspect.get_args(annotation)
             )
