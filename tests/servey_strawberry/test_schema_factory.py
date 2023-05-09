@@ -245,10 +245,7 @@ query{
         schema_factory.create_field_for_action(
             get_action(action_with_default_values), WEB_GET
         )
-        print(f"TRACE:test_schema_factory:2:{ItemWithDefaultValues.__dict__['__annotations__']['b']}")
         schema = schema_factory.create_schema()
-        print(f"TRACE:test_schema_factory:3:{ItemWithDefaultValues.__dict__['__annotations__']['b']}")
-        print(f"TRACE:test_schema_factory:4:{schema.query.action_with_default_values.__signature__.parameters['tester'].annotation.__dict__['__annotations__']['b']}")
         str_schema = str(schema).strip()
         expected_schema = """
 type ItemWithDefaultValues {
@@ -375,9 +372,6 @@ class ItemWithDefaultValues:
     b: float = 1.5
     c: bool = True
     d: Optional[str] = None
-
-
-print(f"TRACE:test_schema_factory:1:{ItemWithDefaultValues.__dict__['__annotations__']['b']}")
 
 
 @action(triggers=(WEB_GET,))
