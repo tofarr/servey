@@ -69,6 +69,7 @@ def configure_starlette(context: MarshallerContext):
     try:
         configure_starlette_action_endpoint_factory(context)
         configure_starlette_route_factory(context)
+        configure_starlette_middleware_factory(context)
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
 
@@ -124,6 +125,17 @@ def configure_starlette_route_factory(context: MarshallerContext):
     register_impl(SubscriptionServiceFactoryABC, SubscriptionRouteFactory, context)
     register_impl(RouteFactoryABC, AsyncapiRouteFactory, context)
     register_impl(RouteFactoryABC, StaticSiteRouteFactory, context)
+
+
+def configure_starlette_middleware_factory(context: MarshallerContext):
+    from servey.servey_starlette.middleware.middleware_factory_abc import (
+        MiddlewareFactoryABC,
+    )
+    from servey.servey_starlette.middleware.cors_middleware_factory import (
+        CORSMiddlewareFactory,
+    )
+
+    register_impl(MiddlewareFactoryABC, CORSMiddlewareFactory, context)
 
 
 def configure_strawberry(context: MarshallerContext):

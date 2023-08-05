@@ -9,7 +9,7 @@ from servey.servey_starlette.action_endpoint.action_endpoint_abc import (
 
 
 class ActionEndpointFactoryABC(ABC):
-    priority: 100
+    priority: int = 100
 
     @abstractmethod
     def create(
