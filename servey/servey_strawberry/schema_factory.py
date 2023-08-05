@@ -84,7 +84,7 @@ class SchemaFactory:
         if isinstance(type_, str):
             type_ = self.types[type_]
         if isinstance(type_, StrawberryAnnotation):
-            type_.type = self._resolve_type_futures(type_.annotation, resolved)
+            type_.annotation = self._resolve_type_futures(type_.annotation, resolved)
             return type_
         if isinstance(type_, StrawberryContainer):
             type_.of_type = self._resolve_type_futures(type_.of_type, resolved)

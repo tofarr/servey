@@ -24,7 +24,7 @@ extras_require = {
     "serverless": [
         "pyyaml~=6.0",
         "ruamel.yaml~=0.17",
-        "strawberry-graphql~=0.151",  # We need this to generate the graphql schema - or do we?
+        "strawberry-graphql~=0.177",  # We need this to generate the graphql schema - or do we?
     ],
     "web_page": [
         "Jinja2~=3.1",
