@@ -20,5 +20,6 @@ class CORSMiddlewareFactory(MiddlewareFactoryABC):
                 CORSMiddleware,
                 allow_origins=self.allow_origins,
                 allow_methods="*",
+                allow_headers="*",
                 allow_credentials=True,
             )
