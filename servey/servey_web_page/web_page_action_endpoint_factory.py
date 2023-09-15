@@ -45,6 +45,7 @@ class WebPageActionEndpointFactory(ActionEndpointFactoryABC):
         result_type = inspect.signature(action.fn).return_annotation
         if result_type == inspect.Signature.empty:
             result_type = None
+        content_type = mimetypes.guess_type(action.name or "")[0] or "text/html"
         endpoint = WebPageActionEndpoint(
             action=action,
             path=path,
@@ -62,6 +63,6 @@ class WebPageActionEndpointFactory(ActionEndpointFactoryABC):
             if self.validate_output and result_type
             else None,
             template_name=trigger.template_name,
-            content_type=mimetypes.guess_type(action.name or "")[0] or "text/html",
+            response_headers={"Content-Type": content_type},
         )
         return endpoint

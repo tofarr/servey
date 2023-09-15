@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
 from http.client import HTTPException
-from typing import Optional, Any, List
+from typing import Optional, Any, Dict
 
 from marshy.types import ExternalItemType
-from servey.servey_web_page.response_header import ResponseHeader
+from servey.servey_web_page.web_page_response import WebPageResponse
 from starlette.responses import Response, RedirectResponse
 
-from build.lib.servey.servey_web_page.web_page_response import WebPageResponse
 from servey.servey_starlette.action_endpoint.action_endpoint import ActionEndpoint
 from servey.servey_web_page.redirect import Redirect
 from servey.servey_web_page.web_page_trigger import get_environment
@@ -19,8 +18,8 @@ class WebPageActionEndpoint(ActionEndpoint):
     """
 
     template_name: Optional[str] = None
-    response_headers: List[ResponseHeader] = field(
-        default_factory=lambda: [ResponseHeader("Content-Type", "text/html")]
+    response_headers: Dict[str, str] = field(
+        default_factory=lambda: {"Content-Type": "text/html"}
     )
 
     def __post_init__(self):
@@ -33,7 +32,9 @@ class WebPageActionEndpoint(ActionEndpoint):
         if not isinstance(result, WebPageResponse):
             result = WebPageResponse(result, headers=self.response_headers)
         result_content = (
-            self.result_marshaller.dump(result) if self.result_marshaller else None
+            self.result_marshaller.dump(result.model)
+            if self.result_marshaller
+            else None
         )
         if self.result_schema:
             error = next(self.result_schema.iter_errors(result_content), None)
