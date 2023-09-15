@@ -1,10 +1,12 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from http.client import HTTPException
-from typing import Optional, Any
+from typing import Optional, Any, List
 
 from marshy.types import ExternalItemType
+from servey.servey_web_page.response_header import ResponseHeader
 from starlette.responses import Response, RedirectResponse
 
+from build.lib.servey.servey_web_page.web_page_response import WebPageResponse
 from servey.servey_starlette.action_endpoint.action_endpoint import ActionEndpoint
 from servey.servey_web_page.redirect import Redirect
 from servey.servey_web_page.web_page_trigger import get_environment
@@ -17,7 +19,9 @@ class WebPageActionEndpoint(ActionEndpoint):
     """
 
     template_name: Optional[str] = None
-    content_type: str = "text/html"
+    response_headers: List[ResponseHeader] = field(
+        default_factory=lambda: [ResponseHeader("Content-Type", "text/html")]
+    )
 
     def __post_init__(self):
         if not self.template_name:
@@ -26,6 +30,8 @@ class WebPageActionEndpoint(ActionEndpoint):
     def render_response(self, result: Any):
         if isinstance(result, Redirect):
             return RedirectResponse(result.url, result.status_code)
+        if not isinstance(result, WebPageResponse):
+            result = WebPageResponse(result, headers=self.response_headers)
         result_content = (
             self.result_marshaller.dump(result) if self.result_marshaller else None
         )
@@ -34,7 +40,8 @@ class WebPageActionEndpoint(ActionEndpoint):
             if error:
                 raise HTTPException(500, str(error))
         body = self.template.render(model=result_content)
-        return Response(content=body, media_type=self.content_type)
+
+        return Response(content=body, headers=result.headers)
 
     @property
     def template(self):
