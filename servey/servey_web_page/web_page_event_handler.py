@@ -2,7 +2,7 @@ import asyncio
 import inspect
 import mimetypes
 from dataclasses import field, dataclass
-from typing import Optional, Awaitable
+from typing import Optional, Awaitable, Dict
 
 from marshy import get_default_context
 from marshy.marshaller_context import MarshallerContext
@@ -20,13 +20,16 @@ from servey.servey_aws.event_handler.api_gateway_event_handler import (
 from servey.servey_aws.event_handler.event_handler import separate_auth_kwarg
 from servey.servey_aws.event_handler.event_handler_abc import EventHandlerFactoryABC
 from servey.servey_web_page.redirect import Redirect
+from servey.servey_web_page.web_page_response import WebPageResponse
 from servey.servey_web_page.web_page_trigger import WebPageTrigger, get_environment
 
 
 @dataclass
 class WebPageEventHandler(ApiGatewayEventHandler):
     template_name: Optional[str] = None
-    content_type: str = "text/html"
+    response_headers: Dict[str, str] = field(
+        default_factory=lambda: {"Content-Type": "text/html"}
+    )
 
     @property
     def template(self):
@@ -42,20 +45,21 @@ class WebPageEventHandler(ApiGatewayEventHandler):
         if isinstance(result, Awaitable):
             loop = asyncio.get_event_loop()
             result = loop.run_until_complete(result)
+
         if isinstance(result, Redirect):
             return {
                 "statusCode": result.status_code,
                 "headers": {"Location": result.url},
             }
 
-        dumped = self.result_marshaller.dump(result)
+        if not isinstance(result, WebPageResponse):
+            result = WebPageResponse(result, headers=self.response_headers)
+
+        dumped = self.result_marshaller.dump(result.model)
         body = self.template.render(model=dumped)
-        headers = {}
-        if self.content_type:
-            headers["Content-Type"] = self.content_type
         response = {
-            "statusCode": 200,
-            "headers": headers,
+            "statusCode": result.status_code,
+            "headers": result.headers,
             "body": body,
         }
         self.apply_caching(event, response)
@@ -97,6 +101,7 @@ class WebPageEventHandlerFactory(EventHandlerFactoryABC):
             if auth_kwarg_name or action.access_control != ALLOW_ALL
             else None
         )
+        content_type = mimetypes.guess_type(action.name or "")[0] or "text/html"
         return WebPageEventHandler(
             action=action,
             param_marshaller=param_marshaller,
@@ -107,5 +112,5 @@ class WebPageEventHandlerFactory(EventHandlerFactoryABC):
             authorizer=authorizer,
             priority=self.priority,
             template_name=trigger.template_name or f"{action.name}.j2",
-            content_type=mimetypes.guess_type(action.name or "")[0] or "text/html",
+            response_headers={"Content-Type": content_type},
         )
