@@ -28,21 +28,7 @@ class JwtAuthorizer(JwtAuthorizerABC):
         headers = filter_none({"kid": self.kid})
         encoded = jwt.encode(
             headers=headers,
-            payload=filter_none(
-                {
-                    "iss": self.iss,
-                    "sub": authorization.subject_id,
-                    "aud": self.aud,
-                    "exp": int(authorization.expire_at.timestamp())
-                    if authorization.expire_at
-                    else None,
-                    "nbf": int(authorization.not_before.timestamp())
-                    if authorization.not_before
-                    else None,
-                    "iat": int(datetime.now().timestamp()),
-                    "scope": " ".join(authorization.scopes),
-                }
-            ),
+            payload=self.payload_from_authorization(authorization, self.iss, self.aud),
             key=self.private_key,
             algorithm=self.algorithm,
         )

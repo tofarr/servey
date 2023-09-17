@@ -45,21 +45,7 @@ class KmsAuthorizer(JwtAuthorizerABC):
         )
         payload = urlsafe_b64encode(
             json.dumps(
-                filter_none(
-                    {
-                        "iss": self.iss,
-                        "sub": authorization.subject_id,
-                        "aud": self.aud,
-                        "exp": int(authorization.expire_at.timestamp())
-                        if authorization.expire_at
-                        else None,
-                        "nbf": int(authorization.not_before.timestamp())
-                        if authorization.not_before
-                        else None,
-                        "iat": int(datetime.now().timestamp()),
-                        "scope": " ".join(authorization.scopes),
-                    }
-                )
+                self.payload_from_authorization(authorization, self.iss, self.aud)
             ).encode()
         )
         message = header + b"." + payload
