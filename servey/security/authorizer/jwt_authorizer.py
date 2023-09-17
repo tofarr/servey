@@ -4,15 +4,14 @@ from typing import Any, Optional
 
 import jwt
 from jwt import InvalidTokenError
-from marshy.types import ExternalItemType
 from schemey.util import filter_none
 
 from servey.security.authorization import Authorization, AuthorizationError
-from servey.security.authorizer.authorizer_abc import AuthorizerABC
+from servey.security.authorizer.jwt_authorizer_abc import JwtAuthorizerABC
 
 
 @dataclass
-class JwtAuthorizer(AuthorizerABC):
+class JwtAuthorizer(JwtAuthorizerABC):
     """
     Encoder that uses pyjwt and a locally stored key to work with tokens. In the AWS environment,
     it is probably better to use kms or cognito for this (Though cognito is hampered by not having
@@ -64,18 +63,7 @@ class JwtAuthorizer(AuthorizerABC):
                 audience=self.aud,
                 issuer=self.iss,
             )
-            authorization = Authorization(
-                subject_id=decoded.get("sub"),
-                not_before=date_from_jwt(decoded, "nbf"),
-                expire_at=date_from_jwt(decoded, "exp"),
-                scopes=frozenset(decoded.get("scope").split(" ")),
-            )
+            authorization = self.authorization_from_decoded(decoded)
             return authorization
         except InvalidTokenError as e:
             raise AuthorizationError(e) from e
-
-
-def date_from_jwt(decoded: ExternalItemType, key: str) -> Optional[datetime]:
-    value = decoded.get(key)
-    if value:
-        return datetime.fromtimestamp(value)

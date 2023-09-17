@@ -11,12 +11,11 @@ from jwt import DecodeError
 from schemey.util import filter_none
 
 from servey.security.authorization import Authorization, AuthorizationError
-from servey.security.authorizer.authorizer_abc import AuthorizerABC
-from servey.security.authorizer.jwt_authorizer import date_from_jwt
+from servey.security.authorizer.jwt_authorizer_abc import JwtAuthorizerABC
 
 
 @dataclass
-class KmsAuthorizer(AuthorizerABC):
+class KmsAuthorizer(JwtAuthorizerABC):
     """
     Authorizer that uses kms to work with tokens, offloading the responsibility for key
     management to AWS. I would have loved to use cognito for this, but was hampered
@@ -107,12 +106,7 @@ class KmsAuthorizer(AuthorizerABC):
             key_id = header.get("kid")
             public_key = self.get_public_key(key_id)
             decoded = jwt.decode(jwt=token, key=public_key, algorithms=["RS256"])
-            authorization = Authorization(
-                subject_id=decoded.get("sub"),
-                not_before=date_from_jwt(decoded, "nbf"),
-                expire_at=date_from_jwt(decoded, "exp"),
-                scopes=frozenset(decoded.get("scope").split(" ")),
-            )
+            authorization = self.authorization_from_decoded(decoded)
             return authorization
         except DecodeError as e:
             raise AuthorizationError(e) from e
