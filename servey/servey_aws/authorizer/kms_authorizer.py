@@ -2,13 +2,11 @@ import base64
 import json
 from base64 import urlsafe_b64encode
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import Any, Optional, Dict
 
 import boto3
 import jwt
 from jwt import DecodeError
-from schemey.util import filter_none
 
 from servey.security.authorization import Authorization, AuthorizationError
 from servey.security.authorizer.jwt_authorizer_abc import JwtAuthorizerABC
