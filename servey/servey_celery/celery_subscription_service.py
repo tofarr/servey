@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from servey.subscription.delayed import Delayed
 from servey.subscription.subscription import Subscription, T
 from servey.subscription.subscription_service import (
     SubscriptionServiceABC,
@@ -17,7 +18,11 @@ class CelerySubscriptionService(SubscriptionServiceABC):
 
         for action in subscription.action_subscribers:
             task = getattr(celery_app, action.name)
-            task.delay(*[event])
+            delay_seconds = 0
+            fn = action.fn
+            if isinstance(fn, Delayed):
+                delay_seconds = fn.delay_seconds
+            task.delay(*[event], countdown=delay_seconds)
 
 
 class CelerySubscriptionServiceFactory(SubscriptionServiceFactoryABC):

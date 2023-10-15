@@ -5,6 +5,7 @@ from typing import Optional, Dict, List, Any
 import boto3
 
 from servey.servey_aws import is_lambda_env
+from servey.subscription.delayed import Delayed
 from servey.subscription.subscription import Subscription, T
 from servey.subscription.subscription_service import (
     SubscriptionServiceABC,
@@ -34,10 +35,17 @@ class SqsSubscriptionService(SubscriptionServiceABC):
     def publish(self, subscription: Subscription[T], event: T):
         queue_url = self.get_queue_url(subscription.name)
         if queue_url:
-            self.sqs_client.send_message(
-                QueueUrl=queue_url,
-                MessageBody=json.dumps(subscription.event_marshaller.dump(event)),
-            )
+            kwargs = {
+                "QueueUrl": queue_url,
+                "MessageBody": json.dumps(subscription.event_marshaller.dump(event)),
+            }
+            delay_seconds = 0
+            for action in subscription.action_subscribers:
+                if isinstance(action, Delayed):
+                    delay_seconds = max(delay_seconds, action.delay_seconds)
+            if delay_seconds:
+                kwargs["DelaySeconds"] = delay_seconds
+            self.sqs_client.send_message(**kwargs)
 
 
 class SqsSubscriptionServiceFactory(SubscriptionServiceFactoryABC):

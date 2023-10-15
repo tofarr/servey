@@ -4,6 +4,7 @@ from celery import Celery
 
 from servey.finder.subscription_finder_abc import find_subscriptions
 from servey.servey_celery.celery_config.celery_config_abc import CeleryConfigABC
+from servey.subscription.delayed import Delayed
 
 
 class SubscriptionConfig(CeleryConfigABC):
@@ -12,4 +13,7 @@ class SubscriptionConfig(CeleryConfigABC):
             if _subscription.action_subscribers:
                 for _action in _subscription.action_subscribers:
                     if _action.name not in global_ns:
-                        global_ns[_action.name] = app.task(_action.fn)
+                        fn = _action.fn
+                        if isinstance(fn, Delayed):
+                            fn = fn.fn  # Delay has already been applied
+                        global_ns[_action.name] = app.task(fn)

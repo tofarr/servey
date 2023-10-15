@@ -7,6 +7,7 @@ from servey.action.action import action, get_action
 from servey.servey_thread.asyncio_subscription_service import (
     AsyncioSubscriptionServiceFactory,
 )
+from servey.subscription.delayed import Delayed
 from servey.subscription.subscription import subscription
 
 
@@ -42,3 +43,27 @@ class TestAsyncioSubscriptionService(TestCase):
             factory = AsyncioSubscriptionServiceFactory()
             subscription_ = subscription(event_type=int, name="accumulators")
             self.assertIsNone(factory.create([subscription_]))
+
+    def test_delayed_subscription(self):
+        total = 0
+
+        def accumulator(value: int):
+            nonlocal total
+            total += value
+
+        subscription_ = subscription(
+            event_type=int,
+            name="accumulators",
+            action_subscribers=(get_action(action(Delayed(accumulator, 1))),),
+        )
+        factory = AsyncioSubscriptionServiceFactory()
+        service = factory.create([subscription_])
+        service.publish(subscription_, 3)
+        loop = asyncio.get_event_loop()
+
+        async def dummy():
+            await asyncio.sleep(1)
+            pass
+
+        loop.run_until_complete(dummy())
+        self.assertEqual(3, total)

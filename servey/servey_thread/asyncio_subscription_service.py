@@ -1,9 +1,11 @@
+import asyncio
 from asyncio import get_event_loop
 from dataclasses import dataclass
 from typing import Optional, List
 
 from servey.servey_aws import is_lambda_env
 from servey.servey_celery import has_celery_broker
+from servey.subscription.delayed import Delayed
 from servey.subscription.subscription import Subscription, T
 from servey.subscription.subscription_service import (
     SubscriptionServiceABC,
@@ -22,7 +24,8 @@ class AsyncioSubscriptionService(SubscriptionServiceABC):
     ):
         loop = get_event_loop()
         for action in subscription.action_subscribers:
-            loop.call_soon_threadsafe(action.fn, event)
+            # loop.call_soon_threadsafe(action.fn, event)
+            asyncio.run_coroutine_threadsafe(action_fn(action.fn, event), loop)
 
 
 class AsyncioSubscriptionServiceFactory(SubscriptionServiceFactoryABC):
@@ -38,3 +41,9 @@ class AsyncioSubscriptionServiceFactory(SubscriptionServiceFactoryABC):
         )
         if has_subscribers_with_actions:
             return AsyncioSubscriptionService()
+
+
+async def action_fn(action_fn, event):
+    if isinstance(action_fn, Delayed):
+        await asyncio.sleep(action_fn.delay_seconds)
+    return action_fn(event)
