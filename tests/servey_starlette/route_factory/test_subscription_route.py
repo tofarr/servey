@@ -10,10 +10,10 @@ from servey.errors import ServeyError
 from servey.security.access_control.scope_access_control import ScopeAccessControl
 from servey.security.authorization import ROOT, Authorization
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
-from servey.servey_starlette.route_factory import subscription_route_factory
+from servey.servey_starlette.route_factory import event_channel_route_factory
 
 # noinspection PyProtectedMember
-from servey.servey_starlette.route_factory.subscription_route_factory import (
+from servey.servey_starlette.route_factory.event_channel_route_factory import (
     SubscriptionRouteFactory,
     _SubscriptionConnections,
 )

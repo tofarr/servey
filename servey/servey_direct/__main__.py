@@ -3,7 +3,7 @@ Allows invoking actions directly from the command line (Or via crontab)
 Usage:
 
 `python -m servey.servey_direct --action=ping`
-`python -m servey.servey_direct --action=say_hello "--event={\"name\": \"Foobar\"}"`
+`python -m servey.servey_direct --action=say_hello "--event_channel={\"name\": \"Foobar\"}"`
 
 """
 import argparse
@@ -20,7 +20,7 @@ def main():
     parser = argparse.ArgumentParser(description="Invoke an action directly")
     parser.add_argument("--run", default="action")
     parser.add_argument("--action")
-    parser.add_argument("--event", default="{}")
+    parser.add_argument("--event_channel", default="{}")
     args = parser.parse_args()
 
     action = next((a for a in find_actions() if a.name == args.action), None)

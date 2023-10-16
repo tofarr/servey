@@ -1,6 +1,6 @@
 """
 Invoker which groups lambdas together in such a way that one lambda may be used to invoke multiple
-different actions. Routers are used to try and link an event to an action, which may be specific
+different actions. Routers are used to try and link an event_channel to an action, which may be specific
 to APIGateway, AppSync, or Direct Invocation
 """
 import json

@@ -3,36 +3,39 @@ from typing import List
 
 from marshy.types import ExternalItemType
 
-from servey.finder.subscription_finder_abc import find_subscriptions
-from servey.security.access_control.allow_none import ALLOW_NONE
+from servey.event_channel.background.background_action_channel import (
+    BackgroundActionChannel,
+)
+from servey.event_channel.event_channel_abc import EventChannelABC
+from servey.event_channel.websocket.websocket_channel import WebsocketChannel
+from servey.finder.event_channel_finder_abc import find_channels_by_type, find_channels
 from servey.servey_aws.serverless.yml_config.yml_config_abc import (
     YmlConfigABC,
     ensure_ref_in_file,
     create_yml_file,
 )
-from servey.subscription.subscription import Subscription
 from servey.util import get_servey_main
 
 
 @dataclass
-class SubscriptionFunctionConfig(YmlConfigABC):
+class EventChannelFunctionConfig(YmlConfigABC):
     """
     Set up some aspect of the serverless environment yml files. (For example, functions, resources, etc...)
     """
 
-    handlers_yml_file: str = "serverless_servey/subscriptions_handlers.yml"
-    resources_yml_file: str = "serverless_servey/subscriptions_resources.yml"
-    role_statement_yml_file: str = "serverless_servey/subscriptions_role_statement.yml"
-    subscriptions: List[Subscription] = field(
-        default_factory=lambda: list(find_subscriptions())
+    handlers_yml_file: str = "serverless_servey/event_channel_handlers.yml"
+    resources_yml_file: str = "serverless_servey/event_channel_resources.yml"
+    role_statement_yml_file: str = "serverless_servey/event_channel_role_statement.yml"
+    event_channels: List[EventChannelABC] = field(
+        default_factory=lambda: list(find_channels())
     )
 
     @property
-    def has_websocket_subscriptions(self):
-        has_websocket_subscriptions = next(
-            (True for s in self.subscriptions if s.access_control != ALLOW_NONE), False
+    def has_websocket_channels(self):
+        has_websocket_channels = next(
+            (True for _ in find_channels_by_type(WebsocketChannel)), False
         )
-        return has_websocket_subscriptions
+        return has_websocket_channels
 
     @property
     def connection_table_name(self):
@@ -40,11 +43,11 @@ class SubscriptionFunctionConfig(YmlConfigABC):
         return connection_table_name
 
     def configure(self, main_serverless_yml_file: str):
-        if not self.subscriptions:
+        if not self.event_channels:
             # Should we remove files if missing?
             return
 
-        if self.has_websocket_subscriptions:
+        if self.has_websocket_channels:
             ensure_ref_in_file(
                 main_serverless_yml_file,
                 ["functions"],
@@ -74,7 +77,7 @@ class SubscriptionFunctionConfig(YmlConfigABC):
     @staticmethod
     def build_handlers_yml() -> ExternalItemType:
         handler_definitions = {
-            "subscriptions": {
+            "websockets": {
                 "handler": "servey.servey_aws.lambda_websocket.lambda_handler",
                 "events": [
                     {"websocket": {"route": "$connect"}},
@@ -88,15 +91,15 @@ class SubscriptionFunctionConfig(YmlConfigABC):
     def build_resources_yml(self) -> ExternalItemType:
         service_name = get_servey_main()
         resources = {
-            s.name.title().replace("_", "")
+            channel.name.title().replace("_", "")
             + "SQS": {
                 "Type": "AWS::SQS::Queue",
-                "Properties": {"QueueName": service_name + "-" + s.name},
+                "Properties": {"QueueName": service_name + "-" + channel.name},
             }
-            for s in self.subscriptions
-            if s.action_subscribers
+            for channel in self.event_channels
+            if isinstance(channel, BackgroundActionChannel)
         }
-        if self.has_websocket_subscriptions:
+        if self.has_websocket_channels:
             resources[self.connection_table_name.title().replace("_", "")] = {
                 "Type": "AWS::DynamoDB::Table",
                 "Properties": {
@@ -136,7 +139,7 @@ class SubscriptionFunctionConfig(YmlConfigABC):
 
     def build_role_statement_yml(self) -> ExternalItemType:
         role_statements = []
-        if self.has_websocket_subscriptions:
+        if self.has_websocket_channels:
             role_statements.append(
                 {
                     "Effect": "Allow",
@@ -174,7 +177,15 @@ class SubscriptionFunctionConfig(YmlConfigABC):
                     ],
                 }
             )
-        if next((True for s in self.subscriptions if s.action_subscribers), False):
+
+        if next(
+            (
+                True
+                for c in self.event_channels
+                if isinstance(c, BackgroundActionChannel)
+            ),
+            False,
+        ):
             role_statements.append(
                 {
                     "Effect": "Allow",
@@ -185,9 +196,9 @@ class SubscriptionFunctionConfig(YmlConfigABC):
                         "sqs:GetQueueUrl",
                     ],
                     "Resource": [
-                        {"Fn::GetAtt": [s.name.title().replace("_", "") + "SQS", "Arn"]}
-                        for s in self.subscriptions
-                        if s.action_subscribers
+                        {"Fn::GetAtt": [c.name.title().replace("_", "") + "SQS", "Arn"]}
+                        for c in self.event_channels
+                        if isinstance(c, BackgroundActionChannel)
                     ],
                 }
             )

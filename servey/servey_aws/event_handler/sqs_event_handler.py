@@ -53,7 +53,7 @@ class SqsEventHandlerFactory(EventHandlerFactoryABC):
         sig = inspect.signature(action.fn)
         params = list(sig.parameters.values())
         if len(params) != 1:
-            return  # Sqs requires a single event
+            return  # Sqs requires a single event_channel
         event_type = params[0].annotation
         event_schema = self.schema_context.schema_from_type(event_type)
         event_marshaller = self.marshaller_context.get_marshaller(event_type)

@@ -5,42 +5,58 @@ from dataclasses import dataclass, field
 from typing import Iterator, Optional, Dict, List, Set
 from uuid import uuid4
 
+from marshy import get_default_context
+from marshy.marshaller.marshaller_abc import MarshallerABC
+from schemey import Schema
 from starlette.endpoints import WebSocketEndpoint
 from starlette.routing import Route, WebSocketRoute
 from starlette.websockets import WebSocket
 
 from servey.errors import ServeyError
-from servey.finder.subscription_finder_abc import find_subscriptions
-from servey.security.access_control.allow_none import ALLOW_NONE
+from servey.event_channel.websocket.event_filter_abc import EventFilterABC
+
+from servey.event_channel.websocket.websocket_channel import WebsocketChannel
+from servey.event_channel.websocket.websocket_sender import (
+    WebsocketSenderFactoryABC,
+    WebsocketSenderABC,
+    T,
+)
+from servey.finder.event_channel_finder_abc import find_channels_by_type
+from servey.security.access_control.access_control_abc import AccessControlABC
+from servey.security.access_control.allow_all import ALLOW_ALL
 from servey.security.authorization import Authorization
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
 from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
-from servey.subscription.subscription import Subscription, T
-from servey.subscription.subscription_service import (
-    SubscriptionServiceFactoryABC,
-    SubscriptionServiceABC,
-)
 
 LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
-class SubscriptionRouteFactory(RouteFactoryABC, SubscriptionServiceFactoryABC):
+class EventChannelRouteFactory(RouteFactoryABC, WebsocketSenderFactoryABC):
     path: str = "/subscription"
 
     def create_routes(self) -> Iterator[Route]:
-        if _get_subscription_connections_by_name():
-            route = WebSocketRoute(self.path, _SubscriptionEndpoint)
+        should_create_route = next(
+            (True for _ in find_channels_by_type(WebsocketChannel)), False
+        )
+        if should_create_route:
+            route = WebSocketRoute(self.path, _WebsocketChannelEndpoint)
             yield route
 
     def create(
-        self, subscriptions: List[Subscription]
-    ) -> Optional[SubscriptionServiceABC]:
-        if _get_subscription_connections_by_name():
-            return _StarletteSubscriptionService()
+        self,
+        channel_name: str,
+        event_schema: Schema,
+        access_control: AccessControlABC = ALLOW_ALL,
+        event_filter: Optional[EventFilterABC] = None,
+    ) -> Optional[WebsocketSenderABC]:
+        event_marshaller = get_default_context().get_marshaller(
+            event_schema.python_type
+        )
+        return _StarletteSender(event_marshaller, event_filter)
 
 
-class _SubscriptionEndpoint(WebSocketEndpoint):
+class _WebsocketChannelEndpoint(WebSocketEndpoint):
     async def on_connect(self, websocket: WebSocket) -> None:
         await websocket.accept()
         authorization = None
@@ -53,18 +69,20 @@ class _SubscriptionEndpoint(WebSocketEndpoint):
         connection = _Connection(
             connection_id=str(uuid4()), websocket=websocket, authorization=authorization
         )
+        # noinspection PyArgumentList
         LOGGER.debug("connect:{connection_id}", connection_id=connection.connection_id)
         websocket.path_params["connection_id"] = connection.connection_id
         _get_connections_by_id()[connection.connection_id] = connection
 
     async def on_disconnect(self, websocket: WebSocket, close_code: int) -> None:
         connection_id = websocket.path_params["connection_id"]
+        # noinspection PyArgumentList
         LOGGER.debug("disconnect:{connection_id}", connection_id=connection_id)
         connections_by_id = _get_connections_by_id()
         connection = connections_by_id.pop(connection_id)
-        subscription_connections_by_name = _get_subscription_connections_by_name()
-        for subscription_name in connection.subscription_names:
-            subscription_connections_by_name[subscription_name].connections.remove(
+        subscription_connections_by_name = _get_connections_by_name()
+        for channel_name in connection.channel_names:
+            subscription_connections_by_name[channel_name].connections.remove(
                 connection
             )
 
@@ -77,27 +95,23 @@ class _SubscriptionEndpoint(WebSocketEndpoint):
             LOGGER.warning(f"unknown_connection:{connection_id}")
             return
         if type_ == "Subscribe":
-            subscription_name = event["payload"]
-            if subscription_name in connection.subscription_names:
+            channel_name = event["payload"]
+            if channel_name in connection.channel_names:
                 return
-            subscription_connection = _get_subscription_connections_by_name()[
-                subscription_name
-            ]
-            if not subscription_connection.subscription.access_control.is_executable(
+            channel_connection = _get_connections_by_name()[channel_name]
+            if not channel_connection.channel.access_control.is_executable(
                 connection.authorization
             ):
                 raise ServeyError("unauthorized")
-            subscription_connection.connections.append(connection)
-            connection.subscription_names.add(subscription_name)
+            channel_connection.connections.append(connection)
+            connection.channel_names.add(channel_name)
         elif type_ == "Unsubscribe":
-            subscription_name = event["payload"]
-            if subscription_name not in connection.subscription_names:
+            channel_name = event["payload"]
+            if channel_name not in connection.channel_names:
                 return
-            subscription_connection = _get_subscription_connections_by_name()[
-                subscription_name
-            ]
+            subscription_connection = _get_connections_by_name()[channel_name]
             subscription_connection.connections.remove(connection)
-            connection.subscription_names.remove(subscription_name)
+            connection.channel_names.remove(channel_name)
         else:
             raise ServeyError(f"unknown_type:{type_}")
 
@@ -106,54 +120,51 @@ class _SubscriptionEndpoint(WebSocketEndpoint):
 class _Connection:
     connection_id: str
     websocket: WebSocket
-    subscription_names: Set[str] = field(default_factory=set)
+    channel_names: Set[str] = field(default_factory=set)
     authorization: Optional[Authorization] = None
 
 
 @dataclass
-class _SubscriptionConnections:
-    subscription: Subscription
+class _ChannelConnections:
+    channel: WebsocketChannel
     connections: List[_Connection] = field(default_factory=list)
 
 
-_SUBSCRIPTION_CONNECTIONS_BY_NAME: Optional[Dict[str, _SubscriptionConnections]] = None
+_CONNECTIONS_BY_NAME: Optional[Dict[str, _ChannelConnections]] = None
 _CONNECTIONS_BY_ID: Dict[str, _Connection] = {}
 
 
 # pylint: disable=W0603
-def _get_subscription_connections_by_name() -> Dict[str, _SubscriptionConnections]:
-    global _SUBSCRIPTION_CONNECTIONS_BY_NAME
-    if _SUBSCRIPTION_CONNECTIONS_BY_NAME is None:
-        _SUBSCRIPTION_CONNECTIONS_BY_NAME = {
-            s.name: _SubscriptionConnections(s)
-            for s in find_subscriptions()
-            if s.access_control != ALLOW_NONE
+def _get_connections_by_name() -> Dict[str, _ChannelConnections]:
+    global _CONNECTIONS_BY_NAME
+    if _CONNECTIONS_BY_NAME is None:
+        _CONNECTIONS_BY_NAME = {
+            channel.name: _ChannelConnections(channel)
+            for channel in find_channels_by_type(WebsocketChannel)
         }
-    return _SUBSCRIPTION_CONNECTIONS_BY_NAME
+    return _CONNECTIONS_BY_NAME
 
 
 def _get_connections_by_id() -> Dict[str, _Connection]:
     return _CONNECTIONS_BY_ID
 
 
-class _StarletteSubscriptionService(SubscriptionServiceABC):
-    # pylint: disable=W0718
-    def publish(self, subscription: Subscription[T], event: T):
-        subscription_connections = _get_subscription_connections_by_name().get(
-            subscription.name
-        )
-        if not subscription_connections:
+@dataclass
+class _StarletteSender(WebsocketSenderABC):
+    event_marshaller: MarshallerABC[T]
+    event_filter: Optional[EventFilterABC[T]]
+
+    def send(self, channel_name: str, event: T):
+        connections = _get_connections_by_name().get(channel_name)
+        if not connections:
             return
         loop = asyncio.get_event_loop()
-        json_event = subscription.event_marshaller.dump(event)
-        for connection in subscription_connections.connections:
+        json_event = self.event_marshaller.dump(event)
+        for connection in connections.connections:
             # noinspection PyBroadException
             try:
-                if (
-                    subscription.event_filter
-                    and not subscription.event_filter.should_publish(
-                        event, connection.authorization
-                    )
+                if self.event_filter and not self.event_filter.should_publish(
+                    event, connection.authorization
                 ):
                     continue
                 sending = connection.websocket.send_json(json_event)

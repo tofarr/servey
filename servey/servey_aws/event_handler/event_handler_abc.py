@@ -12,11 +12,11 @@ class EventHandlerABC(ABC):
 
     @abstractmethod
     def is_usable(self, event: ExternalType, context) -> bool:
-        """Determine if this handler is usable for the event and context given"""
+        """Determine if this handler is usable for the event_channel and context given"""
 
     @abstractmethod
     def handle(self, event: ExternalType, context) -> ExternalType:
-        """Handle the event given and return a result"""
+        """Handle the event_channel given and return a result"""
 
 
 class EventHandlerFactoryABC(ABC):
