@@ -5,8 +5,11 @@ from marshy.factory.impl_marshaller_factory import get_impls
 from marshy.types import ExternalItemType
 from schemey.util import filter_none
 
+from servey.event_channel.background.background_action_channel import (
+    BackgroundActionChannel,
+)
 from servey.finder.action_finder_abc import find_actions
-from servey.finder.subscription_finder_abc import find_subscriptions
+from servey.finder.event_channel_finder_abc import find_channels_by_type
 from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
     TriggerHandlerABC,
 )
@@ -71,26 +74,26 @@ class ActionFunctionConfig(YmlConfigABC):
             for trigger in action.triggers:
                 for handler in trigger_handlers:
                     handler.handle_trigger(action, trigger, lambda_definition)
-        for subscription in find_subscriptions():
-            for action in subscription.action_subscribers:
-                if action.name in lambda_definitions:
-                    lambda_definition = lambda_definitions[action.name]
-                else:
-                    lambda_definition = lambda_definitions[self.router_name]
-                events = lambda_definition.get("events")
-                if not events:
-                    events = lambda_definition["events"] = []
-                events.append(
-                    {
-                        "sqs": {
-                            "arn": {
-                                "Fn::GetAtt": [
-                                    subscription.name.title().replace("_", "") + "SQS",
-                                    "Arn",
-                                ]
-                            },
-                        }
+        for channel in find_channels_by_type(BackgroundActionChannel):
+            action = channel.action
+            if action.name in lambda_definitions:
+                lambda_definition = lambda_definitions[action.name]
+            else:
+                lambda_definition = lambda_definitions[self.router_name]
+            events = lambda_definition.get("events")
+            if not events:
+                events = lambda_definition["events"] = []
+            events.append(
+                {
+                    "sqs": {
+                        "arn": {
+                            "Fn::GetAtt": [
+                                channel.name.title().replace("_", "") + "SQS",
+                                "Arn",
+                            ]
+                        },
                     }
-                )
+                }
+            )
 
         return lambda_definitions

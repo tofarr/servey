@@ -18,5 +18,5 @@ class BackgroundInvokerFactoryABC(ABC):
     priority: int = 100
 
     @abstractmethod
-    def create(self, action: Action) -> Optional[BackgroundInvokerABC]:
+    def create(self, action: Action, name: str) -> Optional[BackgroundInvokerABC]:
         """Create a background invoker for the channel and event_channel schema given if possible"""

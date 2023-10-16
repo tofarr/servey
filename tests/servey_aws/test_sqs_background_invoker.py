@@ -3,11 +3,13 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from servey.action.action import action, get_action
-from servey.servey_aws.sqs_subscription_service import SqsSubscriptionServiceFactory
-from servey.subscription.subscription import subscription
+from servey.event_channel.background.background_action_channel import (
+    background_action_channel,
+)
+from servey.servey_aws.sqs_background_invoker import SqsBackgroundInvokerFactory
 
 
-class TestSqsSubscriptionService(TestCase):
+class TestSqsBackgroundInvoker(TestCase):
     def test_publish(self):
         # noinspection PyUnusedLocal
         @action
@@ -21,7 +23,7 @@ class TestSqsSubscriptionService(TestCase):
         class MockSqsClient:
             @staticmethod
             def get_queue_url(QueueName: str):
-                self.assertEqual("servey_main-dummy_subscription", QueueName)
+                self.assertEqual("servey_main-dummy_channel", QueueName)
                 return {"QueueUrl": "https://foobar.com"}
 
             @staticmethod
@@ -29,10 +31,7 @@ class TestSqsSubscriptionService(TestCase):
                 messages.append(dict(queue_url=QueueUrl, body=MessageBody))
 
         messages = []
-        subscription_ = subscription(
-            int, "dummy_subscription", action_subscribers=(get_action(mock_consumer),)
-        )
-        non_sqs_subscription = subscription(int, "non_sqs")
+        channel = background_action_channel(mock_consumer, name="dummy_channel")
         with (
             patch("boto3.client", mock_boto3_client),
             patch.dict(
@@ -43,10 +42,9 @@ class TestSqsSubscriptionService(TestCase):
                 },
             ),
         ):
-            factory = SqsSubscriptionServiceFactory()
-            service = factory.create([subscription_])
-            service.publish(subscription_, 13)
-            service.publish(non_sqs_subscription, 14)
+            factory = SqsBackgroundInvokerFactory()
+            invoker = factory.create(get_action(mock_consumer), "dummy_channel")
+            invoker.invoke(13)
             self.assertEqual(
                 [{"body": "13", "queue_url": "https://foobar.com"}], messages
             )

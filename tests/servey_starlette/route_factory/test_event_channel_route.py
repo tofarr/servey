@@ -5,179 +5,176 @@ from typing import Dict, List, Optional
 from unittest import TestCase
 
 from marshy.types import ExternalItemType
+from schemey.schema import str_schema
 
 from servey.errors import ServeyError
+from servey.event_channel.websocket.event_filter_abc import EventFilterABC, T
+from servey.event_channel.websocket.websocket_channel import websocket_channel
 from servey.security.access_control.scope_access_control import ScopeAccessControl
 from servey.security.authorization import ROOT, Authorization
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
 from servey.servey_starlette.route_factory import event_channel_route_factory
-
-# noinspection PyProtectedMember
 from servey.servey_starlette.route_factory.event_channel_route_factory import (
-    SubscriptionRouteFactory,
-    _SubscriptionConnections,
+    _ChannelConnections,
+    EventChannelRouteFactory,
 )
-from servey.subscription.event_filter_abc import EventFilterABC, T
-from servey.subscription.subscription import subscription
 
 
-class TestSubscriptionRoute(TestCase):
+class TestEventChannelRoute(TestCase):
     def test_publish_no_connections(self):
-        subscription_ = subscription(str, "messager")
-        factory = SubscriptionRouteFactory()
-        subscription_service = factory.create([])
-        subscription_service.publish(subscription_, "Hello There!")
+        channel = websocket_channel("messager", str)
+        channel.publish("Hello There!")
         # Does nothing
 
     def test_create(self):
-        subscription_ = subscription(str, "foobar")
-        subscription_route_factory._SUBSCRIPTION_CONNECTIONS_BY_NAME = {
-            "foobar": _SubscriptionConnections(subscription_)
+        channel = websocket_channel("foobar", str)
+        event_channel_route_factory._CONNECTIONS_BY_NAME = {
+            "foobar": _ChannelConnections(channel)
         }
-        subscription_route_factory._CONNECTIONS_BY_ID = {}
+        event_channel_route_factory._CONNECTIONS_BY_ID = {}
         try:
-            factory = SubscriptionRouteFactory()
-            subscription_service = factory.create([subscription_])
-            subscription_route = list(factory.create_routes())[0]
-            subscription_endpoint = subscription_route.endpoint(
+            factory = EventChannelRouteFactory()
+            sender = factory.create("foobar", str_schema())
+            sender_route = list(factory.create_routes())[0]
+            event_channel_endpoint = sender_route.endpoint(
                 {"type": "websocket"}, None, None
             )
             web_socket = MockWebSocket()
             authorizer = get_default_authorizer()
             web_socket.headers["Authorization"] = f"Bearer {authorizer.encode(ROOT)}"
             loop = asyncio.get_event_loop()
-            loop.run_until_complete(subscription_endpoint.on_connect(web_socket))
+            loop.run_until_complete(event_channel_endpoint.on_connect(web_socket))
             loop.run_until_complete(
-                subscription_endpoint.on_receive(
+                event_channel_endpoint.on_receive(
                     web_socket, json.dumps({"type": "Subscribe", "payload": "foobar"})
                 )
             )
             loop.run_until_complete(
-                subscription_endpoint.on_receive(
+                event_channel_endpoint.on_receive(
                     web_socket, json.dumps({"type": "Subscribe", "payload": "foobar"})
                 )
             )
-            subscription_service.publish(subscription_, "Hello There!")
-            subscription_service.publish(subscription(str, "ping"), "Pong!")
+            sender.send("foobar", "Hello There!")
+            sender.send("ping", "Pong!")
             loop.run_until_complete(
-                subscription_endpoint.on_receive(
+                event_channel_endpoint.on_receive(
                     web_socket, json.dumps({"type": "Unsubscribe", "payload": "foobar"})
                 )
             )
             loop.run_until_complete(
-                subscription_endpoint.on_receive(
+                event_channel_endpoint.on_receive(
                     web_socket, json.dumps({"type": "Subscribe", "payload": "foobar"})
                 )
             )
             loop.run_until_complete(
-                subscription_endpoint.on_disconnect(web_socket, 200)
+                event_channel_endpoint.on_disconnect(web_socket, 200)
             )
             loop.run_until_complete(
-                subscription_endpoint.on_receive(
+                event_channel_endpoint.on_receive(
                     web_socket, json.dumps({"type": "Unsubscribe", "payload": "foobar"})
                 )
             )
             self.assertEqual(1, web_socket.accepts)
             self.assertEqual(["Hello There!"], web_socket.sent)
         finally:
-            subscription_route_factory._SUBSCRIPTION_CONNECTIONS_BY_NAME = None
-            subscription_route_factory._CONNECTIONS_BY_ID = {}
+            event_channel_route_factory._CONNECTIONS_BY_NAME = None
+            event_channel_route_factory._CONNECTIONS_BY_ID = {}
 
     def test_unauthorized(self):
-        subscription_ = subscription(
-            str, "foobar", access_control=ScopeAccessControl("root")
+        channel = websocket_channel(
+            "foobar", str, access_control=ScopeAccessControl("root")
         )
-        factory = SubscriptionRouteFactory()
-        subscription_route_factory._SUBSCRIPTION_CONNECTIONS_BY_NAME = {
-            "foobar": _SubscriptionConnections(subscription_)
+        factory = EventChannelRouteFactory()
+        event_channel_route_factory._CONNECTIONS_BY_NAME = {
+            "foobar": _ChannelConnections(channel)
         }
-        subscription_route_factory._CONNECTIONS_BY_ID = {}
+        event_channel_route_factory._CONNECTIONS_BY_ID = {}
         try:
             subscription_route = list(factory.create_routes())[0]
-            subscription_endpoint = subscription_route.endpoint(
+            event_channel_endpoint = subscription_route.endpoint(
                 {"type": "websocket"}, None, None
             )
             web_socket = MockWebSocket()
             loop = asyncio.get_event_loop()
-            loop.run_until_complete(subscription_endpoint.on_connect(web_socket))
+            loop.run_until_complete(event_channel_endpoint.on_connect(web_socket))
             with self.assertRaises(ServeyError):
                 loop.run_until_complete(
-                    subscription_endpoint.on_receive(
+                    event_channel_endpoint.on_receive(
                         web_socket,
                         json.dumps({"type": "Subscribe", "payload": "foobar"}),
                     )
                 )
         finally:
-            subscription_route_factory._SUBSCRIPTION_CONNECTIONS_BY_NAME = None
-            subscription_route_factory._CONNECTIONS_BY_ID = {}
+            event_channel_route_factory._CONNECTIONS_BY_NAME = None
+            event_channel_route_factory._CONNECTIONS_BY_ID = {}
 
     def test_unknown_subscription(self):
         try:
-            factory = SubscriptionRouteFactory()
+            factory = EventChannelRouteFactory()
             subscription_route = list(factory.create_routes())[0]
-            subscription_endpoint = subscription_route.endpoint(
+            event_channel_endpoint = subscription_route.endpoint(
                 {"type": "websocket"}, None, None
             )
             web_socket = MockWebSocket()
             loop = asyncio.get_event_loop()
-            loop.run_until_complete(subscription_endpoint.on_connect(web_socket))
+            loop.run_until_complete(event_channel_endpoint.on_connect(web_socket))
             with self.assertRaises(ServeyError):
                 loop.run_until_complete(
-                    subscription_endpoint.on_receive(
+                    event_channel_endpoint.on_receive(
                         web_socket,
                         json.dumps({"type": "Foobar", "payload": "messager"}),
                     )
                 )
         finally:
-            subscription_route_factory._SUBSCRIPTION_CONNECTIONS_BY_NAME = None
-            subscription_route_factory._CONNECTIONS_BY_ID = {}
+            event_channel_route_factory._CONNECTIONS_BY_NAME = None
+            event_channel_route_factory._CONNECTIONS_BY_ID = {}
 
     def test_filtering(self):
-        subscription_ = subscription(str, "foobar", event_filter=NopeEventFilter())
-        subscription_route_factory._SUBSCRIPTION_CONNECTIONS_BY_NAME = {
-            "foobar": _SubscriptionConnections(subscription_)
+        channel = websocket_channel("foobar", str, event_filter=NopeEventFilter())
+        event_channel_route_factory._CONNECTIONS_BY_NAME = {
+            "foobar": _ChannelConnections(channel)
         }
-        subscription_route_factory._CONNECTIONS_BY_ID = {}
+        event_channel_route_factory._CONNECTIONS_BY_ID = {}
         try:
-            factory = SubscriptionRouteFactory()
-            subscription_service = factory.create([subscription_])
-            subscription_route = list(factory.create_routes())[0]
-            subscription_endpoint = subscription_route.endpoint(
+            factory = EventChannelRouteFactory()
+            sender = factory.create("foobar", str_schema())
+            channel_route = list(factory.create_routes())[0]
+            event_channel_endpoint = channel_route.endpoint(
                 {"type": "websocket"}, None, None
             )
             web_socket = MockWebSocket()
             authorizer = get_default_authorizer()
             web_socket.headers["Authorization"] = f"Bearer {authorizer.encode(ROOT)}"
             loop = asyncio.get_event_loop()
-            loop.run_until_complete(subscription_endpoint.on_connect(web_socket))
+            loop.run_until_complete(event_channel_endpoint.on_connect(web_socket))
             loop.run_until_complete(
-                subscription_endpoint.on_receive(
+                event_channel_endpoint.on_receive(
                     web_socket, json.dumps({"type": "Unsubscribe", "payload": "foobar"})
                 )
             )
             loop.run_until_complete(
-                subscription_endpoint.on_receive(
+                event_channel_endpoint.on_receive(
                     web_socket, json.dumps({"type": "Subscribe", "payload": "foobar"})
                 )
             )
-            subscription_service.publish(subscription_, "Hello There!")
+            sender.send("foobar", "Hello There!")
             self.assertEqual(1, web_socket.accepts)
             self.assertEqual([], web_socket.sent)
         finally:
-            subscription_route_factory._SUBSCRIPTION_CONNECTIONS_BY_NAME = None
-            subscription_route_factory._CONNECTIONS_BY_ID = {}
+            event_channel_route_factory._CONNECTIONS_BY_NAME = None
+            event_channel_route_factory._CONNECTIONS_BY_ID = {}
 
     def test_send_error(self):
-        subscription_ = subscription(str, "foobar")
-        subscription_route_factory._SUBSCRIPTION_CONNECTIONS_BY_NAME = {
-            "foobar": _SubscriptionConnections(subscription_)
+        channel = websocket_channel("foobar", str)
+        event_channel_route_factory._CONNECTIONS_BY_NAME = {
+            "foobar": _ChannelConnections(channel)
         }
-        subscription_route_factory._CONNECTIONS_BY_ID = {}
+        event_channel_route_factory._CONNECTIONS_BY_ID = {}
         try:
-            factory = SubscriptionRouteFactory()
-            subscription_service = factory.create([subscription_])
+            factory = EventChannelRouteFactory()
+            sender = factory.create("foobar", str_schema())
             subscription_route = list(factory.create_routes())[0]
-            subscription_endpoint = subscription_route.endpoint(
+            event_channel_endpoint = subscription_route.endpoint(
                 {"type": "websocket"}, None, None
             )
 
@@ -187,16 +184,16 @@ class TestSubscriptionRoute(TestCase):
 
             web_socket = ErrorWebSocket()
             loop = asyncio.get_event_loop()
-            loop.run_until_complete(subscription_endpoint.on_connect(web_socket))
+            loop.run_until_complete(event_channel_endpoint.on_connect(web_socket))
             loop.run_until_complete(
-                subscription_endpoint.on_receive(
+                event_channel_endpoint.on_receive(
                     web_socket, json.dumps({"type": "Subscribe", "payload": "foobar"})
                 )
             )
-            subscription_service.publish(subscription_, "Hello There!")
+            sender.send("foobar", "Hello There!")
         finally:
-            subscription_route_factory._SUBSCRIPTION_CONNECTIONS_BY_NAME = None
-            subscription_route_factory._CONNECTIONS_BY_ID = {}
+            event_channel_route_factory._CONNECTIONS_BY_NAME = None
+            event_channel_route_factory._CONNECTIONS_BY_ID = {}
 
 
 @dataclass
@@ -213,7 +210,7 @@ class MockWebSocket:
         self.sent.append(event)
 
 
-class NopeEventFilter(EventFilterABC):
+class NopeEventFilter(EventFilterABC[T]):
     """Filter all events"""
 
     def should_publish(self, event: T, authorization: Optional[Authorization]) -> bool:

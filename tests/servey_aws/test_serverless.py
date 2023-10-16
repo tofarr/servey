@@ -3,22 +3,24 @@ from dataclasses import field, dataclass
 from io import StringIO
 from os.path import exists
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 from uuid import UUID
 
 from servey.action.action import get_action, action
 from servey.errors import ServeyError
+from servey.event_channel.background.background_action_channel import (
+    background_action_channel,
+)
 from servey.servey_aws.serverless.__main__ import generate_serverless_scaffold, main
 from servey.servey_aws.serverless.trigger_handler.fixed_rate_trigger_handler import (
     FixedRateTriggerHandler,
 )
-from servey.servey_aws.serverless.yml_config.subscription_function_config import (
-    SubscriptionFunctionConfig,
+from servey.servey_aws.serverless.yml_config.event_channel_function_config import (
+    EventChannelFunctionConfig,
 )
 from servey.servey_aws.serverless.yml_config.yml_config_abc import ensure_ref_in_file
-from servey.subscription.subscription import subscription
 from servey.trigger.fixed_rate_trigger import FixedRateTrigger
 from servey.trigger.web_trigger import WEB_GET
 from tests.specs.number_spec.actions import (
@@ -55,9 +57,9 @@ class TestServerless(TestCase):
             "serverless.yml",
             "serverless_servey/kms_resource.yml",
             "serverless_servey/kms_role_statement.yml",
-            "serverless_servey/subscriptions_handlers.yml",
-            "serverless_servey/subscriptions_resources.yml",
-            "serverless_servey/subscriptions_role_statement.yml",
+            "serverless_servey/event_channel_handlers.yml",
+            "serverless_servey/event_channel_resources.yml",
+            "serverless_servey/event_channel_role_statement.yml",
             "serverless_servey/schema.graphql",
             "serverless_servey/appsync.yml",
             "serverless_servey/actions.yml",
@@ -78,9 +80,9 @@ class TestServerless(TestCase):
             generate_serverless_scaffold({"KmsKeyConfig"})
         generated_files = [
             "serverless.yml",
-            "serverless_servey/subscriptions_handlers.yml",
-            "serverless_servey/subscriptions_resources.yml",
-            "serverless_servey/subscriptions_role_statement.yml",
+            "serverless_servey/event_channel_handlers.yml",
+            "serverless_servey/event_channel_resources.yml",
+            "serverless_servey/event_channel_role_statement.yml",
             "serverless_servey/schema.graphql",
             "serverless_servey/appsync.yml",
             "serverless_servey/actions.yml",
@@ -116,7 +118,7 @@ class TestServerless(TestCase):
             )
 
     def test_subscription_function_config_no_subscriptions(self):
-        config = SubscriptionFunctionConfig(subscriptions=[])
+        config = EventChannelFunctionConfig(event_channels=[])
         config.configure("")
 
     def test_ensure_ref_in_files_not_yet_existing(self):
@@ -206,12 +208,11 @@ foo:
                 return_value=[get_action(ping)],
             ),
             patch(
-                "servey.servey_aws.serverless.yml_config.action_function_config.find_subscriptions",
+                "servey.servey_aws.serverless.yml_config.action_function_config.find_channels_by_type",
                 return_value=[
-                    subscription(
-                        event_type=int,
+                    background_action_channel(
+                        action=get_action(ping),
                         name="on_ping",
-                        action_subscribers=[get_action(ping)],
                     )
                 ],
             ),
@@ -227,7 +228,7 @@ foo:
         mock = MagicMock()
         mock.return_value.publish.return_value = None
         mock.return_value.publish.return_value = None
-        with patch("tests.specs.number_spec.subscriptions.integer_stats_queue", mock):
+        with patch("tests.specs.number_spec.event_channels.integer_stats_queue", mock):
             integer_stats_publisher()
 
 
@@ -246,7 +247,7 @@ class MockFileSystem:
     def exists(self, path):
         return path in self.contents
 
-    def open(self, path: str, mode: str):
+    def open(self, path: str, mode: str = "rb", encoding: Optional[str] = None):
         if mode == "r":
             result = self.contents[path]
             return result

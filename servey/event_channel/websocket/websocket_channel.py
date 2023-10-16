@@ -6,13 +6,13 @@ from schemey import schema_from_type, Schema
 
 from servey.errors import ServeyError
 from servey.event_channel.event_channel_abc import EventChannelABC, T
+from servey.event_channel.websocket.event_filter_abc import EventFilterABC
 from servey.event_channel.websocket.websocket_sender import (
     WebsocketSenderABC,
     WebsocketSenderFactoryABC,
 )
 from servey.security.access_control.access_control_abc import AccessControlABC
 from servey.security.access_control.allow_all import ALLOW_ALL
-from servey.subscription.event_filter_abc import EventFilterABC
 
 
 @dataclass

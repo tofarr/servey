@@ -1,6 +1,6 @@
 import inspect
 from dataclasses import dataclass
-from typing import Union, Callable
+from typing import Union, Callable, Optional
 
 from marshy.factory.impl_marshaller_factory import get_impls
 from schemey import schema_from_type
@@ -26,7 +26,7 @@ class BackgroundActionChannel(EventChannelABC[T]):
         self.get_background_invoker().invoke(event, self.delay)
 
     def get_background_invoker(self):
-        background_invoker = getattr(self, "_background_invoker")
+        background_invoker = getattr(self, "_background_invoker", None)
         if background_invoker:
             return background_invoker
         sig = inspect.signature(self.action.fn)
@@ -44,7 +44,11 @@ class BackgroundActionChannel(EventChannelABC[T]):
         raise ServeyError(f"no_invoker_for_channel:{self.name}")
 
 
-def background_action_channel(action: Union[Action, Callable], delay: int = 0):
+def background_action_channel(
+    action: Union[Action, Callable], delay: int = 0, name: Optional[str] = None
+):
     if not isinstance(action, Action):
         action = get_action(action)
-    return BackgroundActionChannel(action.name, action, delay)
+    if not name:
+        name = action.name
+    return BackgroundActionChannel(name, action, delay)

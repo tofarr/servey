@@ -20,7 +20,7 @@ def main():
     parser = argparse.ArgumentParser(description="Invoke an action directly")
     parser.add_argument("--run", default="action")
     parser.add_argument("--action")
-    parser.add_argument("--event_channel", default="{}")
+    parser.add_argument("--event", default="{}")
     args = parser.parse_args()
 
     action = next((a for a in find_actions() if a.name == args.action), None)

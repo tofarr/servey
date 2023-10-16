@@ -17,7 +17,9 @@ class ModuleEventChannelFinder(EventChannelFinderABC):
     Default implementation of channel finder which searches for channels in a particular module
     """
 
-    root_module_name: str = field(default_factory=lambda: f"{get_servey_main()}.events")
+    root_module_name: str = field(
+        default_factory=lambda: f"{get_servey_main()}.event_channels"
+    )
 
     def find_channels(self) -> Iterator[EventChannelABC]:
         try:

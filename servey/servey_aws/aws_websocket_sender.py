@@ -62,9 +62,9 @@ class AWSWebsocketSender(WebsocketSenderABC[T]):
                         user_authorization = self.authorization_marshaller.load(
                             user_authorization
                         )
-                    if not self.event_filter.should_invoke(event, user_authorization):
+                    if not self.event_filter.should_publish(event, user_authorization):
                         continue
-                data = json.dumps(self.event_marshaller.dump(event))
+                data = json.dumps(self.event_marshaller.dump(event)).encode("utf-8")
                 api.post_to_connection(Data=data, ConnectionId=item["connection_id"])
             kwargs["ExclusiveStartKey"] = response.get("LastEvaluatedKey")
             if not kwargs["ExclusiveStartKey"]:

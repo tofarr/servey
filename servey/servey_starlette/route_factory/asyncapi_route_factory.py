@@ -1,18 +1,18 @@
 import os
 from dataclasses import field, dataclass
-from typing import Iterator, List
+from typing import Iterator, List, Union
 
 from marshy.types import ExternalItemType
+from schemey import Schema
 from schemey.util import filter_none
 from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 from starlette.routing import Route
 
-from servey.finder.subscription_finder_abc import find_subscriptions
-from servey.security.access_control.allow_none import ALLOW_NONE
+from servey.action.util import move_ref_items_to_components
+from servey.event_channel.websocket.websocket_channel import WebsocketChannel
+from servey.finder.event_channel_finder_abc import find_channels_by_type
 from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
-from servey.subscription.subscription import Subscription
-from servey.subscription.subscription_event import subscription_event_schema
 
 
 @dataclass
@@ -28,12 +28,12 @@ class AsyncapiRouteFactory(RouteFactoryABC):
     )
 
     @staticmethod
-    def get_subscribable() -> List[Subscription]:
-        result = [s for s in find_subscriptions() if s.access_control != ALLOW_NONE]
+    def get_websocket_channels() -> List[WebsocketChannel]:
+        result = [s for s in find_channels_by_type(WebsocketChannel)]
         return result
 
     def create_routes(self) -> Iterator[Route]:
-        if self.get_subscribable():
+        if self.get_websocket_channels():
             yield Route(
                 "/asyncapi.json", endpoint=self.endpoint, include_in_schema=False
             )
@@ -47,7 +47,7 @@ class AsyncapiRouteFactory(RouteFactoryABC):
 
     def asyncapi_schema(self) -> ExternalItemType:
         components = {}
-        payload_schema = subscription_event_schema(self.get_subscribable(), components)
+        payload_schema = channel_event_schema(self.get_websocket_channels(), components)
         schema = {
             "asyncapi": "2.5.0",
             "info": filter_none(
@@ -81,3 +81,21 @@ class AsyncapiRouteFactory(RouteFactoryABC):
                 "production": {"url": server_ws_url, "protocol": "wss"}
             }
         return schema
+
+
+def channel_event_schema(
+    channels: List[WebsocketChannel], components: ExternalItemType
+) -> Schema:
+    any_of = []
+    for channel in channels:
+        schema = channel.event_schema.schema
+        schema = move_ref_items_to_components(schema, schema, components)
+        any_of.append(
+            {
+                "properties": {"type": {"const": type.__name__}, "payload": schema},
+                "additionalProperties": False,
+                "required": ["type", "payload"],
+            }
+        )
+    type_ = Union[tuple(c.event_schema.python_type for c in channels)]
+    return Schema({"anyOf": any_of}, type_)

@@ -46,7 +46,7 @@ class SqsSBackgroundInvoker(BackgroundInvokerABC[T]):
 
 
 class SqsBackgroundInvokerFactory(BackgroundInvokerFactoryABC):
-    def create(self, action: Action) -> Optional[BackgroundInvokerABC]:
+    def create(self, action: Action, name: str) -> Optional[BackgroundInvokerABC]:
         if not is_lambda_env():
             return
         service_name = get_servey_main()
@@ -58,5 +58,5 @@ class SqsBackgroundInvokerFactory(BackgroundInvokerFactoryABC):
         return SqsSBackgroundInvoker(
             action=action,
             event_marshaller=get_default_context().get_marshaller(event_type),
-            queue_name=service_name + "-" + action.name,
+            queue_name=service_name + "-" + name,
         )

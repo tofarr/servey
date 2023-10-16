@@ -13,5 +13,5 @@ class BackgroundInvokerConfig(CeleryConfigABC):
     def configure(self, app: Celery, global_ns: Dict):
         for channel in find_channels_by_type(BackgroundActionChannel):
             if channel.name not in global_ns:
-                fn = channel.fn
+                fn = channel.action.fn
                 global_ns[channel.name] = app.task(fn)
