@@ -15,8 +15,8 @@ from servey.security.access_control.access_control_abc import AccessControlABC
 from servey.security.access_control.allow_all import ALLOW_ALL
 
 
-@dataclass
-class WebsocketChannel(EventChannelABC[T]):
+@dataclass(frozen=True)
+class WebsocketEventChannel(EventChannelABC[T]):
     """
     Channel which passes an event_channel to a web socket
     """
@@ -30,17 +30,17 @@ class WebsocketChannel(EventChannelABC[T]):
         self.websocket_sender.send(self.name, event)
 
 
-def websocket_channel(
+def websocket_event_channel(
     name: str,
     event_type: Type,
     access_control: AccessControlABC = ALLOW_ALL,
     event_filter: Optional[EventFilterABC] = None,
-) -> WebsocketChannel:
+) -> WebsocketEventChannel:
     schema = schema_from_type(event_type)
     factories = [impl() for impl in get_impls(WebsocketSenderFactoryABC)]
     factories.sort(key=lambda f: f.priority, reverse=True)
     for factory in factories:
         websocket_sender = factory.create(name, schema, event_filter)
         if websocket_sender:
-            return WebsocketChannel(name, schema, access_control, websocket_sender)
+            return WebsocketEventChannel(name, schema, access_control, websocket_sender)
     raise ServeyError(f"no_sender_for_channel:{name}")

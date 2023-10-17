@@ -21,16 +21,16 @@ class ModuleEventChannelFinder(EventChannelFinderABC):
         default_factory=lambda: f"{get_servey_main()}.event_channels"
     )
 
-    def find_channels(self) -> Iterator[EventChannelABC]:
+    def find_event_channels(self) -> Iterator[EventChannelABC]:
         try:
             module = importlib.import_module(self.root_module_name)
             # noinspection PyTypeChecker
-            yield from _find_channels_in_module(module)
+            yield from _find_event_channels_in_module(module)
         except ModuleNotFoundError as e:
             LOGGER.info(f"no_channels_found:{e}")
 
 
-def _find_channels_in_module(module) -> Iterator[EventChannelABC]:
+def _find_event_channels_in_module(module) -> Iterator[EventChannelABC]:
     for value in module.__dict__.values():
         if isinstance(value, EventChannelABC):
             yield value
@@ -43,4 +43,4 @@ def _find_channels_in_module(module) -> Iterator[EventChannelABC]:
         sub_module_name = module.__name__ + "." + module_info.name
         sub_module = importlib.import_module(sub_module_name)
         # noinspection PyTypeChecker
-        yield from _find_channels_in_module(sub_module)
+        yield from _find_event_channels_in_module(sub_module)

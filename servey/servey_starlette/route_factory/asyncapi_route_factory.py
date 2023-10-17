@@ -10,8 +10,8 @@ from starlette.responses import Response, JSONResponse
 from starlette.routing import Route
 
 from servey.action.util import move_ref_items_to_components
-from servey.event_channel.websocket.websocket_channel import WebsocketChannel
-from servey.finder.event_channel_finder_abc import find_channels_by_type
+from servey.event_channel.websocket.websocket_event_channel import WebsocketEventChannel
+from servey.finder.event_channel_finder_abc import find_event_channels_by_type
 from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
 
 
@@ -28,8 +28,8 @@ class AsyncapiRouteFactory(RouteFactoryABC):
     )
 
     @staticmethod
-    def get_websocket_channels() -> List[WebsocketChannel]:
-        result = [s for s in find_channels_by_type(WebsocketChannel)]
+    def get_websocket_channels() -> List[WebsocketEventChannel]:
+        result = [s for s in find_event_channels_by_type(WebsocketEventChannel)]
         return result
 
     def create_routes(self) -> Iterator[Route]:
@@ -84,7 +84,7 @@ class AsyncapiRouteFactory(RouteFactoryABC):
 
 
 def channel_event_schema(
-    channels: List[WebsocketChannel], components: ExternalItemType
+    channels: List[WebsocketEventChannel], components: ExternalItemType
 ) -> Schema:
     any_of = []
     for channel in channels:

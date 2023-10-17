@@ -15,13 +15,13 @@ from starlette.websockets import WebSocket
 from servey.errors import ServeyError
 from servey.event_channel.websocket.event_filter_abc import EventFilterABC
 
-from servey.event_channel.websocket.websocket_channel import WebsocketChannel
+from servey.event_channel.websocket.websocket_event_channel import WebsocketEventChannel
 from servey.event_channel.websocket.websocket_sender import (
     WebsocketSenderFactoryABC,
     WebsocketSenderABC,
     T,
 )
-from servey.finder.event_channel_finder_abc import find_channels_by_type
+from servey.finder.event_channel_finder_abc import find_event_channels_by_type
 from servey.security.access_control.access_control_abc import AccessControlABC
 from servey.security.access_control.allow_all import ALLOW_ALL
 from servey.security.authorization import Authorization
@@ -37,7 +37,7 @@ class EventChannelRouteFactory(RouteFactoryABC, WebsocketSenderFactoryABC):
 
     def create_routes(self) -> Iterator[Route]:
         should_create_route = next(
-            (True for _ in find_channels_by_type(WebsocketChannel)), False
+            (True for _ in find_event_channels_by_type(WebsocketEventChannel)), False
         )
         if should_create_route:
             route = WebSocketRoute(self.path, _WebsocketChannelEndpoint)
@@ -126,7 +126,7 @@ class _Connection:
 
 @dataclass
 class _ChannelConnections:
-    channel: WebsocketChannel
+    channel: WebsocketEventChannel
     connections: List[_Connection] = field(default_factory=list)
 
 
@@ -140,7 +140,7 @@ def _get_connections_by_name() -> Dict[str, _ChannelConnections]:
     if _CONNECTIONS_BY_NAME is None:
         _CONNECTIONS_BY_NAME = {
             channel.name: _ChannelConnections(channel)
-            for channel in find_channels_by_type(WebsocketChannel)
+            for channel in find_event_channels_by_type(WebsocketEventChannel)
         }
     return _CONNECTIONS_BY_NAME
 

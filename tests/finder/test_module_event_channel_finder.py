@@ -17,10 +17,10 @@ class TestModuleSubscriptionFinder(TestCase):
         from tests.finder.event_channels.test_event_channel import my_channel
 
         finder = ModuleEventChannelFinder("tests.finder.event_channels")
-        channels = list(finder.find_channels())
+        channels = list(finder.find_event_channels())
         expected = [my_channel]
         self.assertEqual(expected, channels)
 
     def test_find_event_channels_not_found(self):
         finder = ModuleEventChannelFinder("this.module.does.not.exist")
-        self.assertEqual([], list(finder.find_channels()))
+        self.assertEqual([], list(finder.find_event_channels()))

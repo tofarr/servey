@@ -4,7 +4,9 @@ import os
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 
-from servey.event_channel.websocket.websocket_channel import websocket_channel
+from servey.event_channel.websocket.websocket_event_channel import (
+    websocket_event_channel,
+)
 from servey.security.authorization import ROOT
 from tests.servey_strawberry.test_schema_factory import NumberStats
 
@@ -121,7 +123,7 @@ class TestLambdaWebsocket(TestCase):
             self.assertEqual(items, delete_item_call_list)
 
     def test_subscribe(self):
-        channel = websocket_channel("number_stats", NumberStats)
+        channel = websocket_event_channel("number_stats", NumberStats)
         mock_resource = MagicMock()
         item = {"connection_id": "connection_1", "subscription_name": " "}
         table = mock_resource.return_value.Table.return_value
@@ -136,7 +138,7 @@ class TestLambdaWebsocket(TestCase):
                 },
             ),
             patch(
-                "servey.finder.event_channel_finder_abc.find_channels",
+                "servey.finder.event_channel_finder_abc.find_event_channels",
                 return_value=[channel],
             ),
         ):
@@ -174,7 +176,7 @@ class TestLambdaWebsocket(TestCase):
             )
 
     def test_unsubscribe(self):
-        channel = websocket_channel("number_stats", NumberStats)
+        channel = websocket_event_channel("number_stats", NumberStats)
         mock_resource = MagicMock()
         with (
             patch("boto3.resource", mock_resource),
@@ -186,7 +188,7 @@ class TestLambdaWebsocket(TestCase):
                 },
             ),
             patch(
-                "servey.finder.event_channel_finder_abc.find_channels",
+                "servey.finder.event_channel_finder_abc.find_event_channels",
                 return_value=[channel],
             ),
         ):
@@ -223,7 +225,7 @@ class TestLambdaWebsocket(TestCase):
             )
 
     def test_invalid_body(self):
-        channel = websocket_channel("number_stats", NumberStats)
+        channel = websocket_event_channel("number_stats", NumberStats)
         mock_resource = MagicMock()
         with (
             patch("boto3.resource", mock_resource),
@@ -235,7 +237,7 @@ class TestLambdaWebsocket(TestCase):
                 },
             ),
             patch(
-                "servey.finder.event_channel_finder_abc.find_channels",
+                "servey.finder.event_channel_finder_abc.find_event_channels",
                 return_value=[channel],
             ),
         ):

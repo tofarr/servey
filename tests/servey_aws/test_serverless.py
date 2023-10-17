@@ -208,7 +208,7 @@ foo:
                 return_value=[get_action(ping)],
             ),
             patch(
-                "servey.servey_aws.serverless.yml_config.action_function_config.find_channels_by_type",
+                "servey.servey_aws.serverless.yml_config.action_function_config.find_event_channels_by_type",
                 return_value=[
                     background_action_channel(
                         action=get_action(ping),

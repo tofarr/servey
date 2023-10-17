@@ -11,7 +11,7 @@ from servey.trigger.web_trigger import WebTriggerMethod
 
 
 @dataclass(frozen=True)
-class WebhookChannel(EventChannelABC[T]):
+class WebhookEventChannel(EventChannelABC[T]):
     """
     Publisher which passes an event_channel to a web hook
     """

@@ -7,8 +7,11 @@ from servey.event_channel.background.background_action_channel import (
     BackgroundActionChannel,
 )
 from servey.event_channel.event_channel_abc import EventChannelABC
-from servey.event_channel.websocket.websocket_channel import WebsocketChannel
-from servey.finder.event_channel_finder_abc import find_channels_by_type, find_channels
+from servey.event_channel.websocket.websocket_event_channel import WebsocketEventChannel
+from servey.finder.event_channel_finder_abc import (
+    find_event_channels_by_type,
+    find_event_channels,
+)
 from servey.servey_aws.serverless.yml_config.yml_config_abc import (
     YmlConfigABC,
     ensure_ref_in_file,
@@ -27,13 +30,13 @@ class EventChannelFunctionConfig(YmlConfigABC):
     resources_yml_file: str = "serverless_servey/event_channel_resources.yml"
     role_statement_yml_file: str = "serverless_servey/event_channel_role_statement.yml"
     event_channels: List[EventChannelABC] = field(
-        default_factory=lambda: list(find_channels())
+        default_factory=lambda: list(find_event_channels())
     )
 
     @property
     def has_websocket_channels(self):
         has_websocket_channels = next(
-            (True for _ in find_channels_by_type(WebsocketChannel)), False
+            (True for _ in find_event_channels_by_type(WebsocketEventChannel)), False
         )
         return has_websocket_channels
 

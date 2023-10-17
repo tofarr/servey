@@ -11,18 +11,18 @@ from servey.event_channel.background.background_invoker_abc import (
 
 @dataclass
 class CeleryBackgroundInvoker(BackgroundInvokerABC):
-    action: Action
+    name: str
 
     def invoke(self, event: T, delay: int = 0):
         from servey.servey_celery import celery_app
 
-        task = getattr(celery_app, self.action.name)
+        task = getattr(celery_app, self.name)
         task.delay(*[event], countdown=delay)
 
 
 class CeleryBackgroundInvokerFactory(BackgroundInvokerFactoryABC):
-    def create(self, action: Action) -> Optional[BackgroundInvokerABC]:
+    def create(self, action: Action, name: str) -> Optional[BackgroundInvokerABC]:
         from servey.servey_celery import has_celery_broker
 
         if has_celery_broker():
-            return CeleryBackgroundInvoker(action)
+            return CeleryBackgroundInvoker(name)

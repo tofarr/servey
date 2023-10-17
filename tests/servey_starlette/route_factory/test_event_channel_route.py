@@ -9,7 +9,9 @@ from schemey.schema import str_schema
 
 from servey.errors import ServeyError
 from servey.event_channel.websocket.event_filter_abc import EventFilterABC, T
-from servey.event_channel.websocket.websocket_channel import websocket_channel
+from servey.event_channel.websocket.websocket_event_channel import (
+    websocket_event_channel,
+)
 from servey.security.access_control.scope_access_control import ScopeAccessControl
 from servey.security.authorization import ROOT, Authorization
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
@@ -22,12 +24,12 @@ from servey.servey_starlette.route_factory.event_channel_route_factory import (
 
 class TestEventChannelRoute(TestCase):
     def test_publish_no_connections(self):
-        channel = websocket_channel("messager", str)
+        channel = websocket_event_channel("messager", str)
         channel.publish("Hello There!")
         # Does nothing
 
     def test_create(self):
-        channel = websocket_channel("foobar", str)
+        channel = websocket_event_channel("foobar", str)
         event_channel_route_factory._CONNECTIONS_BY_NAME = {
             "foobar": _ChannelConnections(channel)
         }
@@ -81,7 +83,7 @@ class TestEventChannelRoute(TestCase):
             event_channel_route_factory._CONNECTIONS_BY_ID = {}
 
     def test_unauthorized(self):
-        channel = websocket_channel(
+        channel = websocket_event_channel(
             "foobar", str, access_control=ScopeAccessControl("root")
         )
         factory = EventChannelRouteFactory()
@@ -130,7 +132,7 @@ class TestEventChannelRoute(TestCase):
             event_channel_route_factory._CONNECTIONS_BY_ID = {}
 
     def test_filtering(self):
-        channel = websocket_channel("foobar", str, event_filter=NopeEventFilter())
+        channel = websocket_event_channel("foobar", str, event_filter=NopeEventFilter())
         event_channel_route_factory._CONNECTIONS_BY_NAME = {
             "foobar": _ChannelConnections(channel)
         }
@@ -165,7 +167,7 @@ class TestEventChannelRoute(TestCase):
             event_channel_route_factory._CONNECTIONS_BY_ID = {}
 
     def test_send_error(self):
-        channel = websocket_channel("foobar", str)
+        channel = websocket_event_channel("foobar", str)
         event_channel_route_factory._CONNECTIONS_BY_NAME = {
             "foobar": _ChannelConnections(channel)
         }

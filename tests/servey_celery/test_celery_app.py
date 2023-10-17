@@ -33,7 +33,7 @@ class TestCeleryApp(TestCase):
                 return_value=[get_action(ping), get_action(consume_message)],
             ),
             patch(
-                "servey.servey_celery.celery_config.background_invoker_config.find_channels_by_type",
+                "servey.servey_celery.celery_config.background_invoker_config.find_event_channels_by_type",
                 return_value=[channel],
             ),
             patch.dict(os.environ, dict(CELERY_BROKER="redis://localhost:6379/0")),
@@ -57,7 +57,7 @@ class TestCeleryApp(TestCase):
                 return_value=[get_action(pong)],
             ),
             patch(
-                "servey.servey_celery.celery_config.background_invoker_config.find_channels_by_type",
+                "servey.servey_celery.celery_config.background_invoker_config.find_event_channels_by_type",
                 return_value=[],
             ),
             patch.dict(os.environ, dict(CELERY_BROKER="redis://localhost:6379/0")),

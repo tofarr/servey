@@ -5,7 +5,7 @@ from typing import Generic, TypeVar
 T = TypeVar("T")
 
 
-@dataclass
+@dataclass(frozen=True)
 class EventChannelABC(Generic[T], ABC):
     """
     A channel represents something which can receive events - be it a background process, web hook, client web socket,

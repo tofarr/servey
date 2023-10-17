@@ -3,7 +3,9 @@ import os
 from unittest import TestCase
 from unittest.mock import patch
 
-from servey.event_channel.websocket.websocket_channel import websocket_channel
+from servey.event_channel.websocket.websocket_event_channel import (
+    websocket_event_channel,
+)
 from servey.servey_starlette.route_factory.asyncapi_route_factory import (
     AsyncapiRouteFactory,
 )
@@ -17,7 +19,7 @@ class TestAsyncapiRouteFactory(TestCase):
             patch(
                 path,
                 return_value=[
-                    websocket_channel("my_message", str),
+                    websocket_event_channel("my_message", str),
                 ],
             ),
             patch.dict(os.environ, {"SERVER_WS_URL": "https://foo.com/"}),

@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from typing import Union, Callable, Optional
 
 from marshy.factory.impl_marshaller_factory import get_impls
-from schemey import schema_from_type
 
 from servey.action.action import Action, get_action
 from servey.errors import ServeyError
@@ -13,7 +12,7 @@ from servey.event_channel.background.background_invoker_abc import (
 from servey.event_channel.event_channel_abc import EventChannelABC, T
 
 
-@dataclass
+@dataclass(frozen=True)
 class BackgroundActionChannel(EventChannelABC[T]):
     """
     Publisher which passes an event_channel to a background action for processing
@@ -37,9 +36,9 @@ class BackgroundActionChannel(EventChannelABC[T]):
         factories = [impl() for impl in get_impls(BackgroundInvokerFactoryABC)]
         factories.sort(key=lambda f: f.priority, reverse=True)
         for factory in factories:
-            background_invoker = factory.create(self.action)
+            background_invoker = factory.create(self.action, self.name)
             if background_invoker:
-                setattr(self, "_background_invoker", background_invoker)
+                object.__setattr__(self, "_background_invoker", background_invoker)
                 return background_invoker
         raise ServeyError(f"no_invoker_for_channel:{self.name}")
 

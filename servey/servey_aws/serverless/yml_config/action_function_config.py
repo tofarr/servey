@@ -9,7 +9,7 @@ from servey.event_channel.background.background_action_channel import (
     BackgroundActionChannel,
 )
 from servey.finder.action_finder_abc import find_actions
-from servey.finder.event_channel_finder_abc import find_channels_by_type
+from servey.finder.event_channel_finder_abc import find_event_channels_by_type
 from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
     TriggerHandlerABC,
 )
@@ -74,7 +74,7 @@ class ActionFunctionConfig(YmlConfigABC):
             for trigger in action.triggers:
                 for handler in trigger_handlers:
                     handler.handle_trigger(action, trigger, lambda_definition)
-        for channel in find_channels_by_type(BackgroundActionChannel):
+        for channel in find_event_channels_by_type(BackgroundActionChannel):
             action = channel.action
             if action.name in lambda_definitions:
                 lambda_definition = lambda_definitions[action.name]
