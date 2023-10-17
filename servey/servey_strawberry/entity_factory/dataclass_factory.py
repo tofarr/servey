@@ -83,6 +83,7 @@ class DataclassFactory(EntityFactoryABC):
                 params[f.name] = dataclasses.field(default_factory=f.default_factory)
             annotations[f.name] = schema_factory.get_input(type_)
 
+        # noinspection PyTypeChecker
         wrap_type = dataclass(type(name, tuple(), params))
         input_ = strawberry.input(wrap_type)
         schema_factory.inputs[name] = input_

@@ -63,8 +63,8 @@ class CloudfrontConfig(YmlConfigABC):
                         },
                         "FunctionCode": "\n".join(
                             (
-                                "function handler(event) {",
-                                "    var request = event.request;",
+                                "function handler(event_channel) {",
+                                "    var request = event_channel.request;",
                                 "    var uri = request.uri;",
                                 "",
                                 "    if (uri.endsWith('/')) {",

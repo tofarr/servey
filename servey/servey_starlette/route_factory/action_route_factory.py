@@ -9,11 +9,9 @@ from servey.servey_starlette.action_endpoint.action_endpoint_abc import (
     ActionEndpointABC,
 )
 
-from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory import (
-    ActionEndpointFactory,
-)
 from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory_abc import (
     create_endpoint_factories,
+    ActionEndpointFactoryABC,
 )
 from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
 
@@ -22,7 +20,7 @@ from servey.servey_starlette.route_factory.route_factory_abc import RouteFactory
 class ActionRouteFactory(RouteFactoryABC):
     """Utility for mounting actions to fastapi_integration."""
 
-    action_endpoint_factories: List[ActionEndpointFactory] = field(
+    action_endpoint_factories: List[ActionEndpointFactoryABC] = field(
         default_factory=create_endpoint_factories
     )
 

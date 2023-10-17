@@ -3,7 +3,10 @@ import logging
 from marshy.factory.impl_marshaller_factory import register_impl
 from marshy.marshaller_context import MarshallerContext
 
-from servey.subscription.subscription_service import SubscriptionServiceFactoryABC
+from servey.event_channel.background.background_invoker_abc import (
+    BackgroundInvokerFactoryABC,
+)
+from servey.event_channel.websocket.websocket_sender import WebsocketSenderFactoryABC
 
 priority = 90
 LOGGER = logging.getLogger(__name__)
@@ -20,7 +23,7 @@ def configure(context: MarshallerContext):
     )
     context.register_marshaller(ToSecondDatetimeMarshaller())
     configure_finders(context)
-    configure_asyncio_subscriptions(context)
+    configure_asyncio_invoker(context)
     configure_auth(context)
     configure_starlette(context)
     configure_aws(context)
@@ -34,21 +37,19 @@ def configure(context: MarshallerContext):
 def configure_finders(context: MarshallerContext):
     from servey.finder.action_finder_abc import ActionFinderABC
     from servey.finder.module_action_finder import ModuleActionFinder
-    from servey.finder.module_subscription_finder import ModuleSubscriptionFinder
-    from servey.finder.subscription_finder_abc import SubscriptionFinderABC
+    from servey.finder.module_event_channel_finder import ModuleEventChannelFinder
+    from servey.finder.event_channel_finder_abc import EventChannelFinderABC
 
     register_impl(ActionFinderABC, ModuleActionFinder, context)
-    register_impl(SubscriptionFinderABC, ModuleSubscriptionFinder, context)
+    register_impl(EventChannelFinderABC, ModuleEventChannelFinder, context)
 
 
-def configure_asyncio_subscriptions(context: MarshallerContext):
-    from servey.servey_thread.asyncio_subscription_service import (
-        AsyncioSubscriptionServiceFactory,
+def configure_asyncio_invoker(context: MarshallerContext):
+    from servey.servey_thread.asyncio_background_invoker import (
+        AsyncioBackgroundInvokerFactory,
     )
 
-    register_impl(
-        SubscriptionServiceFactoryABC, AsyncioSubscriptionServiceFactory, context
-    )
+    register_impl(BackgroundInvokerFactoryABC, AsyncioBackgroundInvokerFactory, context)
 
 
 def configure_auth(context: MarshallerContext):
@@ -97,6 +98,7 @@ def configure_starlette_action_endpoint_factory(context: MarshallerContext):
     register_impl(ActionEndpointFactoryABC, SelfActionEndpointFactory, context)
 
 
+# noinspection DuplicatedCode
 def configure_starlette_route_factory(context: MarshallerContext):
     from servey.servey_starlette.route_factory.action_route_factory import (
         ActionRouteFactory,
@@ -108,8 +110,8 @@ def configure_starlette_route_factory(context: MarshallerContext):
         OpenapiRouteFactory,
     )
     from servey.servey_starlette.route_factory.route_factory_abc import RouteFactoryABC
-    from servey.servey_starlette.route_factory.subscription_route_factory import (
-        SubscriptionRouteFactory,
+    from servey.servey_starlette.route_factory.event_channel_route_factory import (
+        EventChannelRouteFactory,
     )
     from servey.servey_starlette.route_factory.asyncapi_route_factory import (
         AsyncapiRouteFactory,
@@ -117,14 +119,18 @@ def configure_starlette_route_factory(context: MarshallerContext):
     from servey.servey_starlette.route_factory.static_site_route_factory import (
         StaticSiteRouteFactory,
     )
+    from servey.servey_starlette.event_channel.starlette_websocket_sender_factory import (
+        StarletteWebsocketSenderFactory,
+    )
 
     register_impl(RouteFactoryABC, ActionRouteFactory, context)
     register_impl(RouteFactoryABC, AuthenticatorRouteFactory, context)
     register_impl(RouteFactoryABC, OpenapiRouteFactory, context)
-    register_impl(RouteFactoryABC, SubscriptionRouteFactory, context)
-    register_impl(SubscriptionServiceFactoryABC, SubscriptionRouteFactory, context)
+    register_impl(RouteFactoryABC, EventChannelRouteFactory, context)
     register_impl(RouteFactoryABC, AsyncapiRouteFactory, context)
     register_impl(RouteFactoryABC, StaticSiteRouteFactory, context)
+
+    register_impl(WebsocketSenderFactoryABC, StarletteWebsocketSenderFactory, context)
 
 
 def configure_starlette_middleware_factory(context: MarshallerContext):
@@ -138,6 +144,7 @@ def configure_starlette_middleware_factory(context: MarshallerContext):
     register_impl(MiddlewareFactoryABC, CORSMiddlewareFactory, context)
 
 
+# noinspection DuplicatedCode
 def configure_strawberry(context: MarshallerContext):
     try:
         from servey.servey_strawberry.handler_filter.handler_filter_abc import (
@@ -227,23 +234,23 @@ def configure_aws(context: MarshallerContext):
         register_impl(EventHandlerFactoryABC, ApiGatewayEventHandlerFactory, context)
         register_impl(EventHandlerFactoryABC, SqsEventHandlerFactory, context)
 
-        from servey.servey_aws.websocket_subscription_service import (
-            AWSWebsocketSubscriptionServiceFactory,
+        from servey.servey_aws.aws_websocket_sender import (
+            AWSWebsocketSenderFactory,
         )
 
         register_impl(
-            SubscriptionServiceFactoryABC,
-            AWSWebsocketSubscriptionServiceFactory,
+            WebsocketSenderFactoryABC,
+            AWSWebsocketSenderFactory,
             context,
         )
 
-        from servey.servey_aws.sqs_subscription_service import (
-            SqsSubscriptionServiceFactory,
+        from servey.servey_aws.sqs_background_invoker import (
+            SqsBackgroundInvokerFactory,
         )
 
         register_impl(
-            SubscriptionServiceFactoryABC,
-            SqsSubscriptionServiceFactory,
+            BackgroundInvokerFactoryABC,
+            SqsBackgroundInvokerFactory,
             context,
         )
 
@@ -260,6 +267,7 @@ def configure_aws(context: MarshallerContext):
         raise_non_ignored(e)
 
 
+# noinspection DuplicatedCode
 def configure_serverless(context: MarshallerContext):
     try:
         from servey.servey_aws.serverless.yml_config.yml_config_abc import YmlConfigABC
@@ -270,14 +278,14 @@ def configure_serverless(context: MarshallerContext):
         # pylint: disable=E0001
         from servey.servey_aws.serverless.yml_config.appsync_config import AppsyncConfig
         from servey.servey_aws.serverless.yml_config.kms_key_config import KmsKeyConfig
-        from servey.servey_aws.serverless.yml_config.subscription_function_config import (
-            SubscriptionFunctionConfig,
+        from servey.servey_aws.serverless.yml_config.event_channel_function_config import (
+            EventChannelFunctionConfig,
         )
 
         register_impl(YmlConfigABC, ActionFunctionConfig, context)
         register_impl(YmlConfigABC, AppsyncConfig, context)
         register_impl(YmlConfigABC, KmsKeyConfig, context)
-        register_impl(YmlConfigABC, SubscriptionFunctionConfig, context)
+        register_impl(YmlConfigABC, EventChannelFunctionConfig, context)
 
         from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
             TriggerHandlerABC,
@@ -308,24 +316,26 @@ def configure_serverless(context: MarshallerContext):
 
 def configure_celery(context: MarshallerContext):
     try:
-        from servey.servey_celery.celery_subscription_service import (
-            CelerySubscriptionServiceFactory,
+        from servey.servey_celery.celery_background_invoker import (
+            CeleryBackgroundInvokerFactory,
         )
 
         register_impl(
-            SubscriptionServiceFactoryABC, CelerySubscriptionServiceFactory, context
+            BackgroundInvokerFactoryABC, CeleryBackgroundInvokerFactory, context
         )
 
         from servey.servey_celery.celery_config.celery_config_abc import CeleryConfigABC
         from servey.servey_celery.celery_config.fixed_rate_trigger_config import (
             FixedRateTriggerConfig,
         )
-        from servey.servey_celery.celery_config.subscription_config import (
-            SubscriptionConfig,
+        from servey.servey_celery.celery_config.background_invoker_config import (
+            BackgroundInvokerConfig,
         )
+        from servey.servey_celery.celery_config.websocket_config import WebsocketConfig
 
         register_impl(CeleryConfigABC, FixedRateTriggerConfig, context)
-        register_impl(CeleryConfigABC, SubscriptionConfig, context)
+        register_impl(CeleryConfigABC, BackgroundInvokerConfig, context)
+        register_impl(CeleryConfigABC, WebsocketConfig, context)
 
     except ModuleNotFoundError as e:
         raise_non_ignored(e)

@@ -84,6 +84,7 @@ class SchemaFactory:
         if isinstance(type_, str):
             type_ = self.types[type_]
         if isinstance(type_, StrawberryAnnotation):
+            # noinspection PyTypeChecker
             type_.annotation = self._resolve_type_futures(type_.annotation, resolved)
             return type_
         if isinstance(type_, StrawberryContainer):

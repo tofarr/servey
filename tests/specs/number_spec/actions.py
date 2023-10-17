@@ -19,6 +19,6 @@ def integer_stats_consumer(stats: IntegerStats):
 @action(triggers=(FixedRateTrigger(300),))
 def integer_stats_publisher():
     integer_stats_ = IntegerStats(int(datetime.now().timestamp()) % 200)
-    from tests.specs.number_spec.subscriptions import integer_stats_queue
+    from tests.specs.number_spec.event_channels import integer_stats_queue
 
     integer_stats_queue.publish(integer_stats_)

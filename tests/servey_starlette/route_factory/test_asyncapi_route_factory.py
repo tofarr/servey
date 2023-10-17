@@ -3,25 +3,23 @@ import os
 from unittest import TestCase
 from unittest.mock import patch
 
-from marshy.marshaller import NoOpMarshaller
-from schemey import schema_from_type
-
+from servey.event_channel.websocket.websocket_event_channel import (
+    websocket_event_channel,
+)
 from servey.servey_starlette.route_factory.asyncapi_route_factory import (
     AsyncapiRouteFactory,
 )
-from servey.subscription.subscription import Subscription
 from tests.servey_starlette.action_endpoint.test_action_endpoint import build_request
 
 
 class TestAsyncapiRouteFactory(TestCase):
     def test_endpoint(self):
+        path = f"{AsyncapiRouteFactory.__module__}.AsyncapiRouteFactory.get_websocket_channels"
         with (
             patch(
-                "servey.servey_starlette.route_factory.asyncapi_route_factory.find_subscriptions",
+                path,
                 return_value=[
-                    Subscription(
-                        "my_message", NoOpMarshaller(str), schema_from_type(str)
-                    ),
+                    websocket_event_channel("my_message", str),
                 ],
             ),
             patch.dict(os.environ, {"SERVER_WS_URL": "https://foo.com/"}),

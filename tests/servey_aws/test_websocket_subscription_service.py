@@ -6,14 +6,12 @@ from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
 from marshy import dump
+from schemey.schema import str_schema
 from schemey.util import filter_none
 
+from servey.event_channel.websocket.event_filter_abc import EventFilterABC
 from servey.security.authorization import ROOT, Authorization
-from servey.servey_aws.websocket_subscription_service import (
-    AWSWebsocketSubscriptionServiceFactory,
-)
-from servey.subscription.event_filter_abc import EventFilterABC
-from servey.subscription.subscription import subscription
+from servey.servey_aws.aws_websocket_sender import AWSWebsocketSenderFactory
 
 
 class TestWebsocketSubscriptionService(TestCase):
@@ -44,12 +42,11 @@ class TestWebsocketSubscriptionService(TestCase):
                 },
             ),
         ):
-            subscription_ = subscription(
-                str, "my_messager", event_filter=MyEventFilter()
+            factory = AWSWebsocketSenderFactory()
+            sender = factory.create(
+                "my_messenger", str_schema(), event_filter=MyEventFilter()
             )
-            factory = AWSWebsocketSubscriptionServiceFactory()
-            service = factory.create([subscription_])
-            service.publish(subscription_, "Can you hear me Major Tom?")
+            sender.send("my_messenger", "Can you hear me Major Tom?")
             expected_posts = [
                 {
                     "data": b'"Can you hear me Major Tom?"',
@@ -92,7 +89,7 @@ class MockTable:
         assert Select == "SPECIFIC_ATTRIBUTES"
         assert ProjectionExpression == "connection_id,endpoint_url,user_authorization"
         assert IndexName == "gsi__subscription_name__connection_id"
-        assert KeyConditionExpression == Key("subscription_name").eq("my_messager")
+        assert KeyConditionExpression == Key("subscription_name").eq("my_messenger")
         if ExclusiveStartKey:
             return {}
         else:

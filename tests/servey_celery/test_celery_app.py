@@ -5,10 +5,12 @@ from unittest.mock import patch
 from uuid import UUID
 
 from servey.action.action import action, get_action
+from servey.event_channel.background.background_action_channel import (
+    background_action_channel,
+)
 from servey.servey_celery.celery_config.fixed_rate_trigger_config import (
     FixedRateTriggerConfig,
 )
-from servey.subscription.subscription import subscription
 from servey.trigger.fixed_rate_trigger import FixedRateTrigger
 
 
@@ -23,11 +25,7 @@ class TestCeleryApp(TestCase):
         def consume_message(message: str):
             """No implementation required"""
 
-        subscription_ = subscription(
-            str,
-            name="message_broadcaster",
-            action_subscribers=(get_action(consume_message),),
-        )
+        channel = background_action_channel(consume_message)
 
         with (
             patch(
@@ -35,8 +33,8 @@ class TestCeleryApp(TestCase):
                 return_value=[get_action(ping), get_action(consume_message)],
             ),
             patch(
-                "servey.servey_celery.celery_config.subscription_config.find_subscriptions",
-                return_value=[subscription_],
+                "servey.servey_celery.celery_config.background_invoker_config.find_event_channels_by_type",
+                return_value=[channel],
             ),
             patch.dict(os.environ, dict(CELERY_BROKER="redis://localhost:6379/0")),
             patch("celery.app.task.Task.apply_async", return_value=None),
@@ -46,7 +44,7 @@ class TestCeleryApp(TestCase):
             app = _module.app
             next(t for t in app.tasks if t.endswith("test_celery_app.ping"))
             next(t for t in app.tasks if t.endswith("test_celery_app.consume_message"))
-            subscription_.publish("Some message")
+            channel.publish("Some message")
 
     def test_app_no_triggers(self):
         @action
@@ -59,7 +57,7 @@ class TestCeleryApp(TestCase):
                 return_value=[get_action(pong)],
             ),
             patch(
-                "servey.servey_celery.celery_config.subscription_config.find_subscriptions",
+                "servey.servey_celery.celery_config.background_invoker_config.find_event_channels_by_type",
                 return_value=[],
             ),
             patch.dict(os.environ, dict(CELERY_BROKER="redis://localhost:6379/0")),

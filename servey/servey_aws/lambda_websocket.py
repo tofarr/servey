@@ -9,8 +9,8 @@ from boto3.dynamodb.conditions import Key
 from marshy import get_default_context
 from marshy.types import ExternalItemType, ExternalType
 
-from servey.finder.subscription_finder_abc import find_subscriptions
-from servey.security.access_control.allow_none import ALLOW_NONE
+from servey.event_channel.websocket.websocket_event_channel import WebsocketEventChannel
+from servey.finder.event_channel_finder_abc import find_event_channels_by_type
 from servey.security.authorization import Authorization
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
 
@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO)
 _DYNAMODB_TABLE = boto3.resource("dynamodb").Table(os.environ["CONNECTION_TABLE_NAME"])
-_SUBSCRIPTIONS = [s for s in find_subscriptions() if s.access_control != ALLOW_NONE]
+_CHANNELS = list(find_event_channels_by_type(WebsocketEventChannel))
 _AUTH_MARSHALLER = get_default_context().get_marshaller(Optional[Authorization])
 _AUTHORIZER = get_default_authorizer()
 
@@ -46,16 +46,14 @@ def lambda_handler(event: ExternalItemType, context) -> ExternalType:
         try:
             body = json.loads(event["body"])
             type_ = body["type"]
-            subscription_name = body["payload"]
-            # Ensure subscription exists
-            subscription = next(
-                s for s in _SUBSCRIPTIONS if s.name == subscription_name
-            )
+            channel_name = body["payload"]
+            # Ensure channel exists
+            channel = next(c for c in _CHANNELS if c.name == channel_name)
             if type_ == "Subscribe":
-                subscribe(connection_id, subscription.name, endpoint_url)
+                subscribe(connection_id, channel.name, endpoint_url)
                 status_code = 200
             elif type_ == "Unsubscribe":
-                unsubscribe(connection_id, subscription.name)
+                unsubscribe(connection_id, channel.name)
                 status_code = 200
         except Exception as e:
             _LOGGER.warning(f"error_handling_websocket:{e}")

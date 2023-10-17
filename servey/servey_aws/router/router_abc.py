@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Tuple, Optional
 
 from marshy.factory.impl_marshaller_factory import get_impls
 from marshy.types import ExternalType
@@ -11,13 +11,13 @@ from servey.trigger.web_trigger import WebTrigger
 
 
 class RouterABC(ABC):
-    """A router will attempt to create an event handler given a specific lambda event"""
+    """A router will attempt to create an event_channel handler given a specific lambda event_channel"""
 
     priority: int = 100
 
     @abstractmethod
-    def create_handler(self, event: ExternalType, context) -> EventHandlerABC:
-        """Create a handler for the event given"""
+    def create_handler(self, event: ExternalType, context) -> Optional[EventHandlerABC]:
+        """Create a handler for the event_channel given"""
 
     @property
     def web_trigger_actions(self) -> Tuple[Tuple[Action, WebTrigger], ...]:
@@ -35,4 +35,5 @@ class RouterABC(ABC):
 def find_routers() -> Tuple[RouterABC]:
     routers = [router() for router in get_impls(RouterABC)]
     routers.sort(key=lambda r: r.priority, reverse=True)
+    # noinspection PyTypeChecker
     return tuple(routers)

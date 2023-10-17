@@ -64,12 +64,11 @@ class CachingActionEndpoint(ActionEndpointABC):
         route = self.action_endpoint.get_route()
         paths: Dict = schema["paths"]
         path: Dict = paths.get(route.path)
-        if not path:
-            return
-        for method in route.methods:
-            # Along with defining the 304 response, do we need to define the etag header, or is this just standard?
-            path_method: Dict = path.get(method.lower())
-            if path_method is None:
-                continue
-            responses: Dict = path_method["responses"]
-            responses["304"] = {"description": "not_modified", "content": {}}
+        if path:
+            for method in route.methods:
+                # Along with defining the 304 response, do we need to define the etag header, or is this just standard?
+                path_method: Dict = path.get(method.lower())
+                if path_method is None:
+                    continue
+                responses: Dict = path_method["responses"]
+                responses["304"] = {"description": "not_modified", "content": {}}

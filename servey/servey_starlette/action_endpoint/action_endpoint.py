@@ -309,6 +309,7 @@ def _fix_strings(param: ExternalType, schema: ExternalItemType):
     if isinstance(param, list):
         item_schema = schema.get("items")
         if item_schema:
+            # noinspection PyTypeChecker
             param = [_fix_strings(i, item_schema) for i in param]
         return param
     if schema.get("type") == "string":
