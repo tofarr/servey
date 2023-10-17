@@ -20,6 +20,8 @@ from servey.servey_starlette.route_factory.route_factory_abc import RouteFactory
 class ActionRouteFactory(RouteFactoryABC):
     """Utility for mounting actions to fastapi_integration."""
 
+    priority: int = 110
+
     action_endpoint_factories: List[ActionEndpointFactoryABC] = field(
         default_factory=create_endpoint_factories
     )
