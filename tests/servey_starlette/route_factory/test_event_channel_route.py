@@ -15,9 +15,12 @@ from servey.event_channel.websocket.websocket_event_channel import (
 from servey.security.access_control.scope_access_control import ScopeAccessControl
 from servey.security.authorization import ROOT, Authorization
 from servey.security.authorizer.authorizer_factory_abc import get_default_authorizer
-from servey.servey_starlette.route_factory import event_channel_route_factory
+from servey.servey_starlette.event_channel import local
+from servey.servey_starlette.event_channel.local import LocalChannelConnections
+from servey.servey_starlette.event_channel.starlette_websocket_sender_factory import (
+    StarletteWebsocketSenderFactory,
+)
 from servey.servey_starlette.route_factory.event_channel_route_factory import (
-    _ChannelConnections,
     EventChannelRouteFactory,
 )
 
@@ -30,14 +33,13 @@ class TestEventChannelRoute(TestCase):
 
     def test_create(self):
         channel = websocket_event_channel("foobar", str)
-        event_channel_route_factory._CONNECTIONS_BY_NAME = {
-            "foobar": _ChannelConnections(channel)
-        }
-        event_channel_route_factory._CONNECTIONS_BY_ID = {}
+        local.CONNECTIONS_BY_NAME = {"foobar": LocalChannelConnections(channel)}
+        local.CONNECTIONS_BY_ID = {}
         try:
-            factory = EventChannelRouteFactory()
-            sender = factory.create("foobar", str_schema())
-            sender_route = list(factory.create_routes())[0]
+            route_factory = EventChannelRouteFactory()
+            sender_factory = StarletteWebsocketSenderFactory()
+            sender = sender_factory.create("foobar", str_schema())
+            sender_route = list(route_factory.create_routes())[0]
             event_channel_endpoint = sender_route.endpoint(
                 {"type": "websocket"}, None, None
             )
@@ -79,18 +81,16 @@ class TestEventChannelRoute(TestCase):
             self.assertEqual(1, web_socket.accepts)
             self.assertEqual(["Hello There!"], web_socket.sent)
         finally:
-            event_channel_route_factory._CONNECTIONS_BY_NAME = None
-            event_channel_route_factory._CONNECTIONS_BY_ID = {}
+            local.CONNECTIONS_BY_NAME = None
+            local.CONNECTIONS_BY_ID = {}
 
     def test_unauthorized(self):
         channel = websocket_event_channel(
             "foobar", str, access_control=ScopeAccessControl("root")
         )
         factory = EventChannelRouteFactory()
-        event_channel_route_factory._CONNECTIONS_BY_NAME = {
-            "foobar": _ChannelConnections(channel)
-        }
-        event_channel_route_factory._CONNECTIONS_BY_ID = {}
+        local.CONNECTIONS_BY_NAME = {"foobar": LocalChannelConnections(channel)}
+        local.CONNECTIONS_BY_ID = {}
         try:
             subscription_route = list(factory.create_routes())[0]
             event_channel_endpoint = subscription_route.endpoint(
@@ -107,8 +107,8 @@ class TestEventChannelRoute(TestCase):
                     )
                 )
         finally:
-            event_channel_route_factory._CONNECTIONS_BY_NAME = None
-            event_channel_route_factory._CONNECTIONS_BY_ID = {}
+            local.CONNECTIONS_BY_NAME = None
+            local.CONNECTIONS_BY_ID = {}
 
     def test_unknown_subscription(self):
         try:
@@ -128,19 +128,18 @@ class TestEventChannelRoute(TestCase):
                     )
                 )
         finally:
-            event_channel_route_factory._CONNECTIONS_BY_NAME = None
-            event_channel_route_factory._CONNECTIONS_BY_ID = {}
+            local.CONNECTIONS_BY_NAME = None
+            local.CONNECTIONS_BY_ID = {}
 
     def test_filtering(self):
         channel = websocket_event_channel("foobar", str, event_filter=NopeEventFilter())
-        event_channel_route_factory._CONNECTIONS_BY_NAME = {
-            "foobar": _ChannelConnections(channel)
-        }
-        event_channel_route_factory._CONNECTIONS_BY_ID = {}
+        local.CONNECTIONS_BY_NAME = {"foobar": LocalChannelConnections(channel)}
+        local.CONNECTIONS_BY_ID = {}
         try:
-            factory = EventChannelRouteFactory()
-            sender = factory.create("foobar", str_schema())
-            channel_route = list(factory.create_routes())[0]
+            route_factory = EventChannelRouteFactory()
+            sender_factory = StarletteWebsocketSenderFactory()
+            sender = sender_factory.create("foobar", str_schema())
+            channel_route = list(route_factory.create_routes())[0]
             event_channel_endpoint = channel_route.endpoint(
                 {"type": "websocket"}, None, None
             )
@@ -163,19 +162,18 @@ class TestEventChannelRoute(TestCase):
             self.assertEqual(1, web_socket.accepts)
             self.assertEqual([], web_socket.sent)
         finally:
-            event_channel_route_factory._CONNECTIONS_BY_NAME = None
-            event_channel_route_factory._CONNECTIONS_BY_ID = {}
+            local.CONNECTIONS_BY_NAME = None
+            local.CONNECTIONS_BY_ID = {}
 
     def test_send_error(self):
         channel = websocket_event_channel("foobar", str)
-        event_channel_route_factory._CONNECTIONS_BY_NAME = {
-            "foobar": _ChannelConnections(channel)
-        }
-        event_channel_route_factory._CONNECTIONS_BY_ID = {}
+        local.CONNECTIONS_BY_NAME = {"foobar": LocalChannelConnections(channel)}
+        local.CONNECTIONS_BY_ID = {}
         try:
-            factory = EventChannelRouteFactory()
-            sender = factory.create("foobar", str_schema())
-            subscription_route = list(factory.create_routes())[0]
+            route_factory = EventChannelRouteFactory()
+            sender_factory = StarletteWebsocketSenderFactory()
+            sender = sender_factory.create("foobar", str_schema())
+            subscription_route = list(route_factory.create_routes())[0]
             event_channel_endpoint = subscription_route.endpoint(
                 {"type": "websocket"}, None, None
             )
@@ -194,8 +192,8 @@ class TestEventChannelRoute(TestCase):
             )
             sender.send("foobar", "Hello There!")
         finally:
-            event_channel_route_factory._CONNECTIONS_BY_NAME = None
-            event_channel_route_factory._CONNECTIONS_BY_ID = {}
+            local.CONNECTIONS_BY_NAME = None
+            local.CONNECTIONS_BY_ID = {}
 
 
 @dataclass

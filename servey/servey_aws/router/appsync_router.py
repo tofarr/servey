@@ -18,7 +18,7 @@ from servey.util import to_snake_case
 class AppsyncRouter(RouterABC):
     priority: int = 110
 
-    def create_handler(self, event: ExternalType, context) -> EventHandlerABC:
+    def create_handler(self, event: ExternalType, context) -> Optional[EventHandlerABC]:
         if isinstance(event, list):
             event = event[0]
         info = event.get("info", None)  # Diff appsync events

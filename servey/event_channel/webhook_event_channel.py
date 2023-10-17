@@ -24,9 +24,16 @@ class WebhookEventChannel(EventChannelABC[T]):
         default_factory=lambda: {"ContentType": "application/json"}
     )
     description: Optional[str] = None
+    timeout: int = 5
 
     def publish(self, event: ExternalType):
         dumped = self.event_marshaller.dump(event)
         if self.event_schema:
             self.event_schema.validate(dumped)
-        requests.request(self.url, self.method.value, headers=self.headers, json=dumped)
+        requests.request(
+            self.url,
+            self.method.value,
+            headers=self.headers,
+            json=dumped,
+            timeout=self.timeout,
+        )

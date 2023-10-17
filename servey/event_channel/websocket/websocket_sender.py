@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, Optional
 
-from marshy import ExternalType
 from schemey import Schema
 
 from servey.event_channel.websocket.event_filter_abc import EventFilterABC

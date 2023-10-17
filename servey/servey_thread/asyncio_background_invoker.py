@@ -23,14 +23,14 @@ class AsyncioBackgroundInvoker(BackgroundInvokerABC):
 class AsyncioBackgroundInvokerFactory(BackgroundInvokerFactoryABC):
     priority: int = 50  # Low priority
 
-    def create(self, action: Action) -> Optional[BackgroundInvokerABC]:
+    def create(self, action: Action, name: str) -> Optional[BackgroundInvokerABC]:
         return AsyncioBackgroundInvoker(action)
 
 
-async def action_fn(action_fn: Callable, event: T, delay: int):
+async def action_fn(fn: Callable, event: T, delay: int):
     if delay:
         await asyncio.sleep(delay)
-    result = action_fn(event)
+    result = fn(event)
     if isinstance(result, Awaitable):
         result = await result
     return result

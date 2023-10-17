@@ -108,6 +108,7 @@ class AppsyncConfig(YmlConfigABC):
         }
         if action.batch_invoker:
             resolver["maxBatchSize"] = action.batch_invoker.max_batch_size
+        # noinspection PyTypeChecker
         appsync_definitions["resolvers"][resolver_name] = resolver
         data_source = {
             "type": "AWS_LAMBDA",
@@ -117,6 +118,7 @@ class AppsyncConfig(YmlConfigABC):
         }
         if action.description and not use_router:
             data_source["description"] = action.description.strip()
+        # noinspection PyTypeChecker
         appsync_definitions["dataSources"][data_source_name] = data_source
 
     def build_nested_resolvers(

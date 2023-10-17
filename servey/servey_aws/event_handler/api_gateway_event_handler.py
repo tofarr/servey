@@ -36,7 +36,7 @@ class ApiGatewayEventHandler(EventHandler):
             params = json.loads(event.get("body") or "{}")
         else:
             params = event.get("queryStringParameters") or {}
-            # We use the marshaller to do conversions, because queryStringParms are all strings
+            # We use the marshaller to do conversions, because queryStringParams are all strings
             params = self.param_marshaller.load(params)
             params = self.param_marshaller.dump(params)
         path_parameters = event.get("pathParameters")

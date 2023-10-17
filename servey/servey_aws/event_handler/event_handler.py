@@ -49,6 +49,7 @@ class EventHandler(EventHandlerABC):
     def handle(self, event: ExternalType, context) -> ExternalType:
         if isinstance(event, list):
             return self.handle_batch(event)
+        # noinspection PyTypeChecker
         return self.handle_event(event)
 
     def handle_batch(self, events: List[ExternalItemType]) -> List[ExternalType]:

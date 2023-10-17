@@ -24,6 +24,7 @@ class WebsocketEventChannel(EventChannelABC[T]):
     name: str
     event_schema: Schema
     access_control: AccessControlABC
+    event_filter: EventFilterABC
     websocket_sender: WebsocketSenderABC
 
     def publish(self, event: T):
@@ -42,5 +43,7 @@ def websocket_event_channel(
     for factory in factories:
         websocket_sender = factory.create(name, schema, event_filter)
         if websocket_sender:
-            return WebsocketEventChannel(name, schema, access_control, websocket_sender)
+            return WebsocketEventChannel(
+                name, schema, access_control, event_filter, websocket_sender
+            )
     raise ServeyError(f"no_sender_for_channel:{name}")

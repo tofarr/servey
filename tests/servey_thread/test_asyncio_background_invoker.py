@@ -1,5 +1,6 @@
 import asyncio
 import os
+from asyncio import sleep
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -14,19 +15,16 @@ class TestAsyncioBackgroundInvoker(TestCase):
         total = 0
 
         @action
-        def accumulator(value: int):
+        async def accumulator(value: int):
             nonlocal total
             total += value
 
         factory = AsyncioBackgroundInvokerFactory()
-        invoker = factory.create(get_action(accumulator))
-        invoker.invoke(3)
+        invoker = factory.create(get_action(accumulator), "accumulator")
+        invoker.invoke(3, 1)
         invoker.invoke(5)
         invoker.invoke(7)
         loop = asyncio.get_event_loop()
 
-        async def dummy():
-            pass
-
-        loop.run_until_complete(dummy())
+        loop.run_until_complete(sleep(1.1))
         self.assertEqual(15, total)

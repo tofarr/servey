@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, Optional
 
-from schemey import Schema
-
 from servey.action.action import Action
 
 T = TypeVar("T")

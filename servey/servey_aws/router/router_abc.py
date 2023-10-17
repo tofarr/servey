@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Tuple, Optional
 
 from marshy.factory.impl_marshaller_factory import get_impls
 from marshy.types import ExternalType
@@ -16,7 +16,7 @@ class RouterABC(ABC):
     priority: int = 100
 
     @abstractmethod
-    def create_handler(self, event: ExternalType, context) -> EventHandlerABC:
+    def create_handler(self, event: ExternalType, context) -> Optional[EventHandlerABC]:
         """Create a handler for the event_channel given"""
 
     @property
@@ -35,4 +35,5 @@ class RouterABC(ABC):
 def find_routers() -> Tuple[RouterABC]:
     routers = [router() for router in get_impls(RouterABC)]
     routers.sort(key=lambda r: r.priority, reverse=True)
+    # noinspection PyTypeChecker
     return tuple(routers)

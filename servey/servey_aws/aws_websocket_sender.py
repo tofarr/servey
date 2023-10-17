@@ -1,7 +1,7 @@
 import json
 import os
 from dataclasses import dataclass, field
-from typing import List, Optional, Any, Dict
+from typing import Optional, Any, Dict
 
 import boto3
 from boto3.dynamodb.conditions import Key

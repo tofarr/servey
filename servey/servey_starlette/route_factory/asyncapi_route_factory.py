@@ -29,7 +29,7 @@ class AsyncapiRouteFactory(RouteFactoryABC):
 
     @staticmethod
     def get_websocket_channels() -> List[WebsocketEventChannel]:
-        result = [s for s in find_event_channels_by_type(WebsocketEventChannel)]
+        result = list(find_event_channels_by_type(WebsocketEventChannel))
         return result
 
     def create_routes(self) -> Iterator[Route]:
