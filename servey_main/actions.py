@@ -158,9 +158,9 @@ def put_root(node: Node) -> bool:
 @action(triggers=(WEB_POST,))
 def broadcast_message(message: str) -> bool:
     """Send a message to all connected users"""
-    import event_channels
+    from servey_main.event_channels import messenger
 
-    event_channels.messenger.publish(message)
+    messenger.publish(message)
     return True
 
 
@@ -174,9 +174,9 @@ class PrintEvent:
 @action(triggers=(WEB_POST,))
 def broadcast_print(message: str, count: int) -> bool:
     """Send a message to an action that will print to the console"""
-    import event_channels
+    from servey_main.event_channels import printer
 
-    event_channels.printer.publish(PrintEvent(message, count))
+    printer.publish(PrintEvent(message, count))
     return True
 
 
