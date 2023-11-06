@@ -80,6 +80,7 @@ class DataclassFactory(EntityFactoryABC):
                     params[f.name] = f.default
             elif f.default_factory is not MISSING:
                 type_ = Optional[type_]
+                # pylint: disable=E3701
                 params[f.name] = dataclasses.field(default_factory=f.default_factory)
             annotations[f.name] = schema_factory.get_input(type_)
 
