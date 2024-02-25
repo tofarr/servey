@@ -3,9 +3,8 @@ import json
 from dataclasses import field, dataclass
 from typing import Optional
 
-from marshy import get_default_context, ExternalType
+from marshy import ExternalType, get_default_marshy_context, MarshyContext
 from marshy.marshaller.marshaller_abc import MarshallerABC
-from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType
 from schemey import get_default_schema_context, SchemaContext, Schema
 
@@ -45,7 +44,7 @@ class SqsEventHandler(EventHandlerABC):
 
 @dataclass
 class SqsEventHandlerFactory(EventHandlerFactoryABC):
-    marshaller_context: MarshallerContext = field(default_factory=get_default_context)
+    marshaller_context: MarshyContext = field(default_factory=get_default_marshy_context)
     schema_context: SchemaContext = field(default_factory=get_default_schema_context)
     priority: int = 100
 

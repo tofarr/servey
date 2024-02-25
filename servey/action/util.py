@@ -2,10 +2,9 @@ import inspect
 import os
 from typing import Callable, Optional, Set
 
-from marshy import get_default_context
+from marshy import get_default_marshy_context, MarshyContext
 from marshy.marshaller.marshaller_abc import MarshallerABC
 from marshy.marshaller.obj_marshaller import ObjMarshaller, attr_config
-from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType, ExternalType
 from schemey import Schema, get_default_schema_context, SchemaContext
 
@@ -41,10 +40,10 @@ def get_schema_for_params(
 def get_marshaller_for_params(
     fn: Callable,
     skip_args: Set[str],
-    marshaller_context: Optional[MarshallerContext] = None,
+    marshy_context: Optional[MarshyContext] = None,
 ) -> MarshallerABC:
-    if not marshaller_context:
-        marshaller_context = get_default_context()
+    if not marshy_context:
+        marshy_context = get_default_marshy_context()
     sig = inspect.signature(fn)
     attr_configs = []
     params = list(sig.parameters.values())
@@ -54,7 +53,7 @@ def get_marshaller_for_params(
         if p.annotation is inspect.Parameter.empty:
             raise TypeError(f"missing_param_annotation:{fn.__name__}({p.name}")
         attr_configs.append(
-            attr_config(marshaller_context.get_marshaller(p.annotation), p.name)
+            attr_config(marshy_context.get_marshaller(p.annotation), p.name)
         )
     marshaller = ObjMarshaller(dict, tuple(attr_configs))
     return marshaller

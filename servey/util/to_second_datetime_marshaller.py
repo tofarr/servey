@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from marshy.marshaller import DatetimeMarshaller
+from marshy.marshaller.datetime_marshaller import DatetimeMarshaller
 
 
 class ToSecondDatetimeMarshaller(DatetimeMarshaller):

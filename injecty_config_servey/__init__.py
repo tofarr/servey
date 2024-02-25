@@ -1,7 +1,7 @@
 import logging
 
-from marshy.factory.impl_marshaller_factory import register_impl
-from marshy.marshaller_context import MarshallerContext
+from injecty import InjectyContext
+from marshy.marshaller.marshaller_abc import MarshallerABC
 
 from servey.event_channel.background.background_invoker_abc import (
     BackgroundInvokerFactoryABC,
@@ -12,16 +12,12 @@ priority = 90
 LOGGER = logging.getLogger(__name__)
 
 
-def configure(context: MarshallerContext):
-    from marshy.factory.dataclass_marshaller_factory import DataclassMarshallerFactory
+def configure(context: InjectyContext):
     from servey.util.to_second_datetime_marshaller import (
         ToSecondDatetimeMarshaller,
     )
 
-    context.register_factory(
-        DataclassMarshallerFactory(priority=101, exclude_dumped_values=tuple())
-    )
-    context.register_marshaller(ToSecondDatetimeMarshaller())
+    context.register_impl(MarshallerABC, ToSecondDatetimeMarshaller)
     configure_finders(context)
     configure_asyncio_invoker(context)
     configure_auth(context)
@@ -34,25 +30,25 @@ def configure(context: MarshallerContext):
     configure_jinja2(context)
 
 
-def configure_finders(context: MarshallerContext):
+def configure_finders(context: InjectyContext):
     from servey.finder.action_finder_abc import ActionFinderABC
     from servey.finder.module_action_finder import ModuleActionFinder
     from servey.finder.module_event_channel_finder import ModuleEventChannelFinder
     from servey.finder.event_channel_finder_abc import EventChannelFinderABC
 
-    register_impl(ActionFinderABC, ModuleActionFinder, context)
-    register_impl(EventChannelFinderABC, ModuleEventChannelFinder, context)
+    context.register_impl(ActionFinderABC, ModuleActionFinder)
+    context.register_impl(EventChannelFinderABC, ModuleEventChannelFinder)
 
 
-def configure_asyncio_invoker(context: MarshallerContext):
+def configure_asyncio_invoker(context: InjectyContext):
     from servey.servey_thread.asyncio_background_invoker import (
         AsyncioBackgroundInvokerFactory,
     )
 
-    register_impl(BackgroundInvokerFactoryABC, AsyncioBackgroundInvokerFactory, context)
+    context.register_impl(BackgroundInvokerFactoryABC, AsyncioBackgroundInvokerFactory)
 
 
-def configure_auth(context: MarshallerContext):
+def configure_auth(context: InjectyContext):
     from servey.security.authorizer.authorizer_factory_abc import AuthorizerFactoryABC
     from servey.security.authorizer.jwt_authorizer_factory import JwtAuthorizerFactory
     from servey.security.authenticator.password_authenticator_abc import (
@@ -62,11 +58,11 @@ def configure_auth(context: MarshallerContext):
         RootPasswordAuthenticator,
     )
 
-    register_impl(AuthorizerFactoryABC, JwtAuthorizerFactory, context)
-    register_impl(PasswordAuthenticatorABC, RootPasswordAuthenticator, context)
+    context.register_impl(AuthorizerFactoryABC, JwtAuthorizerFactory)
+    context.register_impl(PasswordAuthenticatorABC, RootPasswordAuthenticator)
 
 
-def configure_starlette(context: MarshallerContext):
+def configure_starlette(context: InjectyContext):
     try:
         configure_starlette_action_endpoint_factory(context)
         configure_starlette_route_factory(context)
@@ -75,7 +71,7 @@ def configure_starlette(context: MarshallerContext):
         raise_non_ignored(e)
 
 
-def configure_starlette_action_endpoint_factory(context: MarshallerContext):
+def configure_starlette_action_endpoint_factory(context: InjectyContext):
     from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory_abc import (
         ActionEndpointFactoryABC,
     )
@@ -92,14 +88,19 @@ def configure_starlette_action_endpoint_factory(context: MarshallerContext):
         SelfActionEndpointFactory,
     )
 
-    register_impl(ActionEndpointFactoryABC, ActionEndpointFactory, context)
-    register_impl(ActionEndpointFactoryABC, AuthorizingActionEndpointFactory, context)
-    register_impl(ActionEndpointFactoryABC, CachingActionEndpointFactory, context)
-    register_impl(ActionEndpointFactoryABC, SelfActionEndpointFactory, context)
+    context.register_impls(
+        ActionEndpointFactoryABC,
+        [
+            ActionEndpointFactory,
+            AuthorizingActionEndpointFactory,
+            CachingActionEndpointFactory,
+            SelfActionEndpointFactory,
+        ],
+    )
 
 
 # noinspection DuplicatedCode
-def configure_starlette_route_factory(context: MarshallerContext):
+def configure_starlette_route_factory(context: InjectyContext):
     from servey.servey_starlette.route_factory.action_route_factory import (
         ActionRouteFactory,
     )
@@ -123,17 +124,22 @@ def configure_starlette_route_factory(context: MarshallerContext):
         StarletteWebsocketSenderFactory,
     )
 
-    register_impl(RouteFactoryABC, ActionRouteFactory, context)
-    register_impl(RouteFactoryABC, AuthenticatorRouteFactory, context)
-    register_impl(RouteFactoryABC, OpenapiRouteFactory, context)
-    register_impl(RouteFactoryABC, EventChannelRouteFactory, context)
-    register_impl(RouteFactoryABC, AsyncapiRouteFactory, context)
-    register_impl(RouteFactoryABC, StaticSiteRouteFactory, context)
+    context.register_impls(
+        RouteFactoryABC,
+        [
+            ActionRouteFactory,
+            AuthenticatorRouteFactory,
+            OpenapiRouteFactory,
+            EventChannelRouteFactory,
+            AsyncapiRouteFactory,
+            StaticSiteRouteFactory,
+        ],
+    )
 
-    register_impl(WebsocketSenderFactoryABC, StarletteWebsocketSenderFactory, context)
+    context.register_impl(WebsocketSenderFactoryABC, StarletteWebsocketSenderFactory)
 
 
-def configure_starlette_middleware_factory(context: MarshallerContext):
+def configure_starlette_middleware_factory(context: InjectyContext):
     from servey.servey_starlette.middleware.middleware_factory_abc import (
         MiddlewareFactoryABC,
     )
@@ -141,11 +147,11 @@ def configure_starlette_middleware_factory(context: MarshallerContext):
         CORSMiddlewareFactory,
     )
 
-    register_impl(MiddlewareFactoryABC, CORSMiddlewareFactory, context)
+    context.register_impl(MiddlewareFactoryABC, CORSMiddlewareFactory)
 
 
 # noinspection DuplicatedCode
-def configure_strawberry(context: MarshallerContext):
+def configure_strawberry(context: InjectyContext):
     try:
         from servey.servey_strawberry.handler_filter.handler_filter_abc import (
             HandlerFilterABC,
@@ -176,20 +182,26 @@ def configure_strawberry(context: MarshallerContext):
             NoOpFactory,
         )
 
-        register_impl(HandlerFilterABC, AuthorizationHandlerFilter, context)
-        register_impl(HandlerFilterABC, StrawberryTypeHandlerFilter, context)
+        context.register_impls(
+            HandlerFilterABC, [AuthorizationHandlerFilter, StrawberryTypeHandlerFilter]
+        )
 
-        register_impl(EntityFactoryABC, DataclassFactory, context)
-        register_impl(EntityFactoryABC, EnumFactory, context)
-        register_impl(EntityFactoryABC, ForwardRefFactory, context)
-        register_impl(EntityFactoryABC, GenericFactory, context)
-        register_impl(EntityFactoryABC, NoOpFactory, context)
+        context.register_impls(
+            EntityFactoryABC,
+            [
+                DataclassFactory,
+                EnumFactory,
+                ForwardRefFactory,
+                GenericFactory,
+                NoOpFactory,
+            ],
+        )
 
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
 
 
-def configure_strawberry_starlette(context: MarshallerContext):
+def configure_strawberry_starlette(context: InjectyContext):
     try:
         from servey.servey_starlette.route_factory.route_factory_abc import (
             RouteFactoryABC,
@@ -198,13 +210,13 @@ def configure_strawberry_starlette(context: MarshallerContext):
             StrawberryStarletteRouteFactory,
         )
 
-        register_impl(RouteFactoryABC, StrawberryStarletteRouteFactory, context)
+        context.register_impl(RouteFactoryABC, StrawberryStarletteRouteFactory)
 
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
 
 
-def configure_aws(context: MarshallerContext):
+def configure_aws(context: InjectyContext):
     try:
         from servey.servey_aws.authorizer.kms_authorizer_factory import (
             KmsAuthorizerFactory,
@@ -213,7 +225,7 @@ def configure_aws(context: MarshallerContext):
             AuthorizerFactoryABC,
         )
 
-        register_impl(AuthorizerFactoryABC, KmsAuthorizerFactory, context)
+        context.register_impl(AuthorizerFactoryABC, KmsAuthorizerFactory)
 
         from servey.servey_aws.event_handler.event_handler_abc import (
             EventHandlerFactoryABC,
@@ -229,46 +241,41 @@ def configure_aws(context: MarshallerContext):
             SqsEventHandlerFactory,
         )
 
-        register_impl(EventHandlerFactoryABC, EventHandlerFactory, context)
-        register_impl(EventHandlerFactoryABC, AppsyncEventHandlerFactory, context)
-        register_impl(EventHandlerFactoryABC, ApiGatewayEventHandlerFactory, context)
-        register_impl(EventHandlerFactoryABC, SqsEventHandlerFactory, context)
+        context.register_impls(
+            EventHandlerFactoryABC,
+            [
+                EventHandlerFactory,
+                AppsyncEventHandlerFactory,
+                ApiGatewayEventHandlerFactory,
+                SqsEventHandlerFactory,
+            ],
+        )
 
         from servey.servey_aws.aws_websocket_sender import (
             AWSWebsocketSenderFactory,
         )
 
-        register_impl(
-            WebsocketSenderFactoryABC,
-            AWSWebsocketSenderFactory,
-            context,
-        )
+        context.register_impl(WebsocketSenderFactoryABC, AWSWebsocketSenderFactory)
 
         from servey.servey_aws.sqs_background_invoker import (
             SqsBackgroundInvokerFactory,
         )
 
-        register_impl(
-            BackgroundInvokerFactoryABC,
-            SqsBackgroundInvokerFactory,
-            context,
-        )
+        context.register_impl(BackgroundInvokerFactoryABC, SqsBackgroundInvokerFactory)
 
         from servey.servey_aws.router.router_abc import RouterABC
         from servey.servey_aws.router.api_gateway_router import APIGatewayRouter
         from servey.servey_aws.router.appsync_router import AppsyncRouter
         from servey.servey_aws.router.router import Router
 
-        register_impl(RouterABC, APIGatewayRouter, context)
-        register_impl(RouterABC, AppsyncRouter, context)
-        register_impl(RouterABC, Router, context)
+        context.register_impls(RouterABC, [APIGatewayRouter, AppsyncRouter, Router])
 
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
 
 
 # noinspection DuplicatedCode
-def configure_serverless(context: MarshallerContext):
+def configure_serverless(context: InjectyContext):
     try:
         from servey.servey_aws.serverless.yml_config.yml_config_abc import YmlConfigABC
         from servey.servey_aws.serverless.yml_config.action_function_config import (
@@ -282,10 +289,15 @@ def configure_serverless(context: MarshallerContext):
             EventChannelFunctionConfig,
         )
 
-        register_impl(YmlConfigABC, ActionFunctionConfig, context)
-        register_impl(YmlConfigABC, AppsyncConfig, context)
-        register_impl(YmlConfigABC, KmsKeyConfig, context)
-        register_impl(YmlConfigABC, EventChannelFunctionConfig, context)
+        context.register_impls(
+            YmlConfigABC,
+            [
+                ActionFunctionConfig,
+                AppsyncConfig,
+                KmsKeyConfig,
+                EventChannelFunctionConfig,
+            ],
+        )
 
         from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
             TriggerHandlerABC,
@@ -297,8 +309,9 @@ def configure_serverless(context: MarshallerContext):
             FixedRateTriggerHandler,
         )
 
-        register_impl(TriggerHandlerABC, WebTriggerHandler, context)
-        register_impl(TriggerHandlerABC, FixedRateTriggerHandler, context)
+        context.register_impls(
+            TriggerHandlerABC, [WebTriggerHandler, FixedRateTriggerHandler]
+        )
 
         from servey.servey_aws.serverless.yml_config.cloudfront_config import (
             CloudfrontConfig,
@@ -307,21 +320,20 @@ def configure_serverless(context: MarshallerContext):
             StaticSiteBucketConfig,
         )
 
-        register_impl(YmlConfigABC, CloudfrontConfig, context)
-        register_impl(YmlConfigABC, StaticSiteBucketConfig, context)
+        context.register_impls(YmlConfigABC, [CloudfrontConfig, StaticSiteBucketConfig])
 
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
 
 
-def configure_celery(context: MarshallerContext):
+def configure_celery(context: InjectyContext):
     try:
         from servey.servey_celery.celery_background_invoker import (
             CeleryBackgroundInvokerFactory,
         )
 
-        register_impl(
-            BackgroundInvokerFactoryABC, CeleryBackgroundInvokerFactory, context
+        context.register_impl(
+            BackgroundInvokerFactoryABC, CeleryBackgroundInvokerFactory
         )
 
         from servey.servey_celery.celery_config.celery_config_abc import CeleryConfigABC
@@ -333,15 +345,16 @@ def configure_celery(context: MarshallerContext):
         )
         from servey.servey_celery.celery_config.websocket_config import WebsocketConfig
 
-        register_impl(CeleryConfigABC, FixedRateTriggerConfig, context)
-        register_impl(CeleryConfigABC, BackgroundInvokerConfig, context)
-        register_impl(CeleryConfigABC, WebsocketConfig, context)
+        context.register_impls(
+            CeleryConfigABC,
+            [FixedRateTriggerConfig, BackgroundInvokerConfig, WebsocketConfig],
+        )
 
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
 
 
-def configure_jinja2(context: MarshallerContext):
+def configure_jinja2(context: InjectyContext):
     try:
         # We import Template to test that jinja2 is actually present
         # pylint: disable=W0611
@@ -354,7 +367,7 @@ def configure_jinja2(context: MarshallerContext):
         raise_non_ignored(e)
 
 
-def configure_web_page_action_endpoint_factory(context: MarshallerContext):
+def configure_web_page_action_endpoint_factory(context: InjectyContext):
     try:
         from servey.servey_starlette.action_endpoint.factory.action_endpoint_factory_abc import (
             ActionEndpointFactoryABC,
@@ -363,12 +376,12 @@ def configure_web_page_action_endpoint_factory(context: MarshallerContext):
             WebPageActionEndpointFactory,
         )
 
-        register_impl(ActionEndpointFactoryABC, WebPageActionEndpointFactory, context)
+        context.register_impl(ActionEndpointFactoryABC, WebPageActionEndpointFactory)
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
 
 
-def configure_web_page_event_handler(context: MarshallerContext):
+def configure_web_page_event_handler(context: InjectyContext):
     try:
         from servey.servey_aws.event_handler.event_handler_abc import (
             EventHandlerFactoryABC,
@@ -377,12 +390,12 @@ def configure_web_page_event_handler(context: MarshallerContext):
             WebPageEventHandlerFactory,
         )
 
-        register_impl(EventHandlerFactoryABC, WebPageEventHandlerFactory, context)
+        context.register_impl(EventHandlerFactoryABC, WebPageEventHandlerFactory)
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
 
 
-def configure_web_page_trigger_handler(context: MarshallerContext):
+def configure_web_page_trigger_handler(context: InjectyContext):
     try:
         from servey.servey_aws.serverless.trigger_handler.trigger_handler_abc import (
             TriggerHandlerABC,
@@ -391,7 +404,7 @@ def configure_web_page_trigger_handler(context: MarshallerContext):
             WebPageTriggerHandler,
         )
 
-        register_impl(TriggerHandlerABC, WebPageTriggerHandler, context)
+        context.register_impl(TriggerHandlerABC, WebPageTriggerHandler)
     except ModuleNotFoundError as e:
         raise_non_ignored(e)
 

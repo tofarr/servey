@@ -5,8 +5,7 @@ from dataclasses import field, dataclass
 from email.utils import parsedate_to_datetime
 from typing import Optional, Awaitable
 
-from marshy import get_default_context, ExternalType
-from marshy.marshaller_context import MarshallerContext
+from marshy import ExternalType, get_default_marshy_context, MarshyContext
 from marshy.types import ExternalItemType
 from marshy.utils import resolve_forward_refs
 from schemey import get_default_schema_context, SchemaContext
@@ -101,7 +100,7 @@ class ApiGatewayEventHandler(EventHandler):
 
 @dataclass
 class ApiGatewayEventHandlerFactory(EventHandlerFactoryABC):
-    marshaller_context: MarshallerContext = field(default_factory=get_default_context)
+    marshaller_context: MarshyContext = field(default_factory=get_default_marshy_context)
     schema_context: SchemaContext = field(default_factory=get_default_schema_context)
     auth_kwarg_name: Optional[str] = None
     authorizer: Optional[AuthorizerABC] = None

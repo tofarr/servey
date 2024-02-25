@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Type
 
-from marshy.factory.impl_marshaller_factory import get_impls
+from injecty import get_impls
 from schemey import schema_from_type, Schema
 
 from servey.errors import ServeyError

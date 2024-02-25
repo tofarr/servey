@@ -4,7 +4,7 @@ from typing import Type, Dict, List, Set
 
 import strawberry
 import typing_inspect
-from marshy.factory.impl_marshaller_factory import get_impls
+from injecty import get_impls
 from marshy.factory.optional_marshaller_factory import get_optional_type
 from strawberry.annotation import StrawberryAnnotation
 

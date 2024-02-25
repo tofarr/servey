@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from marshy.factory.impl_marshaller_factory import get_impls
+from injecty import get_impls
 
 from servey.security.authorization import Authorization
 

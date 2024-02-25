@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Any
 
 import boto3
-from marshy import get_default_context
+from marshy import get_default_marshy_context
 from marshy.marshaller.marshaller_abc import MarshallerABC
 
 from servey.action.action import Action
@@ -57,6 +57,6 @@ class SqsBackgroundInvokerFactory(BackgroundInvokerFactoryABC):
         event_type = params[0].annotation
         return SqsSBackgroundInvoker(
             action=action,
-            event_marshaller=get_default_context().get_marshaller(event_type),
+            event_marshaller=get_default_marshy_context().get_marshaller(event_type),
             queue_name=service_name + "-" + name,
         )

@@ -4,7 +4,7 @@ from io import StringIO
 from pathlib import Path
 from typing import List, Optional, Callable, Set
 
-from marshy.factory.impl_marshaller_factory import get_impls
+from injecty import get_impls
 from marshy.types import ExternalItemType
 from ruamel.yaml import YAML
 

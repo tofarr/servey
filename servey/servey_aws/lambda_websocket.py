@@ -6,7 +6,7 @@ from typing import Optional
 
 import boto3
 from boto3.dynamodb.conditions import Key
-from marshy import get_default_context
+from marshy import get_default_marshy_context
 from marshy.types import ExternalItemType, ExternalType
 
 from servey.event_channel.websocket.websocket_event_channel import WebsocketEventChannel
@@ -19,7 +19,7 @@ _LOGGER.setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO)
 _DYNAMODB_TABLE = boto3.resource("dynamodb").Table(os.environ["CONNECTION_TABLE_NAME"])
 _CHANNELS = list(find_event_channels_by_type(WebsocketEventChannel))
-_AUTH_MARSHALLER = get_default_context().get_marshaller(Optional[Authorization])
+_AUTH_MARSHALLER = get_default_marshy_context().get_marshaller(Optional[Authorization])
 _AUTHORIZER = get_default_authorizer()
 
 

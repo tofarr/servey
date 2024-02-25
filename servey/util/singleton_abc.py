@@ -1,4 +1,5 @@
 from abc import ABC
+from dataclasses import dataclass
 
 from marshy import ExternalType
 from marshy.marshaller.marshaller_abc import MarshallerABC, T
@@ -24,7 +25,10 @@ class SingletonABC(ABC):
         return SingletonMarshaller(cls)
 
 
+@dataclass
 class SingletonMarshaller(MarshallerABC[T]):
+    marshalled_type: T
+
     def load(self, item: ExternalType) -> T:
         return self.marshalled_type()
 

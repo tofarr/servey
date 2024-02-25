@@ -55,10 +55,10 @@ setuptools.setup(
     install_requires=[
         "cryptography~=37.0",
         "json-urley~=1.0",
-        "marshy~=4.0",
+        "marshy~=5.0",
         "pyjwt~=2.4",
         "python-dateutil~=2.8",
-        "schemey~=6.0",
+        "schemey~=7.0",
     ],
     extras_require=extras_require,
     setup_requires=["setuptools-git-versioning"],

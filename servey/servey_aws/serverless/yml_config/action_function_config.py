@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass, field
 
-from marshy.factory.impl_marshaller_factory import get_impls
+from injecty import get_impls
 from marshy.types import ExternalItemType
 from schemey.util import filter_none
 

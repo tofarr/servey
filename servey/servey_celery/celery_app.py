@@ -25,8 +25,8 @@ Example:
 import logging
 import os
 from celery import Celery
+from injecty import get_impls
 
-from marshy.factory.impl_marshaller_factory import get_impls
 from servey.servey_celery.celery_config.celery_config_abc import CeleryConfigABC
 
 # Setup app and tasks...
