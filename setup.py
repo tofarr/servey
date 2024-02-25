@@ -54,6 +54,7 @@ setuptools.setup(
     include_package_data=True,
     install_requires=[
         "cryptography~=37.0",
+        "injecty~=0.0",
         "json-urley~=1.0",
         "marshy~=5.0",
         "pyjwt~=2.4",
