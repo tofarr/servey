@@ -2,7 +2,7 @@ import inspect
 from dataclasses import dataclass
 from typing import Union, Callable, Optional
 
-from marshy.factory.impl_marshaller_factory import get_impls
+from injecty import get_impls
 
 from servey.action.action import Action, get_action
 from servey.errors import ServeyError

@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch, call
 
-from marshy.marshaller import NoOpMarshaller
+from marshy.marshaller.no_op_marshaller import NoOpMarshaller
 from schemey.schema import str_schema
 
 from servey.event_channel.webhook_event_channel import WebhookEventChannel
@@ -10,7 +10,7 @@ from servey.event_channel.webhook_event_channel import WebhookEventChannel
 class TestWebhookEventChannel(TestCase):
     def test_publish(self):
         channel = WebhookEventChannel(
-            "foobar", "https://foobar.com", NoOpMarshaller(str), str_schema()
+            "foobar", "https://foobar.com", NoOpMarshaller(), str_schema()
         )
         mock = MagicMock()
         with patch("servey.event_channel.webhook_event_channel.requests", mock):

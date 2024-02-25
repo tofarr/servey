@@ -6,11 +6,12 @@ Usage:
 `python -m servey.servey_direct --action=say_hello "--event_channel={\"name\": \"Foobar\"}"`
 
 """
+
 import argparse
 import inspect
 import json
 
-from marshy import get_default_context
+from marshy import get_default_marshy_context
 
 from servey.action.util import get_marshaller_for_params
 from servey.finder.action_finder_abc import find_actions
@@ -31,7 +32,7 @@ def main():
     result = action.fn(**kwargs)
     return_annotation = inspect.signature(action.fn).return_annotation
     if return_annotation != inspect.Parameter.empty:
-        result = get_default_context().dump(result, return_annotation)
+        result = get_default_marshy_context().dump(result, return_annotation)
         result_str = json.dumps(result)
         print(result_str)
 

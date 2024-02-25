@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 from typing import Iterator, Type, Tuple, TypeVar
 
-from marshy.factory.impl_marshaller_factory import get_impls
+from injecty import get_impls
 
 from servey.action.action import Action
 

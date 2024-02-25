@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from marshy.marshaller import DatetimeMarshaller
+from marshy.marshaller.datetime_marshaller import DatetimeMarshaller
 
 from servey.cache_control.cache_header import CacheHeader
 from servey.cache_control.timestamp_cache_control import TimestampCacheControl

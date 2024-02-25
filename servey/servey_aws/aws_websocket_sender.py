@@ -5,7 +5,7 @@ from typing import Optional, Any, Dict
 
 import boto3
 from boto3.dynamodb.conditions import Key
-from marshy import get_default_context
+from marshy import get_default_marshy_context
 from marshy.marshaller.marshaller_abc import MarshallerABC
 from schemey import Schema
 
@@ -32,7 +32,7 @@ class AWSWebsocketSender(WebsocketSenderABC[T]):
     )
     apis_by_endpoint_url: Dict[str, Any] = field(default_factory=dict)
     authorization_marshaller: MarshallerABC[Authorization] = field(
-        default_factory=lambda: get_default_context().get_marshaller(
+        default_factory=lambda: get_default_marshy_context().get_marshaller(
             Optional[Authorization]
         )
     )
@@ -83,8 +83,9 @@ class AWSWebsocketSenderFactory(WebsocketSenderFactoryABC):
     ) -> Optional[WebsocketSenderABC]:
         if not is_lambda_env():
             return
+        # noinspection PyTypeChecker
         return AWSWebsocketSender(
-            event_marshaller=get_default_context().get_marshaller(
+            event_marshaller=get_default_marshy_context().get_marshaller(
                 event_schema.python_type
             ),
             event_filter=event_filter,

@@ -4,8 +4,6 @@ import mimetypes
 from dataclasses import field, dataclass
 from typing import Optional, Awaitable, Dict
 
-from marshy import get_default_context
-from marshy.marshaller_context import MarshallerContext
 from marshy.types import ExternalItemType
 from schemey import get_default_schema_context, SchemaContext
 
@@ -68,7 +66,6 @@ class WebPageEventHandler(ApiGatewayEventHandler):
 
 @dataclass
 class WebPageEventHandlerFactory(EventHandlerFactoryABC):
-    marshaller_context: MarshallerContext = field(default_factory=get_default_context)
     schema_context: SchemaContext = field(default_factory=get_default_schema_context)
     auth_kwarg_name: Optional[str] = None
     authorizer: Optional[AuthorizerABC] = None
@@ -83,13 +80,15 @@ class WebPageEventHandlerFactory(EventHandlerFactoryABC):
             return
 
         fn, auth_kwarg_name = separate_auth_kwarg(action.fn)
-        param_marshaller = get_marshaller_for_params(fn, set(), self.marshaller_context)
+        param_marshaller = get_marshaller_for_params(
+            fn, set(), self.schema_context.marshy_context
+        )
         result_marshaller = None
         param_schema = get_schema_for_params(fn, set(), self.schema_context)
         result_schema = None
         sig = inspect.signature(fn)
         if sig.return_annotation != inspect.Signature.empty:
-            result_marshaller = self.marshaller_context.get_marshaller(
+            result_marshaller = self.schema_context.marshy_context.get_marshaller(
                 sig.return_annotation
             )
             if self.validate_output:

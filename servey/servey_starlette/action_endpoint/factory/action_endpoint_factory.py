@@ -2,8 +2,7 @@ import inspect
 from dataclasses import field, dataclass
 from typing import List, Optional, Set
 
-from marshy import get_default_context
-from marshy.marshaller_context import MarshallerContext
+from marshy import MarshyContext, get_default_marshy_context
 from schemey import get_default_schema_context, SchemaContext
 
 from servey.action.action import Action
@@ -22,7 +21,9 @@ from servey.trigger.web_trigger import WebTrigger
 @dataclass
 class ActionEndpointFactory(ActionEndpointFactoryABC):
     priority: int = 100
-    marshaller_context: MarshallerContext = field(default_factory=get_default_context)
+    marshaller_context: MarshyContext = field(
+        default_factory=get_default_marshy_context
+    )
     schema_context: SchemaContext = field(default_factory=get_default_schema_context)
     validate_output: bool = True
     path_pattern: str = "/actions/{action_name}"
@@ -61,8 +62,10 @@ class ActionEndpointFactory(ActionEndpointFactoryABC):
                     action.fn, skip_args, self.schema_context
                 ),
                 result_marshaller=self.marshaller_context.get_marshaller(result_type),
-                result_schema=self.schema_context.schema_from_type(result_type)
-                if self.validate_output
-                else None,
+                result_schema=(
+                    self.schema_context.schema_from_type(result_type)
+                    if self.validate_output
+                    else None
+                ),
             )
             return endpoint

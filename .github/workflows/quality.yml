@@ -27,7 +27,7 @@ jobs:
       - name: Install pytest code coverage
         run: python -m pip install ".[all]"
       - name: testcoverage
-        run: python -m pytest -n auto --cov-report=term-missing --cov=tests --cov=marshy_config_servey --cov=servey --cov-fail-under=97
+        run: python -m pytest -n auto --cov-report=term-missing --cov=tests --cov=injecty_config_servey --cov=servey --cov-fail-under=97
 
   pylint:
     runs-on: ubuntu-latest
@@ -40,4 +40,4 @@ jobs:
       - name: Install pylint
         run: python -m pip install ".[all]"
       - name: lint
-        run: pylint marshy_config_servey servey
+        run: pylint injecty_config_servey servey

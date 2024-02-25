@@ -162,7 +162,7 @@ class TestAuthorizingActionEndpoint(TestCase):
                 (WebTriggerMethod.GET,),
                 get_marshaller_for_params(foo, set()),
                 get_schema_for_params(foo, set()),
-                marshy.get_default_context().get_marshaller(int),
+                marshy.get_default_marshy_context().get_marshaller(int),
                 schema_from_type(int),
             ),
             None,

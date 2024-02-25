@@ -1,6 +1,6 @@
 import logging
 
-from marshy.factory.impl_marshaller_factory import get_impls
+from injecty import get_impls
 from starlette.applications import Starlette
 
 from servey.servey_starlette.middleware.middleware_factory_abc import (

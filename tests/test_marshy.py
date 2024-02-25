@@ -1,9 +1,9 @@
 from unittest import TestCase
 from unittest.mock import patch
 
-from marshy.marshaller_context import MarshallerContext
+from injecty import InjectyContext
 
-from marshy_config_servey import (
+from injecty_config_servey import (
     configure_starlette,
     configure_strawberry,
     configure_strawberry_starlette,
@@ -19,55 +19,75 @@ from marshy_config_servey import (
 
 class TestMarshy(TestCase):
     def test_configure_starlette(self):
-        with patch("marshy_config_servey.register_impl", _mock_register_impl):
+        with patch(
+            "injecty.injecty_context.InjectyContext.register_impl", _mock_register_impl
+        ):
             with self.assertRaises(ModuleNotFoundError):
-                configure_starlette(MarshallerContext())
+                configure_starlette(InjectyContext())
 
     def test_configure_strawberry(self):
-        with patch("marshy_config_servey.register_impl", _mock_register_impl):
+        with patch(
+            "injecty.injecty_context.InjectyContext.register_impl", _mock_register_impl
+        ):
             with self.assertRaises(ModuleNotFoundError):
-                configure_strawberry(MarshallerContext())
+                configure_strawberry(InjectyContext())
 
     def test_configure_strawberry_starlette(self):
-        with patch("marshy_config_servey.register_impl", _mock_register_impl):
+        with patch(
+            "injecty.injecty_context.InjectyContext.register_impl", _mock_register_impl
+        ):
             with self.assertRaises(ModuleNotFoundError):
-                configure_strawberry_starlette(MarshallerContext())
+                configure_strawberry_starlette(InjectyContext())
 
     def test_configure_aws(self):
-        with patch("marshy_config_servey.register_impl", _mock_register_impl):
+        with patch(
+            "injecty.injecty_context.InjectyContext.register_impl", _mock_register_impl
+        ):
             with self.assertRaises(ModuleNotFoundError):
-                configure_aws(MarshallerContext())
+                configure_aws(InjectyContext())
 
     def test_configure_serverless(self):
-        with patch("marshy_config_servey.register_impl", _mock_register_impl):
+        with patch(
+            "injecty.injecty_context.InjectyContext.register_impl", _mock_register_impl
+        ):
             with self.assertRaises(ModuleNotFoundError):
-                configure_serverless(MarshallerContext())
+                configure_serverless(InjectyContext())
 
     def test_configure_celery(self):
-        with patch("marshy_config_servey.register_impl", _mock_register_impl):
+        with patch(
+            "injecty.injecty_context.InjectyContext.register_impl", _mock_register_impl
+        ):
             with self.assertRaises(ModuleNotFoundError):
-                configure_celery(MarshallerContext())
+                configure_celery(InjectyContext())
 
     def test_configure_jinja2(self):
-        with patch("marshy_config_servey.register_impl", _mock_register_impl):
+        with patch(
+            "injecty.injecty_context.InjectyContext.register_impl", _mock_register_impl
+        ):
             with self.assertRaises(ModuleNotFoundError):
-                configure_jinja2(MarshallerContext())
+                configure_jinja2(InjectyContext())
 
     def test_configure_web_page_action_endpoint_factory(self):
-        with patch("marshy_config_servey.register_impl", _mock_register_impl):
+        with patch(
+            "injecty.injecty_context.InjectyContext.register_impl", _mock_register_impl
+        ):
             with self.assertRaises(ModuleNotFoundError):
-                configure_web_page_action_endpoint_factory(MarshallerContext())
+                configure_web_page_action_endpoint_factory(InjectyContext())
 
     def test_configure_web_page_event_handler(self):
-        with patch("marshy_config_servey.register_impl", _mock_register_impl):
+        with patch(
+            "injecty.injecty_context.InjectyContext.register_impl", _mock_register_impl
+        ):
             with self.assertRaises(ModuleNotFoundError):
-                configure_web_page_event_handler(MarshallerContext())
+                configure_web_page_event_handler(InjectyContext())
 
     def test_configure_web_page_trigger_handler(self):
-        with patch("marshy_config_servey.register_impl", _mock_register_impl):
+        with patch(
+            "injecty.injecty_context.InjectyContext.register_impl", _mock_register_impl
+        ):
             with self.assertRaises(ModuleNotFoundError):
-                configure_web_page_trigger_handler(MarshallerContext())
+                configure_web_page_trigger_handler(InjectyContext())
 
 
-def _mock_register_impl(base, impl, context=None):
+def _mock_register_impl(self, base, impl, check_type: bool = True):
     raise ModuleNotFoundError()

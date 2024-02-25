@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 from typing import Iterator, TypeVar, Type
 
-from marshy.factory.impl_marshaller_factory import get_impls
+from injecty import get_impls
 
 from servey.event_channel.event_channel_abc import EventChannelABC
 

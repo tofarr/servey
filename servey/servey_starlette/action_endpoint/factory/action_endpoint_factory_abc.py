@@ -22,7 +22,7 @@ class ActionEndpointFactoryABC(ABC):
 
 
 def create_endpoint_factories() -> List[ActionEndpointFactoryABC]:
-    from marshy.factory.impl_marshaller_factory import get_impls
+    from injecty import get_impls
 
     factories = [f() for f in get_impls(ActionEndpointFactoryABC)]
     factories.sort(key=lambda f: f.priority, reverse=True)
