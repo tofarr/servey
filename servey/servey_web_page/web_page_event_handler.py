@@ -80,7 +80,9 @@ class WebPageEventHandlerFactory(EventHandlerFactoryABC):
             return
 
         fn, auth_kwarg_name = separate_auth_kwarg(action.fn)
-        param_marshaller = get_marshaller_for_params(fn, set(), self.schema_context.marshy_context)
+        param_marshaller = get_marshaller_for_params(
+            fn, set(), self.schema_context.marshy_context
+        )
         result_marshaller = None
         param_schema = get_schema_for_params(fn, set(), self.schema_context)
         result_schema = None

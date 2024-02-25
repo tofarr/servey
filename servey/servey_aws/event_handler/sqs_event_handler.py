@@ -44,7 +44,9 @@ class SqsEventHandler(EventHandlerABC):
 
 @dataclass
 class SqsEventHandlerFactory(EventHandlerFactoryABC):
-    marshaller_context: MarshyContext = field(default_factory=get_default_marshy_context)
+    marshaller_context: MarshyContext = field(
+        default_factory=get_default_marshy_context
+    )
     schema_context: SchemaContext = field(default_factory=get_default_schema_context)
     priority: int = 100
 

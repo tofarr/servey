@@ -101,7 +101,9 @@ class EventHandler(EventHandlerABC):
 
 @dataclass
 class EventHandlerFactory(EventHandlerFactoryABC):
-    marshaller_context: MarshyContext = field(default_factory=get_default_marshy_context)
+    marshaller_context: MarshyContext = field(
+        default_factory=get_default_marshy_context
+    )
     schema_context: SchemaContext = field(default_factory=get_default_schema_context)
     validate_output: bool = True
     allow_unsigned_auth: bool = True

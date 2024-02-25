@@ -100,7 +100,9 @@ class ApiGatewayEventHandler(EventHandler):
 
 @dataclass
 class ApiGatewayEventHandlerFactory(EventHandlerFactoryABC):
-    marshaller_context: MarshyContext = field(default_factory=get_default_marshy_context)
+    marshaller_context: MarshyContext = field(
+        default_factory=get_default_marshy_context
+    )
     schema_context: SchemaContext = field(default_factory=get_default_schema_context)
     auth_kwarg_name: Optional[str] = None
     authorizer: Optional[AuthorizerABC] = None

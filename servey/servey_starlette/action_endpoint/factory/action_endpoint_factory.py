@@ -21,7 +21,9 @@ from servey.trigger.web_trigger import WebTrigger
 @dataclass
 class ActionEndpointFactory(ActionEndpointFactoryABC):
     priority: int = 100
-    marshaller_context: MarshyContext = field(default_factory=get_default_marshy_context)
+    marshaller_context: MarshyContext = field(
+        default_factory=get_default_marshy_context
+    )
     schema_context: SchemaContext = field(default_factory=get_default_schema_context)
     validate_output: bool = True
     path_pattern: str = "/actions/{action_name}"
