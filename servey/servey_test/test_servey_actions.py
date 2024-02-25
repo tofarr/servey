@@ -1,6 +1,7 @@
 """
 Standard test mechanism for actions
 """
+
 import inspect
 from unittest import TestCase
 
@@ -29,8 +30,8 @@ def define_test_class():
     for action in find_actions():
         for example in action.examples or []:
             if example.include_in_tests:
-                test_methods[
-                    "test_" + action.name + "__" + example.name
-                ] = _define_action_example_test(action, example)
+                test_methods["test_" + action.name + "__" + example.name] = (
+                    _define_action_example_test(action, example)
+                )
     test_class = type("TestServeyActions", (TestCase,), test_methods)
     return test_class

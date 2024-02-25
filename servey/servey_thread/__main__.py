@@ -3,6 +3,7 @@ App for case where servey is run in local schedule mode. Scheduled events are ru
 threads (As opposed to Celery).
 Run this with `python -m servey.servey_thread`
 """
+
 import logging
 import os
 

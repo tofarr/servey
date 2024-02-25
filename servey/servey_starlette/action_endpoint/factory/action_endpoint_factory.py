@@ -62,8 +62,10 @@ class ActionEndpointFactory(ActionEndpointFactoryABC):
                     action.fn, skip_args, self.schema_context
                 ),
                 result_marshaller=self.marshaller_context.get_marshaller(result_type),
-                result_schema=self.schema_context.schema_from_type(result_type)
-                if self.validate_output
-                else None,
+                result_schema=(
+                    self.schema_context.schema_from_type(result_type)
+                    if self.validate_output
+                    else None
+                ),
             )
             return endpoint

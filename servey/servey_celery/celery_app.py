@@ -22,6 +22,7 @@ Example:
     Log output for scheduled tasks should appear in the output for the worker.
 
 """
+
 import logging
 import os
 from celery import Celery

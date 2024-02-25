@@ -21,12 +21,16 @@ class CacheHeader:
             {
                 "ETag": self.etag,
                 "Cache-Control": self.get_cache_control_str(),
-                "Last-Modified": None
-                if self.updated_at is None
-                else formatdate(self.updated_at.timestamp(), usegmt=True),
-                "Expires": None
-                if self.expire_at is None
-                else formatdate(self.expire_at.timestamp(), usegmt=True),
+                "Last-Modified": (
+                    None
+                    if self.updated_at is None
+                    else formatdate(self.updated_at.timestamp(), usegmt=True)
+                ),
+                "Expires": (
+                    None
+                    if self.expire_at is None
+                    else formatdate(self.expire_at.timestamp(), usegmt=True)
+                ),
             }
         )
 

@@ -60,9 +60,9 @@ class ActionFunctionConfig(YmlConfigABC):
                 lambda_definition = lambda_definitions[action.name] = filter_none(
                     {
                         "handler": "servey.servey_aws.lambda_invoker.invoke",
-                        "description": action.description.strip()
-                        if action.description
-                        else None,
+                        "description": (
+                            action.description.strip() if action.description else None
+                        ),
                         "timeout": action.timeout,
                         "environment": {
                             "SERVEY_ACTION_MODULE": action.fn.__module__,
