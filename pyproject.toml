@@ -88,7 +88,10 @@ exclude = ["tests*", "servey_main*", "static_site", "examples"]
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "_version.py"
+version-file = "servey/_version.py"
+
+[tool.black]
+extend-exclude = "_version.py"
 
 [dependency-groups]
 dev = [
