@@ -29,6 +29,7 @@ class DataclassFactory(EntityFactoryABC):
         if not is_dataclass(annotation):
             return
         # noinspection PyTypeChecker
+        # pylint: disable=unexpected-keyword-arg
         schema_factory.types[annotation.__name__] = SchemaFactoryLazyType(
             type_name=annotation.__name__, module="", schema_factory=schema_factory
         )
@@ -63,6 +64,7 @@ class DataclassFactory(EntityFactoryABC):
         if input_:
             return input_
         # noinspection PyTypeChecker
+        # pylint: disable=unexpected-keyword-arg
         schema_factory.inputs[name] = SchemaFactoryLazyInput(
             type_name=name, module="", schema_factory=schema_factory
         )

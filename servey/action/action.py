@@ -31,7 +31,7 @@ class Action:
     batch_invoker: Optional[BatchInvoker] = None
 
 
-# pylint: disable=R0913
+# pylint: disable=R0913,R0917
 def action(
     fn: Optional[Callable] = None,
     access_control: AccessControlABC = Action.access_control,
