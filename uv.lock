@@ -1466,6 +1466,7 @@ web-page = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "black" },
     { name = "hatch-vcs" },
     { name = "hatchling" },
 ]
@@ -1517,6 +1518,7 @@ provides-extras = ["dev", "server", "scheduler", "serverless", "web-page", "all"
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "black", specifier = ">=25.11.0" },
     { name = "hatch-vcs", specifier = ">=0.5.0" },
     { name = "hatchling", specifier = ">=1.28.0" },
 ]
