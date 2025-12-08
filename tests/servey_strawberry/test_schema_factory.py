@@ -9,8 +9,8 @@ import strawberry
 from strawberry.annotation import StrawberryAnnotation
 
 # noinspection PyProtectedMember
-from strawberry.field import UNRESOLVED
-from strawberry.type import StrawberryOptional
+from strawberry.types.field import UNRESOLVED
+from strawberry.types.base import StrawberryOptional
 
 from servey.action.action import action, get_action, Action
 from servey.action.batch_invoker import BatchInvoker

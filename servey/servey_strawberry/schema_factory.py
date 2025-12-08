@@ -9,8 +9,8 @@ from marshy.factory.optional_marshaller_factory import get_optional_type
 from strawberry.annotation import StrawberryAnnotation
 
 # noinspection PyProtectedMember
-from strawberry.field import StrawberryField, UNRESOLVED
-from strawberry.type import StrawberryOptional, StrawberryContainer
+from strawberry.types.field import StrawberryField, UNRESOLVED
+from strawberry.types.base import StrawberryOptional, StrawberryContainer
 from strawberry.types.fields.resolver import StrawberryResolver
 
 from servey.action.action import Action
