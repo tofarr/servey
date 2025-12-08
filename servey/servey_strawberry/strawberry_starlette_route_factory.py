@@ -35,7 +35,7 @@ class StrawberryStarletteRouteFactory(RouteFactoryABC):
             schema = create_schema()
             if not schema:
                 return
-            graphql_app = GraphQL(schema, debug=self.server_debug)
+            graphql_app = GraphQL(schema, graphiql=self.server_debug)
             yield Route(path=self.graphql_path, methods=["post"], endpoint=graphql_app)
             yield WebSocketRoute(path=self.graphql_path, endpoint=graphql_app)
             if self.server_debug:
