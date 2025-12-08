@@ -441,6 +441,7 @@ disable=raw-checker-failed,
         W0718, # Saying, "If anything goes wrong, then do this, is a perfectly sane set of directions."
         W1514, # Platform specific encoding is fine
         R0801, # Duplicate checking is a bit off
+        E0401, # Import errors for optional dependencies
 
 
 # Enable the message, report, category or checker with the given id(s). You can

@@ -34,7 +34,7 @@ class WebsocketEventChannelEndpoint(WebSocketEndpoint):
         websocket.path_params["connection_id"] = connection.connection_id
         get_connections_by_id()[connection.connection_id] = connection
 
-    async def on_disconnect(self, websocket: WebSocket, close_code: int) -> None:
+    async def on_disconnect(self, websocket: WebSocket, _close_code: int) -> None:
         connection_id = websocket.path_params["connection_id"]
         # noinspection PyArgumentList
         LOGGER.debug("disconnect:{connection_id}", connection_id=connection_id)
