@@ -18,6 +18,7 @@ def configure(context: InjectyContext):
     )
 
     context.register_impl(MarshallerABC, ToSecondDatetimeMarshaller)
+    configure_schemey(context)
     configure_finders(context)
     configure_asyncio_invoker(context)
     configure_auth(context)
@@ -28,6 +29,80 @@ def configure(context: InjectyContext):
     configure_strawberry_starlette(context)
     configure_celery(context)
     configure_jinja2(context)
+
+
+def configure_schemey(context: InjectyContext):
+    """Configure schemey schema factories for dependency injection."""
+    from schemey.factory.schema_factory_abc import SchemaFactoryABC
+    from schemey.factory.dataclass_schema_factory import DataclassSchemaFactory
+    from schemey.factory.enum_schema_factory import EnumSchemaFactory
+    from schemey.factory.simple_type_factory import SimpleTypeFactory
+    from schemey.factory.array_schema_factory import ArraySchemaFactory
+    from schemey.factory.tuple_schema_factory import TupleSchemaFactory
+    from schemey.factory.datetime_factory import DatetimeFactory
+    from schemey.factory.uuid_factory import UuidFactory
+    from schemey.factory.external_type_factory import ExternalTypeFactory
+    from schemey.factory.any_of_schema_factory import AnyOfSchemaFactory
+    from schemey.factory.ref_schema_factory import RefSchemaFactory
+    from schemey.factory.impl_schema_factory import ImplSchemaFactory
+    from schemey.factory.factory_schema_factory import FactorySchemaFactory
+
+    # Create a custom factory class for simple types that can be instantiated without arguments
+    class StrSchemaFactory(SimpleTypeFactory):
+        def __init__(self):
+            super().__init__(str, "string")
+
+    class IntSchemaFactory(SimpleTypeFactory):
+        def __init__(self):
+            super().__init__(int, "integer")
+
+    class FloatSchemaFactory(SimpleTypeFactory):
+        def __init__(self):
+            super().__init__(float, "number")
+
+    class BoolSchemaFactory(SimpleTypeFactory):
+        def __init__(self):
+            super().__init__(bool, "boolean")
+
+    class NoneSchemaFactory(SimpleTypeFactory):
+        def __init__(self):
+            super().__init__(type(None), "null")
+
+    # Register schema factory classes
+    factory_classes = [
+        StrSchemaFactory,
+        IntSchemaFactory,
+        FloatSchemaFactory,
+        BoolSchemaFactory,
+        NoneSchemaFactory,
+        ExternalTypeFactory,
+        ArraySchemaFactory,
+        TupleSchemaFactory,
+        DataclassSchemaFactory,
+        EnumSchemaFactory,
+        DatetimeFactory,
+        UuidFactory,
+        AnyOfSchemaFactory,
+        RefSchemaFactory,
+        ImplSchemaFactory,
+        FactorySchemaFactory,
+    ]
+
+    for factory_class in factory_classes:
+        context.register_impl(SchemaFactoryABC, factory_class)
+
+    # Register schema validators
+    from schemey.json_schema.schema_validator_abc import SchemaValidatorABC
+    from schemey.json_schema.ranges_validator import RangesValidator
+    from schemey.json_schema.timestamp_validator import TimestampValidator
+
+    validator_classes = [
+        RangesValidator,
+        TimestampValidator,
+    ]
+
+    for validator_class in validator_classes:
+        context.register_impl(SchemaValidatorABC, validator_class)
 
 
 def configure_finders(context: InjectyContext):
