@@ -20,7 +20,7 @@ class StrawberryStarletteRouteFactory(RouteFactoryABC):
     graphql_path: str = field(
         default_factory=lambda: os.environ.get("SERVEY_GRAPHQL_PATH") or "/graphql"
     )
-    debug: bool = field(
+    server_debug: bool = field(
         default_factory=lambda: int(os.environ.get("SERVER_DEBUG", "1")) == 1
     )
 
@@ -35,10 +35,10 @@ class StrawberryStarletteRouteFactory(RouteFactoryABC):
             schema = create_schema()
             if not schema:
                 return
-            graphql_app = GraphQL(schema, debug=self.debug)
+            graphql_app = GraphQL(schema, debug=self.server_debug)
             yield Route(path=self.graphql_path, methods=["post"], endpoint=graphql_app)
             yield WebSocketRoute(path=self.graphql_path, endpoint=graphql_app)
-            if self.debug:
+            if self.server_debug:
                 # add as template route
                 yield Mount(
                     "/graphiql",
