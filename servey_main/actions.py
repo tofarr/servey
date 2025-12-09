@@ -29,7 +29,7 @@ def current_time() -> datetime:
 @action(
     triggers=(WEB_GET,),
     examples=(
-        Example(name="usage", result=dict(scope=["root"]), include_in_tests=False),
+        Example(name="usage", result={"scope": ["root"]}, include_in_tests=False),
     ),
 )
 def current_user_info(
@@ -55,7 +55,7 @@ def auth_token(username: str, password: str) -> Optional[str]:
 
 @action(
     triggers=(WEB_GET,),
-    examples=(Example(name="world", params=dict(name="World"), result="Hello World!"),),
+    examples=(Example(name="world", params={"name": "World"}, result="Hello World!"),),
 )
 def say_hello(name: str) -> str:
     """
@@ -149,7 +149,7 @@ def get_node_by_name(name: str = "") -> Optional[Node]:
 # noinspection PyUnusedLocal
 @action(triggers=(WEB_POST,))
 def put_root(node: Node) -> bool:
-    global _ROOT
+    global _ROOT  # pylint: disable=global-statement
     _ROOT = node
     return True
 

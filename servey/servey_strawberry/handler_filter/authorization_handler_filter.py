@@ -23,7 +23,9 @@ class AuthorizationHandlerFilter(HandlerFilterABC):
     priority: int = 120
     authorizer: AuthorizerABC = field(default_factory=get_default_authorizer)
     # What to name the authorization parameter if none exists.
-    info_kwarg_name: str = "info"  # NOTE: It seems that strawberry reserves the name: Info for this parameter
+    info_kwarg_name: str = (
+        "info"  # NOTE: It seems that strawberry reserves the name: Info for this parameter
+    )
 
     def filter(
         self,

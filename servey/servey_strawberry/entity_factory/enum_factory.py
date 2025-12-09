@@ -22,9 +22,9 @@ class EnumFactory(EntityFactoryABC):
             strawberry_enum = schema_factory.enums.get(annotation.__name__)
             if not strawberry_enum:
                 # noinspection PyTypeChecker
-                strawberry_enum = schema_factory.enums[
-                    annotation.__name__
-                ] = strawberry.enum(annotation)
+                strawberry_enum = schema_factory.enums[annotation.__name__] = (
+                    strawberry.enum(annotation)
+                )
             return strawberry_enum
 
     def create_input(
