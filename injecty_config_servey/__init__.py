@@ -82,6 +82,7 @@ def _import_schema_factories():
 
 def _create_simple_type_factories(SimpleTypeFactory):
     """Create custom factory classes for simple types."""
+
     class StrSchemaFactory(SimpleTypeFactory):
         def __init__(self):
             super().__init__(str, "string")
@@ -102,7 +103,13 @@ def _create_simple_type_factories(SimpleTypeFactory):
         def __init__(self):
             super().__init__(type(None), "null")
 
-    return [StrSchemaFactory, IntSchemaFactory, FloatSchemaFactory, BoolSchemaFactory, NoneSchemaFactory]
+    return [
+        StrSchemaFactory,
+        IntSchemaFactory,
+        FloatSchemaFactory,
+        BoolSchemaFactory,
+        NoneSchemaFactory,
+    ]
 
 
 def _configure_schema_validators(context: InjectyContext):
