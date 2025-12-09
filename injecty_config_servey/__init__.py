@@ -33,10 +33,28 @@ def configure(context: InjectyContext):
 
 def configure_schemey(context: InjectyContext):
     """Configure schemey schema factories for dependency injection."""
+    _configure_schema_factories(context)
+    _configure_schema_validators(context)
+
+
+def _configure_schema_factories(context: InjectyContext):
+    """Configure schema factory implementations."""
     from schemey.factory.schema_factory_abc import SchemaFactoryABC
+    from schemey.factory.simple_type_factory import SimpleTypeFactory
+
+    # Get all factory classes
+    simple_type_factories = _create_simple_type_factories(SimpleTypeFactory)
+    imported_factories = _import_schema_factories()
+    factory_classes = simple_type_factories + imported_factories
+
+    for factory_class in factory_classes:
+        context.register_impl(SchemaFactoryABC, factory_class)
+
+
+def _import_schema_factories():
+    """Import and return all schema factory classes."""
     from schemey.factory.dataclass_schema_factory import DataclassSchemaFactory
     from schemey.factory.enum_schema_factory import EnumSchemaFactory
-    from schemey.factory.simple_type_factory import SimpleTypeFactory
     from schemey.factory.array_schema_factory import ArraySchemaFactory
     from schemey.factory.tuple_schema_factory import TupleSchemaFactory
     from schemey.factory.datetime_factory import DatetimeFactory
@@ -47,7 +65,23 @@ def configure_schemey(context: InjectyContext):
     from schemey.factory.impl_schema_factory import ImplSchemaFactory
     from schemey.factory.factory_schema_factory import FactorySchemaFactory
 
-    # Create a custom factory class for simple types that can be instantiated without arguments
+    return [
+        ExternalTypeFactory,
+        ArraySchemaFactory,
+        TupleSchemaFactory,
+        DataclassSchemaFactory,
+        EnumSchemaFactory,
+        DatetimeFactory,
+        UuidFactory,
+        AnyOfSchemaFactory,
+        RefSchemaFactory,
+        ImplSchemaFactory,
+        FactorySchemaFactory,
+    ]
+
+
+def _create_simple_type_factories(SimpleTypeFactory):
+    """Create custom factory classes for simple types."""
     class StrSchemaFactory(SimpleTypeFactory):
         def __init__(self):
             super().__init__(str, "string")
@@ -68,39 +102,16 @@ def configure_schemey(context: InjectyContext):
         def __init__(self):
             super().__init__(type(None), "null")
 
-    # Register schema factory classes
-    factory_classes = [
-        StrSchemaFactory,
-        IntSchemaFactory,
-        FloatSchemaFactory,
-        BoolSchemaFactory,
-        NoneSchemaFactory,
-        ExternalTypeFactory,
-        ArraySchemaFactory,
-        TupleSchemaFactory,
-        DataclassSchemaFactory,
-        EnumSchemaFactory,
-        DatetimeFactory,
-        UuidFactory,
-        AnyOfSchemaFactory,
-        RefSchemaFactory,
-        ImplSchemaFactory,
-        FactorySchemaFactory,
-    ]
+    return [StrSchemaFactory, IntSchemaFactory, FloatSchemaFactory, BoolSchemaFactory, NoneSchemaFactory]
 
-    for factory_class in factory_classes:
-        context.register_impl(SchemaFactoryABC, factory_class)
 
-    # Register schema validators
+def _configure_schema_validators(context: InjectyContext):
+    """Configure schema validator implementations."""
     from schemey.json_schema.schema_validator_abc import SchemaValidatorABC
     from schemey.json_schema.ranges_validator import RangesValidator
     from schemey.json_schema.timestamp_validator import TimestampValidator
 
-    validator_classes = [
-        RangesValidator,
-        TimestampValidator,
-    ]
-
+    validator_classes = [RangesValidator, TimestampValidator]
     for validator_class in validator_classes:
         context.register_impl(SchemaValidatorABC, validator_class)
 

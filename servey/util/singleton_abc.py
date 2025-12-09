@@ -29,8 +29,8 @@ class SingletonABC(ABC):
 class SingletonMarshaller(MarshallerABC[T]):
     marshalled_type: T
 
-    def load(self, item: ExternalType) -> T:
+    def load(self, _item: ExternalType) -> T:
         return self.marshalled_type()
 
-    def dump(self, item: T) -> ExternalType:
+    def dump(self, _item: T) -> ExternalType:
         return self.marshalled_type.__name__
